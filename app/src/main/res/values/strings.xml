@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">CollegeCarpool</string>
+    <string name="enter_your_password_hint">Enter Password</string>
+    <string name="enter_your_email_hint">Enter E-mail</string>
+    <string name="btn_reset_password">RESET PASSWORD</string>
+    <string name="btn_back">BACK</string>
+</resources>
