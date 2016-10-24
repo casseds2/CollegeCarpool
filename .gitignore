@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 *.iml
 .gradle
 /local.properties
@@ -7,3 +8,15 @@
 /build
 /captures
 .externalNativeBuild
+=======
+# Add files names (and patterns) you want git to ignore here.
+
+# Ignore java .class files.
+*.java
+
+# Ignore compiled C/C++ files.
+*.o
+
+# Ignore everything in the build directory.
+build/
+>>>>>>> 4e4b0dc5af4e211b7999fcfa2d97e98f4779d539
