@@ -18,7 +18,10 @@
             </intent-filter>
         </activity>
         <activity android:name=".SignupActivity" />
-        <activity android:name=".ForgotPasswordActivity"></activity>
+        <activity android:name=".ForgotPasswordActivity" />
+        <activity android:name=".PassengerDecision" />
+        <activity android:name=".DriverActivity" />
+        <activity android:name=".PassengerActivity"></activity>
     </application>
 
 </manifest>
