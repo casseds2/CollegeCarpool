@@ -3,5 +3,5 @@
     <color name="colorPrimary">#3F51B5</color>
     <color name="colorPrimaryDark">#303F9F</color>
     <color name="colorAccent">#FF4081</color>
-    <color name="loginBackground">#FFFF6E</color>
+    <color name="WritingAndBorder">#FF9500</color>
 </resources>

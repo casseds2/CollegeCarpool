@@ -4,54 +4,79 @@
     android:id="@+id/activity_main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:paddingBottom="10dp"
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
-    android:paddingTop="@dimen/activity_vertical_margin"
+    android:paddingTop="50dp"
     android:orientation="vertical"
-    android:background="@color/loginBackground"
-    tools:context="com.example.collegecarpool.MainActivity">
+    android:background="#FFFF"
+    tools:context="com.example.collegecarpool.SigninActivity">
 
     <EditText
         android:id="@+id/email"
         android:padding="@dimen/activity_vertical_margin"
-        android:background="@color/common_google_signin_btn_text_dark_default"
-        android:fontFamily="casual"
+        android:background="@drawable/inputboxes"
+
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="@string/enter_your_email_hint" />
 
+    <View
+        android:layout_width="0dp"
+        android:layout_height="15dp" />
+
     <EditText
         android:id="@+id/password"
         android:padding="@dimen/activity_vertical_margin"
-        android:background="@color/common_google_signin_btn_text_dark_default"
-        android:fontFamily="casual"
+        android:background="@drawable/inputboxes"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="@string/enter_your_password_hint" />
 
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:id="@+id/buttons_form"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:paddingTop="100dp"
+        android:orientation="vertical"
+        android:background="#FFFF"
+        tools:context="com.example.collegecarpool.SigninActivity"
+        android:weightSum="1">
     <Button
         android:layout_gravity="center"
         android:id="@+id/signin"
         android:text="Sign-In"
         android:padding="@dimen/activity_vertical_margin"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        android:background="@drawable/buttons"/>
+
+        <View
+            android:layout_width="0dp"
+            android:layout_height="15dp" />
 
     <Button
         android:id="@+id/signup"
         android:text="Sign-Up"
         android:padding="@dimen/activity_vertical_margin"
         android:layout_gravity="center"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/buttons"/>
+
+        <View
+            android:layout_width="0dp"
+            android:layout_height="15dp" />
 
     <Button
         android:id="@+id/forgot"
         android:text="Forgot Password"
-        android:padding="@dimen/activity_vertical_margin"
+        android:padding="16dp"
         android:layout_gravity="center"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/buttons" />
+    </LinearLayout>
 
 </LinearLayout>
