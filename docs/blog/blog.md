@@ -21,7 +21,7 @@ of the device but since there was no previous location on the emulator, it retur
 coordibates. I have the 'Toat' system printing out messages to the screen that alert me that the API client
 and teh Google Play service are created and reachable respectively.
 
-#My Third Blog Entry
+## My Third Blog Entry
 It was clear to me that my code had to be refactored. The Main Activity (HomeScreenActivity) was a mess. I had been
 incorporating the fused location service into it. This made my code very hard to read. I began reserching ways to refactor the Location 
 Service. This lead me to find that a good way of doing it was as a service. The service could be started as an intent and mainly
