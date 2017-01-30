@@ -1,6 +1,5 @@
-package com.example.collegecarpool;
+package test.collegecarpool.alpha;
 
-import android.app.ProgressDialog;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -8,6 +7,7 @@ import android.text.TextUtils;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -17,56 +17,64 @@ import com.google.firebase.auth.FirebaseAuth;
 public class ForgotPasswordActivity extends AppCompatActivity {
 
     private EditText inputEmail;
-    private Button btnReset, btnBack;
+    private Button resetButton, backButton;
+    private ProgressBar progressBar;
+
     private FirebaseAuth auth;
-    private ProgressDialog progressDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_forgot_password);
 
-        /**Define UI Elements**/
-        inputEmail = (EditText)findViewById(R.id.email);
-        btnReset = (Button)findViewById(R.id.btn_reset_password);
-        btnBack = (Button)findViewById(R.id.back);
-        progressDialog = new ProgressDialog(this);
+        inputEmail = (EditText) findViewById(R.id.email);
+        resetButton = (Button) findViewById(R.id.btn_forgotPassword);
+        progressBar = (ProgressBar) findViewById(R.id.progressBar);
+        backButton = (Button) findViewById(R.id.btn_back);
 
         auth = FirebaseAuth.getInstance();
 
-        btnBack.setOnClickListener(new View.OnClickListener(){
+        backButton.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View view){
+            public void onClick(View v) {
+                //startActivity(new Intent(ForgotPasswordActivity.this, SigninActivity.class));
                 finish();
             }
         });
 
-        btnReset.setOnClickListener(new View.OnClickListener(){
+        resetButton.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View view){
+            public void onClick(View v) {
                 String email = inputEmail.getText().toString().trim();
+
                 if(TextUtils.isEmpty(email)){
-                    Toast.makeText(getApplication(), "Enter your registered email!", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getApplicationContext(), "Enter Registered Email", Toast.LENGTH_SHORT).show();
                     return;
                 }
 
-                progressDialog.setMessage("Fun registration in background at work...");
-                progressDialog.show();
+                progressBar.setVisibility(View.VISIBLE);
 
                 auth.sendPasswordResetEmail(email)
                         .addOnCompleteListener(new OnCompleteListener<Void>() {
                             @Override
                             public void onComplete(@NonNull Task<Void> task) {
                                 if(task.isSuccessful()){
-                                    Toast.makeText(ForgotPasswordActivity.this, "Sent reset email to your account", Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(ForgotPasswordActivity.this, "Email has been sent", Toast.LENGTH_SHORT).show();
                                 }
                                 else{
-                                    Toast.makeText(ForgotPasswordActivity.this, "Failed to send reset email", Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(ForgotPasswordActivity.this, "Failed to Send Email", Toast.LENGTH_SHORT).show();
                                 }
-                                progressDialog.dismiss();
+
+                                progressBar.setVisibility(View.GONE);
                             }
                         });
             }
         });
+    }
+
+    public void onStop(){
+        super.onStop();
+        backButton.setOnClickListener(null);
+        resetButton.setOnClickListener(null);
     }
 }

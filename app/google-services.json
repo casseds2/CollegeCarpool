@@ -1,27 +1,27 @@
 {
   "project_info": {
-    "project_number": "630046171977",
-    "firebase_url": "https://collegecarpool-alpha.firebaseio.com",
-    "project_id": "collegecarpool-alpha",
-    "storage_bucket": "collegecarpool-alpha.appspot.com"
+    "project_number": "1005050635291",
+    "firebase_url": "https://fypc-844db.firebaseio.com",
+    "project_id": "fypc-844db",
+    "storage_bucket": "fypc-844db.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:630046171977:android:ba13ab37d2f5f312",
+        "mobilesdk_app_id": "1:1005050635291:android:1fab95e0f8e3c165",
         "android_client_info": {
-          "package_name": "com.example.collegecarpool"
+          "package_name": "test.collegecarpool.alpha"
         }
       },
       "oauth_client": [
         {
-          "client_id": "630046171977-ukvu4s5v0kumd53dnvlqp32nuo8h9l7v.apps.googleusercontent.com",
+          "client_id": "1005050635291-mem5cc24rdkmeaihtjg6u061p4cmq7d2.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyBchbPBrPeGdZkxomo3TjmSHBv1jzVpYs8"
+          "current_key": "AIzaSyAIoS47V5RCf6YAyo6tphpT9xTDUo2tRU4"
         }
       ],
       "services": {

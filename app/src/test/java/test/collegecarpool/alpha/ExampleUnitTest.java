@@ -1,4 +1,4 @@
-package com.example.collegecarpool;
+package test.collegecarpool.alpha;
 
 import org.junit.Test;
 

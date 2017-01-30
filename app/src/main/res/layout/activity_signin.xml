@@ -1,82 +1,83 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/activity_main"
+    android:id="@+id/activity_signup"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:paddingBottom="10dp"
+    android:paddingBottom="@dimen/activity_vertical_margin"
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
-    android:paddingTop="50dp"
-    android:orientation="vertical"
-    android:background="#FFFF"
-    tools:context="com.example.collegecarpool.SigninActivity">
+    android:paddingTop="@dimen/activity_vertical_margin"
+    tools:context="test.collegecarpool.alpha.SignupActivity"
+    android:background="@color/bg_main">
 
-    <EditText
-        android:id="@+id/email"
-        android:padding="@dimen/activity_vertical_margin"
-        android:background="@drawable/inputboxes"
-
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="@string/enter_your_email_hint" />
-
-    <View
-        android:layout_width="0dp"
-        android:layout_height="15dp" />
-
-    <EditText
-        android:id="@+id/password"
-        android:padding="@dimen/activity_vertical_margin"
-        android:background="@drawable/inputboxes"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="@string/enter_your_password_hint" />
-
-    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:tools="http://schemas.android.com/tools"
-        android:id="@+id/buttons_form"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:paddingTop="100dp"
-        android:orientation="vertical"
-        android:background="#FFFF"
-        tools:context="com.example.collegecarpool.SigninActivity"
-        android:weightSum="1">
-    <Button
-        android:layout_gravity="center"
-        android:id="@+id/signin"
-        android:text="Sign-In"
-        android:padding="@dimen/activity_vertical_margin"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@drawable/buttons"/>
+        android:background="@color/orange_drop"
+        android:paddingBottom="5dp"
+        android:paddingLeft="5dp"
+        android:paddingRight="5dp"
+        android:paddingTop="5dp">
 
-        <View
-            android:layout_width="0dp"
-            android:layout_height="15dp" />
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@color/bg_main"
+            android:padding="10dp"
+            android:paddingBottom="10dp">
 
-    <Button
-        android:id="@+id/signup"
-        android:text="Sign-Up"
-        android:padding="@dimen/activity_vertical_margin"
-        android:layout_gravity="center"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@drawable/buttons"/>
+            <EditText
+                android:id="@+id/email"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:maxLines="1"
+                android:inputType="text"
+                android:hint="@string/email"
+                android:textColorHint="@color/white"
+                android:textColor="@color/white"/>
 
-        <View
-            android:layout_width="0dp"
-            android:layout_height="15dp" />
+            <EditText
+                android:id="@+id/password"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:maxLines="1"
+                android:inputType="text"
+                android:hint="@string/hint_password"
+                android:textColorHint="@color/white"
+                android:textColor="@color/white"/>
 
-    <Button
-        android:id="@+id/forgot"
-        android:text="Forgot Password"
-        android:padding="16dp"
-        android:layout_gravity="center"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@drawable/buttons" />
+            <Button
+                android:id="@+id/btn_login"
+                android:hint="@string/btn_login"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:textSize="@dimen/button_text_size"/>
+            <Button
+                android:id="@+id/btn_Signup"
+                android:hint="@string/btn_sign_up"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:textSize="@dimen/button_text_size"/>
+            <Button
+                android:id="@+id/btn_forgotPassword"
+                android:hint="@string/btn_forgot_password"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:textSize="@dimen/button_text_size"/>
+
+            <ProgressBar
+                android:id="@+id/progressBar"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:layout_gravity="center|bottom"
+                android:visibility="gone"/>
+
+        </LinearLayout>
+
     </LinearLayout>
 
 </LinearLayout>
+

@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:background="#FFFF"
-    android:orientation="vertical"
     android:id="@+id/activity_signup"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -10,32 +9,110 @@
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
-    tools:context="com.example.collegecarpool.SignupActivity">
+    tools:context="test.collegecarpool.alpha.SignupActivity"
+    android:background="@color/bg_main">
 
-    <EditText
-        android:id="@+id/editTextEmail"
-        android:padding="@dimen/activity_vertical_margin"
-        android:background="@color/common_google_signin_btn_text_dark_default"
-        android:fontFamily="casual"
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="@string/enter_your_password_hint" />
+        android:layout_height="match_parent"
+        android:background="@color/orange_drop"
+        android:paddingBottom="5dp"
+        android:paddingLeft="5dp"
+        android:paddingRight="5dp"
+        android:paddingTop="5dp">
 
-    <EditText
-        android:id="@+id/editTextPassword"
-        android:padding="@dimen/activity_vertical_margin"
-        android:background="@color/common_google_signin_btn_text_dark_default"
-        android:fontFamily="casual"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="@string/enter_your_email_hint" />
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@color/bg_main"
+            android:padding="10dp"
+            android:paddingBottom="10dp">
 
-    <Button
-        android:id="@+id/signup"
-        android:text="Sign-Up"
-        android:padding="@dimen/activity_vertical_margin"
-        android:layout_gravity="center"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+            <EditText
+                android:id="@+id/first_name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:maxLines="1"
+                android:inputType="text"
+                android:hint="@string/hint_firstName"
+                android:textColorHint="@color/white"
+                android:textColor="@color/white"/>
+
+            <EditText
+                android:id="@+id/second_name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:maxLines="1"
+                android:inputType="text"
+                android:hint="@string/hint_secondName"
+                android:textColorHint="@color/white"
+                android:textColor="@color/white"/>
+
+            <EditText
+                android:id="@+id/address"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:maxLines="2"
+                android:inputType="text"
+                android:hint="@string/hint_address"
+                android:textColorHint="@color/white"
+                android:textColor="@color/white"/>
+
+            <EditText
+                android:id="@+id/date_of_birth"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:maxLines="1"
+                android:inputType="text"
+                android:hint="@string/hint_dateOfBirth"
+                android:textColorHint="@color/white"
+                android:textColor="@color/white"/>
+
+            <EditText
+                android:id="@+id/email"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:maxLines="1"
+                android:inputType="text"
+                android:hint="@string/email"
+                android:textColorHint="@color/white"
+                android:textColor="@color/white"/>
+
+
+            <EditText
+                android:id="@+id/password"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:maxLines="1"
+                android:inputType="text"
+                android:hint="@string/hint_password"
+                android:textColorHint="@color/white"
+                android:textColor="@color/white"/>
+
+            <Button
+                android:id="@+id/btn_Signup"
+                android:hint="@string/btn_sign_up"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:textSize="@dimen/button_text_size"/>
+
+            <Button
+                android:id="@+id/btn_back"
+                android:hint="@string/btn_back"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:textSize="@dimen/button_text_size"/>
+
+            <ProgressBar
+                android:id="@+id/progressBar"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:layout_gravity="center|bottom"
+                android:visibility="gone"/>
+
+        </LinearLayout>
+
+    </LinearLayout>
 
 </LinearLayout>

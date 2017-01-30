@@ -1,4 +1,4 @@
-package com.example.collegecarpool;
+package test.collegecarpool.alpha;
 
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;
@@ -21,6 +21,6 @@ public class ExampleInstrumentedTest {
         // Context of the app under test.
         Context appContext = InstrumentationRegistry.getTargetContext();
 
-        assertEquals("com.example.collegecarpool", appContext.getPackageName());
+        assertEquals("test.collegecarpool.alpha", appContext.getPackageName());
     }
 }

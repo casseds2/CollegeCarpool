@@ -1,7 +1,25 @@
 <resources>
-    <string name="app_name">CollegeCarpool</string>
-    <string name="enter_your_password_hint">Enter Password</string>
-    <string name="enter_your_email_hint">Enter E-mail</string>
-    <string name="btn_reset_password">RESET PASSWORD</string>
-    <string name="btn_back">BACK</string>
+    <string name="app_name">Alpha</string>
+    <string name="email">Email</string>
+    <string name="minimum_password">Password too short, enter minimum 6 characters!</string>
+    <string name="auth_failed">Authentication failed, check your email and password or sign up</string>
+    <string name="send_password_reset_email">Send Password reset email</string>
+    <string name="hint_email">Email</string>
+    <string name="hint_password">Password</string>
+    <string name="btn_login">Login</string>
+    <string name="title_activity_reset_password">ResetPasswordActivity</string>
+    <string name="btn_forgot_password">Forgot your password?</string>
+    <string name="btn_reset_password">Reset Password</string>
+    <string name="btn_back"><![CDATA[<< Back]]></string>
+    <string name="btn_send">Send</string>
+    <string name="btn_remove">Remove</string>
+    <string name="btn_sign_out">Sign Out</string>
+    <string name="lbl_forgot_password">Forgot password?</string>
+    <string name="btn_sign_up">Sign Up</string>
+    <string name="hint_firstName">First Name</string>
+    <string name="hint_secondName">Second Name</string>
+    <string name="hint_address">Address</string>
+    <string name="hint_dateOfBirth">dd/mm/yy</string>
+    <string name="title_activity_home_screen">Map</string>
+    <string name="title_activity_maps">Map</string>
 </resources>
