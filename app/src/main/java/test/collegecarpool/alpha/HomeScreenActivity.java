@@ -97,20 +97,24 @@ public class HomeScreenActivity extends FragmentActivity implements OnMapReadyCa
     @Override
     protected void onStart() {
         super.onStart();
+        BackgroundLocationIntentService.continueThread = true;
     }
 
     @Override
     protected void onStop() {
         super.onStop();
+        BackgroundLocationIntentService.continueThread = false; //Will kill the location thread
     }
 
     @Override
     protected void onResume() {
         super.onResume();
+        BackgroundLocationIntentService.pauseThread = false;
     }
 
     @Override
     protected void onPause() {
         super.onPause();
+        BackgroundLocationIntentService.pauseThread = true;
     }
 }

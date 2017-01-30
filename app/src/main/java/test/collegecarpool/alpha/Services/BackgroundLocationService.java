@@ -2,7 +2,6 @@ package test.collegecarpool.alpha.Services;
 
 import android.Manifest;
 import android.app.Service;
-import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
@@ -44,7 +43,7 @@ public class BackgroundLocationService extends Service implements GoogleApiClien
     private DatabaseReference userRef;
 
     private final class ServiceHandler extends Handler {
-        public ServiceHandler(Looper looper) {
+        ServiceHandler(Looper looper) {
             super(looper);
         }
     }

@@ -11,6 +11,7 @@ import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
+import android.util.Log;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -35,6 +36,11 @@ public class BackgroundLocationIntentService extends IntentService implements Go
     private FirebaseAuth auth;
     private DatabaseReference userRef;
 
+    public static boolean continueThread; //http://stackoverflow.com/questions/11258083/how-to-force-an-intentservice-to-stop-immediately-with-a-cancel-button-from-an-a
+    public static boolean pauseThread;
+
+    private static final String TAG = "LocationIntentService";
+
     public BackgroundLocationIntentService(String name) {
         super(name);
     }
@@ -49,7 +55,6 @@ public class BackgroundLocationIntentService extends IntentService implements Go
         }
         userRef = FirebaseDatabase.getInstance().getReference("UserProfile");
         auth = FirebaseAuth.getInstance();
-
     }
 
     public BackgroundLocationIntentService(){
@@ -93,7 +98,12 @@ public class BackgroundLocationIntentService extends IntentService implements Go
 
     @Override
     public void onConnected(@Nullable Bundle bundle) {
-        requestLocationUpdates();
+        try {
+            requestLocationUpdates();
+        }
+        catch(InterruptedException e){
+            Log.d(TAG, "Error with location intent thread");
+        }
     }
 
     @Override
@@ -113,7 +123,7 @@ public class BackgroundLocationIntentService extends IntentService implements Go
         pushLocationToFirebase(latitude, longitude);
     }
 
-    private void requestLocationUpdates() {
+    private void requestLocationUpdates() throws InterruptedException {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             // TODO: Consider calling
             //    ActivityCompat#requestPermissions
@@ -125,6 +135,16 @@ public class BackgroundLocationIntentService extends IntentService implements Go
             return;
         }
         LocationServices.FusedLocationApi.requestLocationUpdates(googleApiClient, locationRequest, this);
+        if(!continueThread){
+            showToast("Thread Killed!");
+            stopSelf();
+        }
+        if(pauseThread){
+            while(pauseThread){
+                showToast("Thread Paused");
+                Thread.sleep(1000);
+            }
+        }
     }
 
     private void pushLocationToFirebase(double latitude, double longitude){
