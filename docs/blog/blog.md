@@ -21,4 +21,20 @@ of the device but since there was no previous location on the emulator, it retur
 coordibates. I have the 'Toat' system printing out messages to the screen that alert me that the API client
 and teh Google Play service are created and reachable respectively.
 
+#My Third Blog Entry
+It was clear to me that my code had to be refactored. The Main Activity (HomeScreenActivity) was a mess. I had been
+incorporating the fused location service into it. This made my code very hard to read. I began reserching ways to refactor the Location 
+Service. This lead me to find that a good way of doing it was as a service. The service could be started as an intent and mainly
+consisted of just removing the code from the HomeScreenActivity to a Service Class file. After alot of trial and error, I finally got
+the service working. It is defined inthe onCreate() method of the HomeScreenActivity. After doing this, I proceeded to set up
+a Firebase reference for the database so that longitudes and latitudes could be stored in UserProfile objects. I implemented a 
+pushLocationToFirebase() method for doing so. UserProfiles can be accessed by the unique user ID that the FirebaseAuth gives them.
+It is a simple process of updating the information in the current users profile. This update their location at a specified rate (every
+5 seconds in my case) in what is very nearly real-time. My aim is to be able to pull all of these locations for active users down into
+the Google Map that will be present on each users home screen. After establishing this service, further research led me to find another
+type of service called an IntentService. This will hopefuly do the same job as the normal service but with the added bonus that it is being
+executed on a different thread to the main thread. It will also end when the main thread ends as far as my understanding goes and it is
+generally used for long standing services that require no user interaction. Having it running on a separate thread will hpefully increase
+overall efficinecy. I'm currently working on switching the Service thread into an Intent Service thread.
+
 
