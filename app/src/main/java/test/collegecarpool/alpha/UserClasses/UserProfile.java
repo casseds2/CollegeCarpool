@@ -13,19 +13,15 @@ public class UserProfile {
 
     private String firstName;
     private String secondName;
-    private String dob;
-    private String address;
     public String email;
     private double latitude;
     private double longitude;
 
     public UserProfile(){}
 
-    public UserProfile(String firstName, String secondName, String dob, String address, String email, double latitude, double longitude) {
+    public UserProfile(String firstName, String secondName, String email, double latitude, double longitude) {
         this.firstName = firstName;
         this.secondName = secondName;
-        this.dob = dob;
-        this.address = address;
         this.email = email;
         this.latitude = latitude;
         this.longitude = longitude;
@@ -36,8 +32,6 @@ public class UserProfile {
         HashMap<String, Object> info = new HashMap<>();
         info.put("firstName", firstName);
         info.put("secondName", secondName);
-        info.put("dateOfBirth", dob);
-        info.put("address", address);
         info.put("email", email);
         info.put("latitude", latitude);
         info.put("longitude", longitude);

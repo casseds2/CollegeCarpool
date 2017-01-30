@@ -100,7 +100,8 @@ public class BackgroundLocationService extends Service implements GoogleApiClien
 
     @Override
     public void onDestroy() {
-        Toast.makeText(this, "service done", Toast.LENGTH_SHORT).show();
+        stopSelf();
+        showToast("ServiceStopped");
     }
 
     public boolean checkGooglePlayServicesAvailable() {

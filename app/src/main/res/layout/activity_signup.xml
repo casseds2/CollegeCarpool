@@ -50,26 +50,6 @@
                 android:textColor="@color/white"/>
 
             <EditText
-                android:id="@+id/address"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:maxLines="2"
-                android:inputType="text"
-                android:hint="@string/hint_address"
-                android:textColorHint="@color/white"
-                android:textColor="@color/white"/>
-
-            <EditText
-                android:id="@+id/date_of_birth"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:maxLines="1"
-                android:inputType="text"
-                android:hint="@string/hint_dateOfBirth"
-                android:textColorHint="@color/white"
-                android:textColor="@color/white"/>
-
-            <EditText
                 android:id="@+id/email"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

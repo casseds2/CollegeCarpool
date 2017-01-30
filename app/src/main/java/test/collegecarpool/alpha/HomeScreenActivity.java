@@ -22,7 +22,7 @@ public class HomeScreenActivity extends FragmentActivity implements OnMapReadyCa
     private static final int MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 2;
     private static final int MAP_ZOOM = 10;
 
-    Intent serviceLocation;
+    //Intent serviceLocation;
     Intent intentServiceLocation;
 
 
@@ -34,11 +34,11 @@ public class HomeScreenActivity extends FragmentActivity implements OnMapReadyCa
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
-        //intentServiceLocation = new Intent(this, BackgroundLocationIntentService.class);
-        //startService(intentServiceLocation);
+        intentServiceLocation = new Intent(this, BackgroundLocationIntentService.class);
+        startService(intentServiceLocation);
 
-        serviceLocation = new Intent(this, BackgroundLocationService.class);
-        startService(serviceLocation);
+        //serviceLocation = new Intent(this, BackgroundLocationService.class);
+        //startService(serviceLocation);
 
         checkPermissions();
     }
