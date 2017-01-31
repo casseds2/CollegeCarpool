@@ -38,21 +38,19 @@ public class UserProfile {
         return info;
     }
 
-    public double getLongitudeFromUser(){
+    public double getLongitude(){
         return longitude;
     }
 
-    public double getLatitudeFromUser(){
+    public double getLatitude(){
         return latitude;
     }
 
-    public void setLongitudeForUser(double longitude){
-        this.longitude = longitude;
-    }
+    public String getFirstName(){ return this.firstName; }
 
-    public void setLatitudeForUser(double latitude){
-        this.latitude = latitude;
-    }
+    public String getSecondName(){ return this.secondName; }
 
-    public String getFirstNameFromUser(){ return this.firstName; }
+    public String getEmail(){
+        return this.email;
+    }
 }

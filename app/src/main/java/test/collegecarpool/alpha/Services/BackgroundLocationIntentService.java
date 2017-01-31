@@ -148,7 +148,7 @@ public class BackgroundLocationIntentService extends IntentService implements Go
     }
 
     private void pushLocationToFirebase(double latitude, double longitude){
-        userRef.child(auth.getCurrentUser().getUid()).child("longitudeFromUser").setValue(longitude);
-        userRef.child(auth.getCurrentUser().getUid()).child("latitudeFromUser").setValue(latitude);
+        userRef.child(auth.getCurrentUser().getUid()).child("longitude").setValue(longitude);
+        userRef.child(auth.getCurrentUser().getUid()).child("latitude").setValue(latitude);
     }
 }
