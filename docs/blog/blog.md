@@ -38,6 +38,7 @@ generally used for long standing services that require no user interaction. Havi
 overall efficinecy. I'm currently working on switching the Service thread into an Intent Service thread.
 
 ## My Fourth Blog
+![ScreenShot](https://raw.c.gitlab.computing.dcu.ie/Stephen Cassedy/2017-ca400-casseds2/master/docs/blog/images/FirebaseDataSnapshotInstructions)
 After hours attempting to understand the structure of the JSON database and why I was unable to retrieve the latitudes and longitudes I desired,
 the problem became apparent. I simply hadn't get methods for all of the variables in my UserProfile class as instructed in the Firebase DataSnapshot
 Manual. Getter methods had to be specifically named also for it to work. Real-time location between users on the map now shown. Location will only update when 
