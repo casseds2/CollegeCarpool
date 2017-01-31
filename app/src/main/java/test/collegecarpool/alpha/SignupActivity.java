@@ -21,11 +21,10 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
 import test.collegecarpool.alpha.UserClasses.UserProfile;
-import test.collegecarpool.alpha.UserLocations.UserLocation;
 
 public class SignupActivity extends AppCompatActivity {
 
-    private EditText inputEmail, inputPassword, inputAddress, inputDOB, inputFirstName, inputSecondName;
+    private EditText inputEmail, inputPassword, inputFirstName, inputSecondName;
     private Button btn_Signup, btn_back;
 
     private ProgressBar progressBar;
@@ -35,12 +34,8 @@ public class SignupActivity extends AppCompatActivity {
 
     private String email;
     private String password ;
-    private String address;
-    private String dob ;
     private String firstName;
     private String secondName;
-    private double latitude;
-    private double longtitude;
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -54,8 +49,6 @@ public class SignupActivity extends AppCompatActivity {
         btn_Signup = (Button) findViewById(R.id.btn_Signup);
         inputEmail = (EditText) findViewById(R.id.email);
         inputPassword = (EditText) findViewById(R.id.password);
-        inputAddress = (EditText) findViewById(R.id.address);
-        inputDOB = (EditText) findViewById(R.id.date_of_birth);
         progressBar = (ProgressBar) findViewById(R.id.progressBar);
         btn_back = (Button) findViewById(R.id.btn_back);
         inputFirstName = (EditText) findViewById(R.id.first_name);
@@ -69,8 +62,6 @@ public class SignupActivity extends AppCompatActivity {
                 /**Retrieve Text from Fields**/
                 email = inputEmail.getText().toString().trim();
                 password = inputPassword.getText().toString().trim();
-                address = inputAddress.getText().toString().trim();
-                dob = inputDOB.getText().toString().trim();
                 firstName = inputFirstName.getText().toString().trim();
                 secondName = inputSecondName.getText().toString().trim();
 
@@ -131,7 +122,9 @@ public class SignupActivity extends AppCompatActivity {
 
     /**Add the User to a Database**/
     private void saveUserProfile(){
-        UserProfile userProfile = new UserProfile(firstName, secondName, dob, address, email, latitude, longtitude);
+        double latitude = 0;
+        double longtitude = 0;
+        UserProfile userProfile = new UserProfile(firstName, secondName, email, latitude , longtitude);
         FirebaseUser user = auth.getCurrentUser();
         databaseReference.child(user.getUid()).setValue(userProfile);
         Toast.makeText(this, "Information Saved To Database", Toast.LENGTH_SHORT).show();
