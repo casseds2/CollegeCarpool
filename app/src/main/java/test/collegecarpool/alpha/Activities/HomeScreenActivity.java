@@ -12,6 +12,7 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
+import android.view.MenuItem;
 import android.widget.Toast;
 
 import com.google.android.gms.maps.GoogleMap;
@@ -47,24 +48,28 @@ public class HomeScreenActivity extends /*FragmentActivity,*/ AppCompatActivity 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home_screen);
-
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+        initDrawer();
+        intentServiceLocation = new Intent(this, BackgroundLocationIntentService.class);
+        startService(intentServiceLocation);
+        displayUserLocations();
+    }
 
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item){
+        if(actionBarDrawerToggle.onOptionsItemSelected(item)){
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    public void initDrawer(){
         drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         actionBarDrawerToggle = new ActionBarDrawerToggle(this, drawerLayout, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawerLayout.addDrawerListener(actionBarDrawerToggle);
         actionBarDrawerToggle.syncState();
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-
-
-        intentServiceLocation = new Intent(this, BackgroundLocationIntentService.class);
-        startService(intentServiceLocation);
-
-        //serviceLocation = new Intent(this, BackgroundLocationService.class);
-        //startService(serviceLocation);
-
-        displayUserLocations();
     }
 
     @Override
