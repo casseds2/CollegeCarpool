@@ -48,7 +48,7 @@ public class UserProfile {
 
     public String getFirstName(){ return this.firstName; }
 
-    public String getSecondNameFromUser(){ return this.secondName; }
+    public String getSecondName(){ return this.secondName; }
 
     public String getEmail(){
         return this.email;
