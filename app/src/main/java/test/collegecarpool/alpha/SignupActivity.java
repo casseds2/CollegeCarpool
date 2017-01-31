@@ -20,6 +20,8 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
+import java.util.HashMap;
+
 import test.collegecarpool.alpha.UserClasses.UserProfile;
 
 public class SignupActivity extends AppCompatActivity {
@@ -30,8 +32,7 @@ public class SignupActivity extends AppCompatActivity {
     private ProgressBar progressBar;
 
     private FirebaseAuth auth;
-    private DatabaseReference databaseReference;
-
+    private DatabaseReference userRef;
     private String email;
     private String password ;
     private String firstName;
@@ -43,7 +44,7 @@ public class SignupActivity extends AppCompatActivity {
 
         /**Get Firebase Instances**/
         auth = FirebaseAuth.getInstance();
-        databaseReference = FirebaseDatabase.getInstance().getReference("UserProfile");
+        userRef = FirebaseDatabase.getInstance().getReference("UserProfile");
 
         /**Define XML Elements**/
         btn_Signup = (Button) findViewById(R.id.btn_Signup);
@@ -89,7 +90,7 @@ public class SignupActivity extends AppCompatActivity {
                                 progressBar.setVisibility(View.GONE);
                                 if (!task.isSuccessful()) {
                                     try {
-                                        Toast.makeText(SignupActivity.this, "Error: " + task.getException(), Toast.LENGTH_SHORT).show();
+                                        Toast.makeText(SignupActivity.this, "Error Signing Up", Toast.LENGTH_SHORT).show();
                                     }
                                     catch(Exception e){
                                         Log.e("SignupActivity", "Failed to Create User");
@@ -123,10 +124,15 @@ public class SignupActivity extends AppCompatActivity {
     /**Add the User to a Database**/
     private void saveUserProfile(){
         double latitude = 0;
-        double longtitude = 0;
-        UserProfile userProfile = new UserProfile(firstName, secondName, email, latitude , longtitude);
+        double longitude = 0;
+        UserProfile userProfile = new UserProfile(firstName, secondName, email, latitude , longitude);
         FirebaseUser user = auth.getCurrentUser();
-        databaseReference.child(user.getUid()).setValue(userProfile);
+
+        HashMap<String, Object> children = new HashMap<>();
+        children.put(user.getUid(), userProfile.toMap());
+        userRef.updateChildren(children);
+
+        //userRef.child(user.getUid()).setValue(userProfile);
         Toast.makeText(this, "Information Saved To Database", Toast.LENGTH_SHORT).show();
     }
 

@@ -12,9 +12,17 @@ import android.widget.Toast;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import test.collegecarpool.alpha.Services.BackgroundLocationIntentService;
-import test.collegecarpool.alpha.Services.BackgroundLocationService;
+import test.collegecarpool.alpha.UserClasses.UserProfile;
 
 public class HomeScreenActivity extends FragmentActivity implements OnMapReadyCallback{
     private GoogleMap mMap;
@@ -67,6 +75,7 @@ public class HomeScreenActivity extends FragmentActivity implements OnMapReadyCa
         }
         mMap.setMyLocationEnabled(true);
         mMap.getUiSettings().setZoomControlsEnabled(true);
+        displayUserLocations();
     }
 
     private void checkPermissions() {
@@ -92,6 +101,30 @@ public class HomeScreenActivity extends FragmentActivity implements OnMapReadyCa
             // other 'case' lines to check for other
             // permissions this app might request
         }
+    }
+
+    public void displayUserLocations(){
+        final FirebaseAuth auth = FirebaseAuth.getInstance();
+        DatabaseReference userRef = FirebaseDatabase.getInstance().getReference("UserProfile");
+        userRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                Iterable <DataSnapshot> dataSnapshots = dataSnapshot.getChildren();
+                mMap.clear(); //Gives out if map not declared final
+                for(DataSnapshot dataSnapshot1 : dataSnapshots){
+                    UserProfile userProfile = dataSnapshot1.getValue(UserProfile.class);
+                    mMap.addMarker(new MarkerOptions().position(new LatLng(userProfile.getLatitude(), userProfile.getLongitude())).title(userProfile.getFirstName()));
+                    //Toast.makeText(getApplicationContext(), "LAT/LONG:" + String.valueOf(userProfile.getLatitude()) + userProfile.getLongitude(), Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+
+
     }
 
     @Override
