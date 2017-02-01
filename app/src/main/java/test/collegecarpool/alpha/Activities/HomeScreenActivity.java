@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
+import android.location.Location;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
@@ -54,7 +55,7 @@ public class HomeScreenActivity extends /*FragmentActivity,*/ AppCompatActivity 
 
     private static final int MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
 
-    Intent intentServiceLocation;
+    private Intent intentServiceLocation;
 
     private DrawerLayout drawerLayout;
     private ActionBarDrawerToggle actionBarDrawerToggle;
@@ -148,19 +149,14 @@ public class HomeScreenActivity extends /*FragmentActivity,*/ AppCompatActivity 
                 mMap.clear();
                 for(DataSnapshot dataSnapshot1 : dataSnapshots){
                     UserProfile userProfile = dataSnapshot1.getValue(UserProfile.class);
-                    /*
-                    if(userProfile.getEmail().equals(auth.getCurrentUser().getEmail())){
-                        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(userProfile.getLatitude(), userProfile.getLongitude()), 13));
-
+                    if(userProfile.getEmail().equals(firebaseUserAuth.getCurrentUser().getEmail())){
                         CameraPosition cameraPosition = new CameraPosition.Builder()
-                                .target(new LatLng(userProfile.getLatitude(), userProfile.getLongitude()))      // Sets the center of the map to location user
+                                .target(new LatLng(userProfile.getLatitude(), userProfile.getLongitude()))// Sets the center of the map to location user
                                 .zoom(12)                   // Sets the zoom
-                                //.bearing(90)                // Sets the orientation of the camera to east
                                 .tilt(40)                   // Sets the tilt of the camera to 30 degrees
                                 .build();                   // Creates a CameraPosition from the builder
-                        //mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+                        mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
                     }
-                    */
                     mMap.addMarker(new MarkerOptions().position(new LatLng(userProfile.getLatitude(), userProfile.getLongitude())).title(userProfile.getFirstName()));
                 }
             }

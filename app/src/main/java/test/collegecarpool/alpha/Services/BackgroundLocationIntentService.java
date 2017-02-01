@@ -99,8 +99,8 @@ public class BackgroundLocationIntentService extends IntentService implements Go
 
     public void setLocationRequestParams() {
         locationRequest = new LocationRequest();
-        locationRequest.setInterval(10 * 1000); //Once a Minute
-        locationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
+        locationRequest.setInterval(5 * 1000); //Once every 5 seconds
+        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
         locationRequest.setFastestInterval(15 * 1000); //Once every 15 Seconds
     }
 
