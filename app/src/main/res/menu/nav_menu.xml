@@ -2,15 +2,19 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
     <item android:id="@+id/nav_profile"
-    android:title="My Profile" />
+        android:title="My Profile"
+        android:icon="@mipmap/ic_account_circle_white_24dp"/>
 
     <item android:id="@+id/nav_messages"
-        android:title="Messages" />
+        android:title="Messages"
+        android:icon="@mipmap/ic_mail_white_24dp"/>
 
     <item android:id="@+id/nav_settings"
-        android:title="Settings" />
+        android:title="Settings"
+        android:icon="@mipmap/ic_settings_white_24dp"/>
 
     <item android:id="@+id/nav_logout"
-        android:title="Logout" />
+        android:title="Logout"
+        android:icon="@mipmap/ic_arrow_back_white_24dp"/>
 
 </menu>

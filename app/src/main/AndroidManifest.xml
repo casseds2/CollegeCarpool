@@ -23,14 +23,14 @@
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".Activities.SigninActivity">
+        <activity android:name=".Activities.HomeScreenActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".Activities.HomeScreenActivity" />
+        <activity android:name=".Activities.SigninActivity" />
         <activity android:name=".Activities.SignupActivity" />
         <activity android:name=".Activities.ForgotPasswordActivity" />
 
@@ -56,6 +56,9 @@
             android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version" />
 
+        <activity android:name=".Activities.ProfileActivity" />
+        <activity android:name=".Activities.MessageActivity" />
+        <activity android:name=".Activities.SettingsActivity"></activity>
     </application>
 
 </manifest>

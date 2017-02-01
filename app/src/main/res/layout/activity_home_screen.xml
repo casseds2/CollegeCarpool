@@ -19,8 +19,12 @@
         tools:context="test.collegecarpool.alpha.Activities.HomeScreenActivity" />
 
     <android.support.design.widget.NavigationView
+        android:id="@+id/nav_view"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
+        android:background="@color/bg_main"
+        app:itemTextColor="@color/white"
+        app:itemIconTint="@color/white"
         app:menu="@menu/nav_menu"
         android:layout_gravity="start">
     </android.support.design.widget.NavigationView>

@@ -2,6 +2,8 @@ package test.collegecarpool.alpha.Activities;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -10,6 +12,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -28,8 +31,7 @@ public class SigninActivity extends AppCompatActivity {
 
     private FirebaseAuth auth;
 
-    //SharedPreferences sharedPreferences = getSharedPreferences("LoginDetails", 0);
-    //SharedPreferences.Editor editor = sharedPreferences.edit();
+    SharedPreferences settings;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,14 +40,7 @@ public class SigninActivity extends AppCompatActivity {
 
         auth = FirebaseAuth.getInstance();
 
-        /*
-        if(sharedPreferences.getString("Email", null) != null){
-            inputEmail.setText(sharedPreferences.getString("Email", null));
-        }
-        if(sharedPreferences.getString("Password", null) != null){
-            inputPassword.setText(sharedPreferences.getString("Password", null));
-        }
-        */
+        settings = this.getSharedPreferences("Login", 0);
 
         inputEmail = (EditText) findViewById(R.id.email);
         inputPassword = (EditText) findViewById(R.id.password);
@@ -53,6 +48,15 @@ public class SigninActivity extends AppCompatActivity {
         btn_login = (Button) findViewById(R.id.btn_login);
         btn_forgot_password = (Button) findViewById(R.id.btn_forgotPassword);
         btn_signup = (Button) findViewById(R.id.btn_Signup);
+
+        getSupportActionBar().setBackgroundDrawable(new ColorDrawable(Color.BLACK));
+
+        if(returnSaved("Email") != null && returnSaved("Password") != null){
+            String savedEmail = returnSaved("Email");
+            String savedPassword = returnSaved("Password");
+            inputEmail.setText(savedEmail, TextView.BufferType.EDITABLE);
+            inputPassword.setText(savedPassword, TextView.BufferType.EDITABLE);
+        }
 
         btn_signup.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -101,8 +105,7 @@ public class SigninActivity extends AppCompatActivity {
                                 }
                             }
                             else{
-                                //editor.putString("Email", email);
-                                //editor.putString("Password", password);
+                                saveLogin(email, password);
                                 startActivity(new Intent(SigninActivity.this, HomeScreenActivity.class));
                                 finish();
                             }
@@ -112,13 +115,24 @@ public class SigninActivity extends AppCompatActivity {
         });
     }
 
+    private void saveLogin(String email, String password){
+        SharedPreferences.Editor editor = settings.edit();
+        editor.putString("Email", email);
+        editor.putString("Password", password);
+        editor.apply();
+    }
+
+    private String returnSaved(String key){
+        String saved = settings.getString(key, "");
+        return saved;
+    }
+
     public void onStart(){
         super.onStart();
+
     }
 
     public void onStop(){
         super.onStop();
-        btn_forgot_password.setOnClickListener(null);
-        btn_login.setOnClickListener(null);
     }
 }

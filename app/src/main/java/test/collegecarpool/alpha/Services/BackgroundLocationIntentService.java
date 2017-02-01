@@ -1,6 +1,7 @@
 package test.collegecarpool.alpha.Services;
 
 import android.Manifest;
+import android.app.Activity;
 import android.app.IntentService;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -17,9 +18,16 @@ import android.widget.Toast;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.PendingResult;
+import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.LocationSettingsRequest;
+import com.google.android.gms.location.LocationSettingsResult;
+import com.google.android.gms.location.LocationSettingsStates;
+import com.google.android.gms.location.LocationSettingsStatusCodes;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
@@ -47,7 +55,7 @@ public class BackgroundLocationIntentService extends IntentService implements Go
 
     @Override
     protected void onHandleIntent(Intent intent) {
-        showToast("Starting Background Location Intent Service");
+        //showToast("Starting Background Location Intent Service");
         if (checkGooglePlayServicesAvailable()) {
             buildGoogleClient();
             googleApiClient.connect();
@@ -91,8 +99,8 @@ public class BackgroundLocationIntentService extends IntentService implements Go
 
     public void setLocationRequestParams() {
         locationRequest = new LocationRequest();
-        locationRequest.setInterval(10 * 1000); //Once a Minute
-        locationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
+        locationRequest.setInterval(5 * 1000); //Once every 5 seconds
+        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
         locationRequest.setFastestInterval(15 * 1000); //Once every 15 Seconds
     }
 
@@ -125,13 +133,6 @@ public class BackgroundLocationIntentService extends IntentService implements Go
 
     private void requestLocationUpdates() throws InterruptedException {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
             return;
         }
         LocationServices.FusedLocationApi.requestLocationUpdates(googleApiClient, locationRequest, this);

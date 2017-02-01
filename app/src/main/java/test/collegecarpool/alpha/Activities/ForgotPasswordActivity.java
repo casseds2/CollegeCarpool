@@ -1,5 +1,7 @@
 package test.collegecarpool.alpha.Activities;
 
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -33,6 +35,8 @@ public class ForgotPasswordActivity extends AppCompatActivity {
         resetButton = (Button) findViewById(R.id.btn_forgotPassword);
         progressBar = (ProgressBar) findViewById(R.id.progressBar);
         backButton = (Button) findViewById(R.id.btn_back);
+
+        getSupportActionBar().setBackgroundDrawable(new ColorDrawable(Color.BLACK));
 
         auth = FirebaseAuth.getInstance();
 
