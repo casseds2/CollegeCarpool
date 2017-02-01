@@ -43,4 +43,11 @@ the problem became apparent. I simply hadn't get methods for all of the variable
 Manual.![ScreenShot](https://gitlab.computing.dcu.ie/casseds2/2017-ca400-casseds2/raw/displayAllUsersOnMap/docs/blog/images/FirebaseDataSnapshotInstructions.PNG) Getter methods had to be specifically named also for it to work. Real-time location between users on the map now shown. Location will only update when 
 the application is on obviously as the location updates based off of the BackgroundLocationIntentService.
 
+## My Fifth Blog
+I have implemented a basic navigation drawer in the top left of the screen. It will allow access to other activities such as Profile, Messaging and Logout. With this I have also
+enabled a logout function. If the user hits logout, their current Firebase Authentication will be stopped and they will be returned to the app SignIn screen. Also took
+care of some bugs in the login function with moving between screens. Plan to add boolean to monitor whether user has app open which will only broadcast their location if
+they have chosen to. Basic structure for broadcasting will be that everyone can see someone who is broadcasting their position but if you are not broadcasting, you will not be placed 
+on the map.
+
 
