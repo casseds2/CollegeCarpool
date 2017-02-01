@@ -2,6 +2,8 @@ package test.collegecarpool.alpha.Activities;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -47,13 +49,14 @@ public class SigninActivity extends AppCompatActivity {
         btn_forgot_password = (Button) findViewById(R.id.btn_forgotPassword);
         btn_signup = (Button) findViewById(R.id.btn_Signup);
 
+        getSupportActionBar().setBackgroundDrawable(new ColorDrawable(Color.BLACK));
+
         if(returnSaved("Email") != null && returnSaved("Password") != null){
             String savedEmail = returnSaved("Email");
             String savedPassword = returnSaved("Password");
             inputEmail.setText(savedEmail, TextView.BufferType.EDITABLE);
             inputPassword.setText(savedPassword, TextView.BufferType.EDITABLE);
         }
-        Toast.makeText(getApplicationContext(), "Email/Password:" + String.valueOf(returnSaved("Email")) + String.valueOf(returnSaved("Password")), Toast.LENGTH_LONG).show();
 
         btn_signup.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -126,11 +129,10 @@ public class SigninActivity extends AppCompatActivity {
 
     public void onStart(){
         super.onStart();
+
     }
 
     public void onStop(){
         super.onStop();
-        btn_forgot_password.setOnClickListener(null);
-        btn_login.setOnClickListener(null);
     }
 }
