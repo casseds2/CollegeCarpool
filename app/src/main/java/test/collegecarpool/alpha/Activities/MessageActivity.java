@@ -109,6 +109,7 @@ public class MessageActivity extends AppCompatActivity {
     }
 
     public void addMessage(DataSnapshot dataSnapshot){
+        chatMessageList.setText("");
         Iterable <DataSnapshot> dataSnapshots = dataSnapshot.getChildren();
         for(DataSnapshot data : dataSnapshots){
             Message temp = data.getValue(Message.class);

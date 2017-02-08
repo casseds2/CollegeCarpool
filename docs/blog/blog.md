@@ -51,10 +51,12 @@ they have chosen to. Basic structure for broadcasting will be that everyone can 
 on the map.
 
 ## My Sixth Blog
-I've made a makeshift messaging system that still has a few bugs in it. Messages are repeating everytime a user sends a new message. I've also made a a braodcast location button
-and a find me button to help the user display their position to evryone on the map and also to recentre themselves if they lose track of themselves on the map. Fixed a few minor bugs
+I've made a makeshift messaging system that still has a few bugs in it. Messages are repeating every time a user sends a new message. I've also made a a braodcast location button
+and a find me button to help the user display their position to everyone on the map and also to recenter themselves if they lose track of themselves on the map. Fixed a few minor bugs
 with the onStart and onStop methods also in the HomeActivity Screen. I have made a static volatile boolean 'pauseThread' and 'continueThread' in an attempt to be able to pause
 the Location Services Intent service but they don't seem to trigger the warnings that the thread has stopped. Set up message model and database model for messages too in Firebase.
 Next up, work on bug fixes for displaying non-duplicated messages.
+-Update : Duplicated user messages fixed
+
 
 
