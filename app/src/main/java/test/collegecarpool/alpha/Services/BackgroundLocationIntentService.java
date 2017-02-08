@@ -1,33 +1,22 @@
 package test.collegecarpool.alpha.Services;
 
 import android.Manifest;
-import android.app.Activity;
 import android.app.IntentService;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.api.PendingResult;
-import com.google.android.gms.common.api.ResultCallback;
-import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.location.LocationSettingsRequest;
-import com.google.android.gms.location.LocationSettingsResult;
-import com.google.android.gms.location.LocationSettingsStates;
-import com.google.android.gms.location.LocationSettingsStatusCodes;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
@@ -44,8 +33,8 @@ public class BackgroundLocationIntentService extends IntentService implements Go
     private FirebaseAuth auth;
     private DatabaseReference userRef;
 
-    public static boolean continueThread; //http://stackoverflow.com/questions/11258083/how-to-force-an-intentservice-to-stop-immediately-with-a-cancel-button-from-an-a
-    public static boolean pauseThread;
+    public static volatile boolean stopThread = false; //http://stackoverflow.com/questions/11258083/how-to-force-an-intentservice-to-stop-immediately-with-a-cancel-button-from-an-a
+    public static volatile boolean pauseThread = false;
 
     private static final String TAG = "LocationIntentService";
 
@@ -55,7 +44,6 @@ public class BackgroundLocationIntentService extends IntentService implements Go
 
     @Override
     protected void onHandleIntent(Intent intent) {
-        //showToast("Starting Background Location Intent Service");
         if (checkGooglePlayServicesAvailable()) {
             buildGoogleClient();
             googleApiClient.connect();
@@ -63,22 +51,11 @@ public class BackgroundLocationIntentService extends IntentService implements Go
         }
         userRef = FirebaseDatabase.getInstance().getReference("UserProfile");
         auth = FirebaseAuth.getInstance();
+        Log.d(TAG, "HANDLED THREAD");
     }
 
     public BackgroundLocationIntentService(){
         this(BackgroundLocationIntentService.class.getName());
-    }
-
-    protected void showToast(final String msg){
-        //gets the main thread
-        Handler handler = new Handler(Looper.getMainLooper());
-        handler.post(new Runnable() {
-            @Override
-            public void run() {
-                // run this code in the main thread
-                Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_SHORT).show();
-            }
-        });
     }
 
     public void buildGoogleClient() {
@@ -99,7 +76,7 @@ public class BackgroundLocationIntentService extends IntentService implements Go
 
     public void setLocationRequestParams() {
         locationRequest = new LocationRequest();
-        locationRequest.setInterval(5 * 1000); //Once every 5 seconds
+        locationRequest.setInterval(2 * 1000); //Once every 5 seconds
         locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
         locationRequest.setFastestInterval(15 * 1000); //Once every 15 Seconds
     }
@@ -107,7 +84,13 @@ public class BackgroundLocationIntentService extends IntentService implements Go
     @Override
     public void onConnected(@Nullable Bundle bundle) {
         try {
-            requestLocationUpdates();
+            if(!pauseThread && !stopThread) {
+                requestLocationUpdates();
+                Log.d(TAG, "REQUESTING LOCATION");
+            }
+            else{
+                Log.d(TAG, "THREAD STOPPED FOR SOME REASON");
+            }
         }
         catch(InterruptedException e){
             Log.d(TAG, "Error with location intent thread");
@@ -136,16 +119,6 @@ public class BackgroundLocationIntentService extends IntentService implements Go
             return;
         }
         LocationServices.FusedLocationApi.requestLocationUpdates(googleApiClient, locationRequest, this);
-        if(!continueThread){
-            showToast("Thread Killed!");
-            stopSelf();
-        }
-        if(pauseThread){
-            while(pauseThread){
-                showToast("Thread Paused");
-                Thread.sleep(1000);
-            }
-        }
     }
 
     private void pushLocationToFirebase(double latitude, double longitude){

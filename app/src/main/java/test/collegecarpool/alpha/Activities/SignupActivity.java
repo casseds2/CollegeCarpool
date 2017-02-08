@@ -130,7 +130,8 @@ public class SignupActivity extends AppCompatActivity {
     private void saveUserProfile(){
         double latitude = 0;
         double longitude = 0;
-        UserProfile userProfile = new UserProfile(firstName, secondName, email, latitude , longitude);
+        boolean broadcastLocation = false;
+        UserProfile userProfile = new UserProfile(firstName, secondName, email, latitude , longitude, broadcastLocation);
         FirebaseUser user = auth.getCurrentUser();
 
         HashMap<String, Object> children = new HashMap<>();

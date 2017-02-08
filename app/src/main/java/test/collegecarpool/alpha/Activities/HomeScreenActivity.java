@@ -6,21 +6,19 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
-import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.ActivityCompat;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
-import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.TextView;
+import android.widget.Button;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -57,16 +55,28 @@ public class HomeScreenActivity extends AppCompatActivity implements OnMapReadyC
     private GoogleApiClient googleApiClient;
     private LocationRequest locationRequest;
 
+    final static String TAG = "HomeScreenActivity";
+
     private static final int MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
+    private boolean broadcastIsClicked = false;
 
     private Intent intentServiceLocation;
 
     private DrawerLayout drawerLayout;
     private ActionBarDrawerToggle actionBarDrawerToggle;
     private NavigationView navigationView;
+    private Button btnBroadcast;
+    private Button btnFindMe;
 
     private FirebaseAuth firebaseUserAuth;
     private FirebaseUser firebaseUser;
+    private DatabaseReference userRef;
+    private DatabaseReference broadcastRef;
+
+    private double personalLat = 0;
+    private double personalLong = 0;
+
+    private boolean shouldZoom;
 
 
     @Override
@@ -76,9 +86,21 @@ public class HomeScreenActivity extends AppCompatActivity implements OnMapReadyC
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
+        shouldZoom = true;
+
+        //Button broadcastBtn = (Button) findViewById(R.id.broadcast_location);
+
         /**If User has Not Signed Out Specifically, Their Auth Instance Will Remain and They Can Skip Login**/
         firebaseUserAuth = FirebaseAuth.getInstance();
         firebaseUser = firebaseUserAuth.getCurrentUser();
+        userRef = FirebaseDatabase.getInstance().getReference("UserProfile");
+        broadcastRef = FirebaseDatabase.getInstance().getReference("UserProfile").child(firebaseUser.getUid()).child("broadcastLocation");
+
+        btnBroadcast = (Button) findViewById(R.id.broadcast_location);
+        btnFindMe = (Button) findViewById(R.id.find_me);
+
+        broadcastRef.setValue(false);
+
         if(firebaseUser == null){
             startActivity(new Intent(this, SigninActivity.class));
             finish();
@@ -89,6 +111,27 @@ public class HomeScreenActivity extends AppCompatActivity implements OnMapReadyC
             displayUserLocations();
             //checkGPS();
             initDrawer();
+
+            btnBroadcast.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Log.d(TAG, "Broadcast Button Pressed");
+                    broadcastRef.setValue(true);
+                    broadcastIsClicked = true;
+                }
+            });
+
+            btnFindMe.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    CameraPosition cameraPosition = new CameraPosition.Builder()
+                            .target(new LatLng(personalLat, personalLong))// Sets the center of the map to location user
+                            .zoom(15) // Sets the zoom
+                            .tilt(20) // Sets the tilt of the camera to 30 degrees
+                            .build();
+                    mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+                }
+            });
         }
     }
 
@@ -109,7 +152,7 @@ public class HomeScreenActivity extends AppCompatActivity implements OnMapReadyC
                         onStop();
                         return true;
                     case R.id.nav_messages:
-                        startActivity(new Intent(HomeScreenActivity.this, MessageActivity.class));
+                        startActivity(new Intent(HomeScreenActivity.this, ChatRoomActivity.class));
                         onStop();
                         return true;
                     case R.id.nav_settings:
@@ -126,6 +169,7 @@ public class HomeScreenActivity extends AppCompatActivity implements OnMapReadyC
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setBackgroundDrawable(new ColorDrawable(Color.BLACK));
     }
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if(actionBarDrawerToggle.onOptionsItemSelected(item)) {
@@ -172,7 +216,6 @@ public class HomeScreenActivity extends AppCompatActivity implements OnMapReadyC
     }
 
     public void displayUserLocations(){
-        DatabaseReference userRef = FirebaseDatabase.getInstance().getReference("UserProfile");
         userRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
@@ -180,15 +223,25 @@ public class HomeScreenActivity extends AppCompatActivity implements OnMapReadyC
                 mMap.clear();
                 for(DataSnapshot dataSnapshot1 : dataSnapshots){
                     UserProfile userProfile = dataSnapshot1.getValue(UserProfile.class);
-                    if(userProfile.getEmail().equals(firebaseUserAuth.getCurrentUser().getEmail())){
+                    if(userProfile.getEmail().equals(firebaseUserAuth.getCurrentUser().getEmail()) && shouldZoom){
                         CameraPosition cameraPosition = new CameraPosition.Builder()
                                 .target(new LatLng(userProfile.getLatitude(), userProfile.getLongitude()))// Sets the center of the map to location user
-                                .zoom(12)                   // Sets the zoom
-                                .tilt(40)                   // Sets the tilt of the camera to 30 degrees
-                                .build();                   // Creates a CameraPosition from the builder
+                                .zoom(15) // Sets the zoom
+                                .tilt(20) // Sets the tilt of the camera to 30 degrees
+                                .build();
+                        // Creates a CameraPosition from the builder
+                        //mMap.addMarker(new MarkerOptions().position(new LatLng(userProfile.getLatitude(), userProfile.getLongitude())).title(userProfile.getFirstName()));
+                        personalLat = userProfile.getLatitude();
+                        personalLong = userProfile.getLongitude();
+                        Log.d(TAG, "Marker Added For User, Zoom: " + shouldZoom);
                         mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+                        shouldZoom = false;
                     }
-                    mMap.addMarker(new MarkerOptions().position(new LatLng(userProfile.getLatitude(), userProfile.getLongitude())).title(userProfile.getFirstName()));
+                    else {
+                        if(userProfile.getBroadcastLocation()) {
+                            mMap.addMarker(new MarkerOptions().position(new LatLng(userProfile.getLatitude(), userProfile.getLongitude())).title(userProfile.getFirstName()));
+                        }
+                    }
                 }
             }
             @Override
@@ -243,13 +296,17 @@ public class HomeScreenActivity extends AppCompatActivity implements OnMapReadyC
     @Override
     protected void onStart() {
         super.onStart();
-        BackgroundLocationIntentService.continueThread = true;
+        BackgroundLocationIntentService.stopThread = false;
+        if(broadcastIsClicked)
+            userRef.child(firebaseUserAuth.getCurrentUser().getUid()).child("broadcastLocation").setValue(true);
     }
 
     @Override
     protected void onStop() {
         super.onStop();
-        BackgroundLocationIntentService.continueThread = false; //Will kill the location thread
+        BackgroundLocationIntentService.stopThread = true; //Will kill the location thread
+        if(firebaseUserAuth.getCurrentUser() != null)
+            broadcastRef.setValue(false);
     }
 
     @Override

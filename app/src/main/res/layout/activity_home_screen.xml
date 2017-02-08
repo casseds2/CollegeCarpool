@@ -16,7 +16,32 @@
         android:name="com.google.android.gms.maps.SupportMapFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:context="test.collegecarpool.alpha.Activities.HomeScreenActivity" />
+        tools:context="test.collegecarpool.alpha.Activities.HomeScreenActivity">
+
+        <Button
+            android:id="@+id/broadcast_location"
+            android:hint="@string/broadcast_location"
+            android:textColorHint="@color/white"
+            android:background="@color/bg_main"
+            android:layout_width="190dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|left"
+            android:paddingLeft="10dp"
+            android:paddingBottom="10dp"/>
+
+        <Button
+            android:id="@+id/find_me"
+            android:hint="@string/find_me"
+            android:textColorHint="@color/white"
+            android:background="@color/bg_main"
+            android:layout_width="190dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|right"
+            android:paddingRight="10dp"
+            android:paddingBottom="10dp"/>
+
+    </fragment>
+
 
     <android.support.design.widget.NavigationView
         android:id="@+id/nav_view"

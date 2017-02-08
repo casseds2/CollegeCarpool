@@ -33,7 +33,7 @@
     <string name="nav_settings">Settings</string>
     <string name="nav_logout">Logout</string>
 
-    <!-- Toolbar Titles -->
+    <!-- Toolbar Titles
     <string-array name="nav_activity_titles">
         <item>Home</item>
         <item>My Profile</item>
@@ -41,5 +41,10 @@
         <item>Settings</item>
         <item>Logout</item>
     </string-array>
+    -->
+    <string name="broadcast_location">Broadcast Location</string>
+    <string name="find_me">Find Me</string>
+
+    <string name="addCarName">Add Car Chat</string>
 
 </resources>
