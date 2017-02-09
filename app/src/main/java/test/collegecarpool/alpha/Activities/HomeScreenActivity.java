@@ -1,7 +1,6 @@
 package test.collegecarpool.alpha.Activities;
 
 import android.Manifest;
-import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
@@ -19,7 +18,6 @@ import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
-import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -109,7 +107,7 @@ public class HomeScreenActivity extends AppCompatActivity implements OnMapReadyC
             btnBroadcast.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    Log.d(TAG, "Broadcast Button Pressed");
+                    Log.d(TAG, "BROADCASTING LOCATION");
                     broadcastRef.setValue(true);
                     broadcastIsClicked = true;
                 }
@@ -194,12 +192,11 @@ public class HomeScreenActivity extends AppCompatActivity implements OnMapReadyC
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         switch (requestCode) {
             case MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION: {
-                // If request is cancelled, the result arrays are empty.
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    Toast.makeText(getApplicationContext(), "Location Permissions Granted", Toast.LENGTH_SHORT).show();
+                    Log.d(TAG, "ACCESS TO FINE LOCATION GRANTED");
                 }
                 else {
-                    Toast.makeText(getApplicationContext(), "Need Location Permissions Granted", Toast.LENGTH_SHORT).show();
+                    Log.d(TAG, "NEED LOCATION PERMISSIONS TO BE GRANTED");
                 }
             }
             // other 'case' lines to check for other
@@ -265,10 +262,12 @@ public class HomeScreenActivity extends AppCompatActivity implements OnMapReadyC
                 final Status status = locationSettingsResult.getStatus();
                 switch (status.getStatusCode()){
                     case LocationSettingsStatusCodes.SUCCESS:
+                        Log.d(TAG, "LOCATION IS ENABLED");
                         break;
                     case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
                         try{
-                            status.startResolutionForResult((Activity) getApplicationContext(), 1000);
+                            status.startResolutionForResult(HomeScreenActivity.this, 1000);
+                            Log.d(TAG, "LOCATION DISABLED - RESOLVING");
                         }
                         catch(Exception e){
                             Log.d(TAG, "ERROR WITH ENABLING GPS");
@@ -279,7 +278,6 @@ public class HomeScreenActivity extends AppCompatActivity implements OnMapReadyC
     }
 
     protected void createLocationRequest() {
-        //LocationRequest mLocationRequest = new LocationRequest();
         locationRequest.setInterval(10000);
         locationRequest.setFastestInterval(5000);
         locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
