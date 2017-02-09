@@ -6,7 +6,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Created by casseds95 on 23/01/2017.
+ * Created by casseds95 23/01/2017.
  */
 
 public class UserProfile {

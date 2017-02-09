@@ -40,33 +40,30 @@ public class ChatRoomActivity extends AppCompatActivity {
 
     private final static String TAG = "MessageActivity";
 
-    private Button btnAddCar;
     private EditText carNameField;
 
-    private ListView listview;
     private ArrayAdapter<String> arrayAdapter;
     private ArrayList <String> carList = new ArrayList<>();
 
-    private DrawerLayout drawerLayout;
-    private ActionBarDrawerToggle actionBarDrawerToggle;
-    private NavigationView navigationView;
-
     private DatabaseReference carNameRef = FirebaseDatabase.getInstance().getReference("CarChatGroups");
-    FirebaseAuth auth = FirebaseAuth.getInstance();
+    private FirebaseAuth auth = FirebaseAuth.getInstance();
+
+    private ActionBarDrawerToggle actionBarDrawerToggle;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat_room);
 
-        btnAddCar = (Button) findViewById(R.id.btnAddCar);
+        Button btnAddCar = (Button) findViewById(R.id.btnAddCar);
         carNameField = (EditText) findViewById(R.id.carName);
-        listview = (ListView) findViewById(R.id.listView);
+        ListView listview = (ListView) findViewById(R.id.listView);
         arrayAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, carList);
         listview.setAdapter(arrayAdapter);
 
         Intent intent = new Intent(this, FirebaseIdService.class);
         startService(intent);
+
         Log.d(TAG, "Token: " + FirebaseInstanceId.getInstance().getToken());
 
         initDrawer();
@@ -76,7 +73,9 @@ public class ChatRoomActivity extends AppCompatActivity {
             public void onClick(View v) {
                 if(carNameField.getText() != null){
                     Map<String, Object> map = new HashMap<>();
-                    map.put(carNameField.getText().toString(), FirebaseAuth.getInstance().getCurrentUser().getUid());
+                    if(auth.getCurrentUser() != null) {
+                        map.put(carNameField.getText().toString(), auth.getCurrentUser().getUid());
+                    }
                     carNameRef.updateChildren(map);
                     carNameField.setText("");
                 }
@@ -106,7 +105,6 @@ public class ChatRoomActivity extends AppCompatActivity {
         listview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                //Insert Intent to start chat room on selected Chat
                 Intent intent = new Intent(ChatRoomActivity.this, MessageActivity.class);
                 intent.putExtra("carChatName", ((TextView)view).getText().toString());
                 startActivity(intent);
@@ -115,8 +113,8 @@ public class ChatRoomActivity extends AppCompatActivity {
     }
 
     public void initDrawer() {
-        drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
-        navigationView = (NavigationView) findViewById(R.id.nav_view);
+        DrawerLayout drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
+        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
@@ -145,7 +143,14 @@ public class ChatRoomActivity extends AppCompatActivity {
         actionBarDrawerToggle = new ActionBarDrawerToggle(this, drawerLayout, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawerLayout.addDrawerListener(actionBarDrawerToggle);
         actionBarDrawerToggle.syncState();
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        getSupportActionBar().setBackgroundDrawable(new ColorDrawable(Color.BLACK));
+        if(getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            getSupportActionBar().setBackgroundDrawable(new ColorDrawable(Color.BLACK));
+        }
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        return actionBarDrawerToggle.onOptionsItemSelected(item) || super.onOptionsItemSelected(item);
     }
 }

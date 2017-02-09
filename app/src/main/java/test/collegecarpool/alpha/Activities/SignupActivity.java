@@ -18,7 +18,6 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
@@ -41,6 +40,8 @@ public class SignupActivity extends AppCompatActivity {
     private String firstName;
     private String secondName;
 
+    private final static String TAG = "SignUpActivity";
+
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_signup);
@@ -57,8 +58,9 @@ public class SignupActivity extends AppCompatActivity {
         btn_back = (Button) findViewById(R.id.btn_back);
         inputFirstName = (EditText) findViewById(R.id.first_name);
         inputSecondName = (EditText) findViewById(R.id.second_name);
-
-        getSupportActionBar().setBackgroundDrawable(new ColorDrawable(Color.BLACK));
+        if(getSupportActionBar() != null) {
+            getSupportActionBar().setBackgroundDrawable(new ColorDrawable(Color.BLACK));
+        }
 
         /**Set Listener for Signup Button**/
         btn_Signup.setOnClickListener(new View.OnClickListener(){
@@ -128,18 +130,13 @@ public class SignupActivity extends AppCompatActivity {
 
     /**Add the User to a Database**/
     private void saveUserProfile(){
-        double latitude = 0;
-        double longitude = 0;
-        boolean broadcastLocation = false;
-        UserProfile userProfile = new UserProfile(firstName, secondName, email, latitude , longitude, broadcastLocation);
-        FirebaseUser user = auth.getCurrentUser();
-
+        UserProfile userProfile = new UserProfile(firstName, secondName, email, 0.0, 0.0, false);
         HashMap<String, Object> children = new HashMap<>();
-        children.put(user.getUid(), userProfile.toMap());
-        userRef.updateChildren(children);
-
-        //userRef.child(user.getUid()).setValue(userProfile);
-        Toast.makeText(this, "Information Saved To Database", Toast.LENGTH_SHORT).show();
+        if(auth.getCurrentUser() != null) {
+            children.put(auth.getCurrentUser().getUid(), userProfile.toMap());
+            userRef.updateChildren(children);
+            Log.d(TAG, "USER PROFILE SAVED TO FIREBASE");
+        }
     }
 
     @Override

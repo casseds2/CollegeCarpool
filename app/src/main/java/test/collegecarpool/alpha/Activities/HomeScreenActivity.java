@@ -39,7 +39,6 @@ import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -51,25 +50,19 @@ import test.collegecarpool.alpha.Services.BackgroundLocationIntentService;
 import test.collegecarpool.alpha.UserClasses.UserProfile;
 
 public class HomeScreenActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
+
     private GoogleMap mMap;
     private GoogleApiClient googleApiClient;
     private LocationRequest locationRequest;
 
-    final static String TAG = "HomeScreenActivity";
+    private final static String TAG = "HomeScreenActivity";
 
     private static final int MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
     private boolean broadcastIsClicked = false;
 
-    private Intent intentServiceLocation;
-
-    private DrawerLayout drawerLayout;
     private ActionBarDrawerToggle actionBarDrawerToggle;
-    private NavigationView navigationView;
-    private Button btnBroadcast;
-    private Button btnFindMe;
 
-    private FirebaseAuth firebaseUserAuth;
-    private FirebaseUser firebaseUser;
+    private FirebaseAuth auth;
     private DatabaseReference userRef;
     private DatabaseReference broadcastRef;
 
@@ -88,28 +81,29 @@ public class HomeScreenActivity extends AppCompatActivity implements OnMapReadyC
 
         shouldZoom = true;
 
-        //Button broadcastBtn = (Button) findViewById(R.id.broadcast_location);
-
-        /**If User has Not Signed Out Specifically, Their Auth Instance Will Remain and They Can Skip Login**/
-        firebaseUserAuth = FirebaseAuth.getInstance();
-        firebaseUser = firebaseUserAuth.getCurrentUser();
+        /**If User has Not Signed Out Specifically, Their Auth Instance Will Remain and They Can Skip Login ?**/
+        auth = FirebaseAuth.getInstance();
         userRef = FirebaseDatabase.getInstance().getReference("UserProfile");
-        broadcastRef = FirebaseDatabase.getInstance().getReference("UserProfile").child(firebaseUser.getUid()).child("broadcastLocation");
+        if(auth.getCurrentUser() != null) {
+            broadcastRef = FirebaseDatabase.getInstance().getReference("UserProfile").child(auth.getCurrentUser().getUid()).child("broadcastLocation");
+        }
 
-        btnBroadcast = (Button) findViewById(R.id.broadcast_location);
-        btnFindMe = (Button) findViewById(R.id.find_me);
+        Button btnBroadcast = (Button) findViewById(R.id.broadcast_location);
+        Button btnFindMe = (Button) findViewById(R.id.find_me);
 
         broadcastRef.setValue(false);
 
-        if(firebaseUser == null){
+        locationRequest = new LocationRequest();
+
+        if(auth.getCurrentUser() == null){
             startActivity(new Intent(this, SigninActivity.class));
             finish();
         }
         else{
-            intentServiceLocation = new Intent(this, BackgroundLocationIntentService.class);
+            Intent intentServiceLocation = new Intent(this, BackgroundLocationIntentService.class);
             startService(intentServiceLocation);
             displayUserLocations();
-            //checkGPS();
+            checkGPS();
             initDrawer();
 
             btnBroadcast.setOnClickListener(new View.OnClickListener() {
@@ -136,14 +130,14 @@ public class HomeScreenActivity extends AppCompatActivity implements OnMapReadyC
     }
 
     public void initDrawer() {
-        drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
-        navigationView = (NavigationView) findViewById(R.id.nav_view);
+        DrawerLayout drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
+        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
                 switch (item.getItemId()) {
                     case R.id.nav_logout:
-                        firebaseUserAuth.signOut();
+                        auth.signOut();
                         startActivity(new Intent(HomeScreenActivity.this, SigninActivity.class));
                         onStop();
                         return true;
@@ -166,17 +160,15 @@ public class HomeScreenActivity extends AppCompatActivity implements OnMapReadyC
         actionBarDrawerToggle = new ActionBarDrawerToggle(this, drawerLayout, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawerLayout.addDrawerListener(actionBarDrawerToggle);
         actionBarDrawerToggle.syncState();
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        getSupportActionBar().setBackgroundDrawable(new ColorDrawable(Color.BLACK));
+        if(getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            getSupportActionBar().setBackgroundDrawable(new ColorDrawable(Color.BLACK));
+        }
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        if(actionBarDrawerToggle.onOptionsItemSelected(item)) {
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
+        return actionBarDrawerToggle.onOptionsItemSelected(item) || super.onOptionsItemSelected(item);
     }
 
     @Override
@@ -223,7 +215,7 @@ public class HomeScreenActivity extends AppCompatActivity implements OnMapReadyC
                 mMap.clear();
                 for(DataSnapshot dataSnapshot1 : dataSnapshots){
                     UserProfile userProfile = dataSnapshot1.getValue(UserProfile.class);
-                    if(userProfile.getEmail().equals(firebaseUserAuth.getCurrentUser().getEmail()) && shouldZoom){
+                    if(auth.getCurrentUser() != null && userProfile.getEmail().equals(auth.getCurrentUser().getEmail()) && shouldZoom){
                         CameraPosition cameraPosition = new CameraPosition.Builder()
                                 .target(new LatLng(userProfile.getLatitude(), userProfile.getLongitude()))// Sets the center of the map to location user
                                 .zoom(15) // Sets the zoom
@@ -279,7 +271,7 @@ public class HomeScreenActivity extends AppCompatActivity implements OnMapReadyC
                             status.startResolutionForResult((Activity) getApplicationContext(), 1000);
                         }
                         catch(Exception e){
-
+                            Log.d(TAG, "ERROR WITH ENABLING GPS");
                         }
                 }
             }
@@ -287,25 +279,25 @@ public class HomeScreenActivity extends AppCompatActivity implements OnMapReadyC
     }
 
     protected void createLocationRequest() {
-        LocationRequest mLocationRequest = new LocationRequest();
-        mLocationRequest.setInterval(10000);
-        mLocationRequest.setFastestInterval(5000);
-        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+        //LocationRequest mLocationRequest = new LocationRequest();
+        locationRequest.setInterval(10000);
+        locationRequest.setFastestInterval(5000);
+        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
     }
 
     @Override
     protected void onStart() {
         super.onStart();
         BackgroundLocationIntentService.stopThread = false;
-        if(broadcastIsClicked)
-            userRef.child(firebaseUserAuth.getCurrentUser().getUid()).child("broadcastLocation").setValue(true);
+        if(broadcastIsClicked && auth.getCurrentUser() != null)
+            userRef.child(auth.getCurrentUser().getUid()).child("broadcastLocation").setValue(true);
     }
 
     @Override
     protected void onStop() {
         super.onStop();
         BackgroundLocationIntentService.stopThread = true; //Will kill the location thread
-        if(firebaseUserAuth.getCurrentUser() != null)
+        if(auth.getCurrentUser() != null)
             broadcastRef.setValue(false);
     }
 

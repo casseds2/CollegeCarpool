@@ -1,7 +1,7 @@
 package test.collegecarpool.alpha.UserClasses;
 
 /**
- * Created by casseds95 on 07/02/2017.
+ * Created by casseds95 for 4TH YEAR Project 07/02/2017.
  */
 
 public class Message {

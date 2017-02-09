@@ -22,7 +22,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
 /**
- * Created by casseds95 on 30/01/2017.
+ * Created by casseds95 30/01/2017.
  */
 
 public class BackgroundLocationIntentService extends IntentService implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener {
@@ -30,7 +30,7 @@ public class BackgroundLocationIntentService extends IntentService implements Go
     private GoogleApiClient googleApiClient;
     private LocationRequest locationRequest;
 
-    private FirebaseAuth auth;
+    private FirebaseAuth auth = FirebaseAuth.getInstance();
     private DatabaseReference userRef;
 
     public static volatile boolean stopThread = false; //http://stackoverflow.com/questions/11258083/how-to-force-an-intentservice-to-stop-immediately-with-a-cancel-button-from-an-a
@@ -40,6 +40,10 @@ public class BackgroundLocationIntentService extends IntentService implements Go
 
     public BackgroundLocationIntentService(String name) {
         super(name);
+    }
+
+    public BackgroundLocationIntentService(){
+        super("BackgroundLocationIntentService");
     }
 
     @Override
@@ -52,10 +56,6 @@ public class BackgroundLocationIntentService extends IntentService implements Go
         userRef = FirebaseDatabase.getInstance().getReference("UserProfile");
         auth = FirebaseAuth.getInstance();
         Log.d(TAG, "HANDLED THREAD");
-    }
-
-    public BackgroundLocationIntentService(){
-        this(BackgroundLocationIntentService.class.getName());
     }
 
     public void buildGoogleClient() {
@@ -122,7 +122,9 @@ public class BackgroundLocationIntentService extends IntentService implements Go
     }
 
     private void pushLocationToFirebase(double latitude, double longitude){
-        userRef.child(auth.getCurrentUser().getUid()).child("longitude").setValue(longitude);
-        userRef.child(auth.getCurrentUser().getUid()).child("latitude").setValue(latitude);
+        if(auth.getCurrentUser() != null) {
+            userRef.child(auth.getCurrentUser().getUid()).child("longitude").setValue(longitude);
+            userRef.child(auth.getCurrentUser().getUid()).child("latitude").setValue(latitude);
+        }
     }
 }

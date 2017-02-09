@@ -22,32 +22,33 @@ import test.collegecarpool.alpha.UserClasses.UserProfile;
 
 public class MessageActivity extends AppCompatActivity {
 
-    private Button btnSendMessage;
     private EditText message;
     private TextView chatMessageList;
 
-    private DatabaseReference carChatNameRef;
-    private DatabaseReference userRef;
     private String carChatName;
 
     private String user;
 
     final static String TAG = "MessageActivity";
 
+    private DatabaseReference carChatNameRef;
+    private FirebaseAuth auth;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_message);
 
-        btnSendMessage = (Button) findViewById(R.id.btnSendMessage);
+        Button btnSendMessage = (Button) findViewById(R.id.btnSendMessage);
         message = (EditText) findViewById(R.id.message);
         chatMessageList = (TextView) findViewById(R.id.chatMessageList);
 
-        carChatName = getIntent().getExtras().get("carChatName").toString();
+        carChatName = (String) getIntent().getExtras().get("carChatName");
         Log.d(TAG, carChatName);
 
         carChatNameRef = FirebaseDatabase.getInstance().getReference("CarChatGroups");
-        userRef = FirebaseDatabase.getInstance().getReference("UserProfile");
+        DatabaseReference userRef = FirebaseDatabase.getInstance().getReference("UserProfile");
+        auth = FirebaseAuth.getInstance();
         user = String.valueOf(userRef.getKey());
 
         setTitle(carChatName);
@@ -57,7 +58,7 @@ public class MessageActivity extends AppCompatActivity {
             public void onClick(View v) {
                 String messageText = message.getText().toString();
                 Message myMessage = new Message(messageText, user);
-                FirebaseDatabase.getInstance().getReference("CarChatGroups").child(carChatName).push().setValue(myMessage);
+                carChatNameRef.child(carChatName).push().setValue(myMessage);
                 message.setText("");
             }
         });
@@ -95,7 +96,7 @@ public class MessageActivity extends AppCompatActivity {
                 Iterable <DataSnapshot> dataSnapshots = dataSnapshot.getChildren();
                 for(DataSnapshot dataSnapshot1 : dataSnapshots) {
                     UserProfile userProfile = dataSnapshot1.getValue(UserProfile.class);
-                    if(userProfile.getEmail().equals(FirebaseAuth.getInstance().getCurrentUser().getEmail())){
+                    if(auth.getCurrentUser() != null && userProfile.getEmail().equals(auth.getCurrentUser().getEmail())){
                         user = userProfile.getFirstName() + " " + userProfile.getSecondName();
                     }
                 }

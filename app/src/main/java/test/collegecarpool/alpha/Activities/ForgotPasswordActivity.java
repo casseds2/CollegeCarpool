@@ -35,15 +35,15 @@ public class ForgotPasswordActivity extends AppCompatActivity {
         resetButton = (Button) findViewById(R.id.btn_forgotPassword);
         progressBar = (ProgressBar) findViewById(R.id.progressBar);
         backButton = (Button) findViewById(R.id.btn_back);
-
-        getSupportActionBar().setBackgroundDrawable(new ColorDrawable(Color.BLACK));
+        if(getSupportActionBar() != null) {
+            getSupportActionBar().setBackgroundDrawable(new ColorDrawable(Color.BLACK));
+        }
 
         auth = FirebaseAuth.getInstance();
 
         backButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //startActivity(new Intent(ForgotPasswordActivity.this, SigninActivity.class));
                 finish();
             }
         });
@@ -51,6 +51,7 @@ public class ForgotPasswordActivity extends AppCompatActivity {
         resetButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
                 String email = inputEmail.getText().toString().trim();
 
                 if(TextUtils.isEmpty(email)){
@@ -70,7 +71,6 @@ public class ForgotPasswordActivity extends AppCompatActivity {
                                 else{
                                     Toast.makeText(ForgotPasswordActivity.this, "Failed to Send Email", Toast.LENGTH_SHORT).show();
                                 }
-
                                 progressBar.setVisibility(View.GONE);
                             }
                         });
