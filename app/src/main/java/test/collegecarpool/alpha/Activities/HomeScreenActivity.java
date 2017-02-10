@@ -43,6 +43,9 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import test.collegecarpool.alpha.Activities.LoginAndRegistrationActivities.SigninActivity;
+import test.collegecarpool.alpha.Activities.MessagingActivities.ChatRoomActivity;
+import test.collegecarpool.alpha.Activities.MessagingActivities.MessageActivity;
 import test.collegecarpool.alpha.R;
 import test.collegecarpool.alpha.Services.BackgroundLocationIntentService;
 import test.collegecarpool.alpha.UserClasses.UserProfile;
@@ -134,21 +137,27 @@ public class HomeScreenActivity extends AppCompatActivity implements OnMapReadyC
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
                 switch (item.getItemId()) {
-                    case R.id.nav_logout:
-                        auth.signOut();
-                        startActivity(new Intent(HomeScreenActivity.this, SigninActivity.class));
-                        onStop();
+                    case R.id.nav_home:
                         return true;
-                    case R.id.nav_profile:
-                        startActivity(new Intent(HomeScreenActivity.this, ProfileActivity.class));
+                    case R.id.nav_journey:
+                        startActivity(new Intent(HomeScreenActivity.this, PlanJourneyActivity.class));
                         onStop();
                         return true;
                     case R.id.nav_messages:
                         startActivity(new Intent(HomeScreenActivity.this, ChatRoomActivity.class));
                         onStop();
                         return true;
+                    case R.id.nav_profile:
+                        startActivity(new Intent(HomeScreenActivity.this, ProfileActivity.class));
+                        onStop();
+                        return true;
                     case R.id.nav_settings:
                         startActivity(new Intent(HomeScreenActivity.this, SettingsActivity.class));
+                        onStop();
+                        return true;
+                    case R.id.nav_logout:
+                        auth.signOut();
+                        startActivity(new Intent(HomeScreenActivity.this, SigninActivity.class));
                         onStop();
                         return true;
                 }
