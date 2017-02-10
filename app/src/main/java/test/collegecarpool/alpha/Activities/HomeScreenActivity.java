@@ -1,27 +1,23 @@
 package test.collegecarpool.alpha.Activities;
 
 import android.Manifest;
-import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
-import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.ActivityCompat;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
-import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.TextView;
-import android.widget.Toast;
+import android.widget.Button;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -41,32 +37,40 @@ import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import test.collegecarpool.alpha.Activities.LoginAndRegistrationActivities.SigninActivity;
+import test.collegecarpool.alpha.Activities.MessagingActivities.ChatRoomActivity;
+import test.collegecarpool.alpha.Activities.MessagingActivities.MessageActivity;
 import test.collegecarpool.alpha.R;
 import test.collegecarpool.alpha.Services.BackgroundLocationIntentService;
 import test.collegecarpool.alpha.UserClasses.UserProfile;
 
 public class HomeScreenActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
+
     private GoogleMap mMap;
     private GoogleApiClient googleApiClient;
     private LocationRequest locationRequest;
 
+    private final static String TAG = "HomeScreenActivity";
+
     private static final int MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
+    private boolean broadcastIsClicked = false;
 
-    private Intent intentServiceLocation;
-
-    private DrawerLayout drawerLayout;
     private ActionBarDrawerToggle actionBarDrawerToggle;
-    private NavigationView navigationView;
 
-    private FirebaseAuth firebaseUserAuth;
-    private FirebaseUser firebaseUser;
+    private FirebaseAuth auth;
+    private DatabaseReference userRef;
+    private DatabaseReference broadcastRef;
+
+    private double personalLat = 0;
+    private double personalLong = 0;
+
+    private boolean shouldZoom;
 
 
     @Override
@@ -76,44 +80,84 @@ public class HomeScreenActivity extends AppCompatActivity implements OnMapReadyC
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
-        /**If User has Not Signed Out Specifically, Their Auth Instance Will Remain and They Can Skip Login**/
-        firebaseUserAuth = FirebaseAuth.getInstance();
-        firebaseUser = firebaseUserAuth.getCurrentUser();
-        if(firebaseUser == null){
+        shouldZoom = true;
+
+        /**If User has Not Signed Out Specifically, Their Auth Instance Will Remain and They Can Skip Login ?**/
+        auth = FirebaseAuth.getInstance();
+        userRef = FirebaseDatabase.getInstance().getReference("UserProfile");
+        if(auth.getCurrentUser() != null) {
+            broadcastRef = FirebaseDatabase.getInstance().getReference("UserProfile").child(auth.getCurrentUser().getUid()).child("broadcastLocation");
+        }
+
+        Button btnBroadcast = (Button) findViewById(R.id.broadcast_location);
+        Button btnFindMe = (Button) findViewById(R.id.find_me);
+
+        broadcastRef.setValue(false);
+
+        locationRequest = new LocationRequest();
+
+        if(auth.getCurrentUser() == null){
             startActivity(new Intent(this, SigninActivity.class));
             finish();
         }
         else{
-            intentServiceLocation = new Intent(this, BackgroundLocationIntentService.class);
+            Intent intentServiceLocation = new Intent(this, BackgroundLocationIntentService.class);
             startService(intentServiceLocation);
             displayUserLocations();
-            //checkGPS();
+            checkGPS();
             initDrawer();
+
+            btnBroadcast.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Log.d(TAG, "BROADCASTING LOCATION");
+                    broadcastRef.setValue(true);
+                    broadcastIsClicked = true;
+                }
+            });
+
+            btnFindMe.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    CameraPosition cameraPosition = new CameraPosition.Builder()
+                            .target(new LatLng(personalLat, personalLong))// Sets the center of the map to location user
+                            .zoom(15) // Sets the zoom
+                            .tilt(20) // Sets the tilt of the camera to 30 degrees
+                            .build();
+                    mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+                }
+            });
         }
     }
 
     public void initDrawer() {
-        drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
-        navigationView = (NavigationView) findViewById(R.id.nav_view);
+        DrawerLayout drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
+        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
                 switch (item.getItemId()) {
-                    case R.id.nav_logout:
-                        firebaseUserAuth.signOut();
-                        startActivity(new Intent(HomeScreenActivity.this, SigninActivity.class));
+                    case R.id.nav_home:
+                        return true;
+                    case R.id.nav_journey:
+                        startActivity(new Intent(HomeScreenActivity.this, PlanJourneyActivity.class));
+                        onStop();
+                        return true;
+                    case R.id.nav_messages:
+                        startActivity(new Intent(HomeScreenActivity.this, ChatRoomActivity.class));
                         onStop();
                         return true;
                     case R.id.nav_profile:
                         startActivity(new Intent(HomeScreenActivity.this, ProfileActivity.class));
                         onStop();
                         return true;
-                    case R.id.nav_messages:
-                        startActivity(new Intent(HomeScreenActivity.this, MessageActivity.class));
-                        onStop();
-                        return true;
                     case R.id.nav_settings:
                         startActivity(new Intent(HomeScreenActivity.this, SettingsActivity.class));
+                        onStop();
+                        return true;
+                    case R.id.nav_logout:
+                        auth.signOut();
+                        startActivity(new Intent(HomeScreenActivity.this, SigninActivity.class));
                         onStop();
                         return true;
                 }
@@ -123,16 +167,15 @@ public class HomeScreenActivity extends AppCompatActivity implements OnMapReadyC
         actionBarDrawerToggle = new ActionBarDrawerToggle(this, drawerLayout, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawerLayout.addDrawerListener(actionBarDrawerToggle);
         actionBarDrawerToggle.syncState();
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        getSupportActionBar().setBackgroundDrawable(new ColorDrawable(Color.BLACK));
+        if(getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            getSupportActionBar().setBackgroundDrawable(new ColorDrawable(Color.BLACK));
+        }
     }
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        if(actionBarDrawerToggle.onOptionsItemSelected(item)) {
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
+        return actionBarDrawerToggle.onOptionsItemSelected(item) || super.onOptionsItemSelected(item);
     }
 
     @Override
@@ -158,12 +201,11 @@ public class HomeScreenActivity extends AppCompatActivity implements OnMapReadyC
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         switch (requestCode) {
             case MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION: {
-                // If request is cancelled, the result arrays are empty.
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    Toast.makeText(getApplicationContext(), "Location Permissions Granted", Toast.LENGTH_SHORT).show();
+                    Log.d(TAG, "ACCESS TO FINE LOCATION GRANTED");
                 }
                 else {
-                    Toast.makeText(getApplicationContext(), "Need Location Permissions Granted", Toast.LENGTH_SHORT).show();
+                    Log.d(TAG, "NEED LOCATION PERMISSIONS TO BE GRANTED");
                 }
             }
             // other 'case' lines to check for other
@@ -172,7 +214,6 @@ public class HomeScreenActivity extends AppCompatActivity implements OnMapReadyC
     }
 
     public void displayUserLocations(){
-        DatabaseReference userRef = FirebaseDatabase.getInstance().getReference("UserProfile");
         userRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
@@ -180,15 +221,25 @@ public class HomeScreenActivity extends AppCompatActivity implements OnMapReadyC
                 mMap.clear();
                 for(DataSnapshot dataSnapshot1 : dataSnapshots){
                     UserProfile userProfile = dataSnapshot1.getValue(UserProfile.class);
-                    if(userProfile.getEmail().equals(firebaseUserAuth.getCurrentUser().getEmail())){
+                    if(auth.getCurrentUser() != null && userProfile.getEmail().equals(auth.getCurrentUser().getEmail()) && shouldZoom){
                         CameraPosition cameraPosition = new CameraPosition.Builder()
                                 .target(new LatLng(userProfile.getLatitude(), userProfile.getLongitude()))// Sets the center of the map to location user
-                                .zoom(12)                   // Sets the zoom
-                                .tilt(40)                   // Sets the tilt of the camera to 30 degrees
-                                .build();                   // Creates a CameraPosition from the builder
+                                .zoom(15) // Sets the zoom
+                                .tilt(20) // Sets the tilt of the camera to 30 degrees
+                                .build();
+                        // Creates a CameraPosition from the builder
+                        //mMap.addMarker(new MarkerOptions().position(new LatLng(userProfile.getLatitude(), userProfile.getLongitude())).title(userProfile.getFirstName()));
+                        personalLat = userProfile.getLatitude();
+                        personalLong = userProfile.getLongitude();
+                        Log.d(TAG, "Marker Added For User, Zoom: " + shouldZoom);
                         mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+                        shouldZoom = false;
                     }
-                    mMap.addMarker(new MarkerOptions().position(new LatLng(userProfile.getLatitude(), userProfile.getLongitude())).title(userProfile.getFirstName()));
+                    else {
+                        if(userProfile.getBroadcastLocation()) {
+                            mMap.addMarker(new MarkerOptions().position(new LatLng(userProfile.getLatitude(), userProfile.getLongitude())).title(userProfile.getFirstName()));
+                        }
+                    }
                 }
             }
             @Override
@@ -220,13 +271,15 @@ public class HomeScreenActivity extends AppCompatActivity implements OnMapReadyC
                 final Status status = locationSettingsResult.getStatus();
                 switch (status.getStatusCode()){
                     case LocationSettingsStatusCodes.SUCCESS:
+                        Log.d(TAG, "LOCATION IS ENABLED");
                         break;
                     case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
                         try{
-                            status.startResolutionForResult((Activity) getApplicationContext(), 1000);
+                            status.startResolutionForResult(HomeScreenActivity.this, 1000);
+                            Log.d(TAG, "LOCATION DISABLED - RESOLVING");
                         }
                         catch(Exception e){
-
+                            Log.d(TAG, "ERROR WITH ENABLING GPS");
                         }
                 }
             }
@@ -234,22 +287,25 @@ public class HomeScreenActivity extends AppCompatActivity implements OnMapReadyC
     }
 
     protected void createLocationRequest() {
-        LocationRequest mLocationRequest = new LocationRequest();
-        mLocationRequest.setInterval(10000);
-        mLocationRequest.setFastestInterval(5000);
-        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+        locationRequest.setInterval(10000);
+        locationRequest.setFastestInterval(5000);
+        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
     }
 
     @Override
     protected void onStart() {
         super.onStart();
-        BackgroundLocationIntentService.continueThread = true;
+        BackgroundLocationIntentService.stopThread = false;
+        if(broadcastIsClicked && auth.getCurrentUser() != null)
+            userRef.child(auth.getCurrentUser().getUid()).child("broadcastLocation").setValue(true);
     }
 
     @Override
     protected void onStop() {
         super.onStop();
-        BackgroundLocationIntentService.continueThread = false; //Will kill the location thread
+        BackgroundLocationIntentService.stopThread = true; //Will kill the location thread
+        if(auth.getCurrentUser() != null)
+            broadcastRef.setValue(false);
     }
 
     @Override

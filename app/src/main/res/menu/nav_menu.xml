@@ -1,20 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <item android:id="@+id/nav_profile"
-        android:title="My Profile"
-        android:icon="@mipmap/ic_account_circle_white_24dp"/>
+    <item android:id="@+id/nav_home"
+        android:title="@string/nav_home"
+        android:icon="@mipmap/ic_home_white_24dp"/>
 
-    <item android:id="@+id/nav_messages"
-        android:title="Messages"
+    <item android:id="@+id/nav_journey"
+        android:title="@string/nav_journey"
         android:icon="@mipmap/ic_mail_white_24dp"/>
 
+    <item android:id="@+id/nav_messages"
+        android:title="@string/nav_messages"
+        android:icon="@mipmap/ic_mail_white_24dp"/>
+
+    <item android:id="@+id/nav_profile"
+        android:title="@string/nav_my_profile"
+        android:icon="@mipmap/ic_account_circle_white_24dp"/>
+
     <item android:id="@+id/nav_settings"
-        android:title="Settings"
+        android:title="@string/nav_settings"
         android:icon="@mipmap/ic_settings_white_24dp"/>
 
     <item android:id="@+id/nav_logout"
-        android:title="Logout"
+        android:title="@string/nav_logout"
         android:icon="@mipmap/ic_arrow_back_white_24dp"/>
 
 </menu>

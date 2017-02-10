@@ -6,25 +6,27 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Created by casseds95 on 23/01/2017.
+ * Created by casseds95 23/01/2017.
  */
 
 public class UserProfile {
 
     private String firstName;
     private String secondName;
-    public String email;
+    private String email;
     private double latitude;
     private double longitude;
+    private boolean broadcastLocation;
 
     public UserProfile(){}
 
-    public UserProfile(String firstName, String secondName, String email, double latitude, double longitude) {
+    public UserProfile(String firstName, String secondName, String email, double latitude, double longitude, boolean broadcastLocation) {
         this.firstName = firstName;
         this.secondName = secondName;
         this.email = email;
         this.latitude = latitude;
         this.longitude = longitude;
+        this.broadcastLocation = broadcastLocation;
     }
 
     @Exclude //Marks as excluded from database
@@ -35,6 +37,7 @@ public class UserProfile {
         info.put("email", email);
         info.put("latitude", latitude);
         info.put("longitude", longitude);
+        info.put("broadcastLocation", broadcastLocation);
         return info;
     }
 
@@ -52,5 +55,9 @@ public class UserProfile {
 
     public String getEmail(){
         return this.email;
+    }
+
+    public boolean getBroadcastLocation(){
+        return this.broadcastLocation;
     }
 }
