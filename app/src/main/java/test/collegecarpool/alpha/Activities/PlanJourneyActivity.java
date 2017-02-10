@@ -3,6 +3,7 @@ package test.collegecarpool.alpha.Activities;
 import android.os.StrictMode;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
+import android.util.JsonReader;
 import android.util.Log;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -45,11 +46,8 @@ public class PlanJourneyActivity extends FragmentActivity implements OnMapReadyC
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_plan_journey);
-        // Obtain the SupportMapFragment and get notified when the map is ready to be used.
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
-                .findFragmentById(R.id.map);
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
-
         if (android.os.Build.VERSION.SDK_INT > 9) {
             StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
             StrictMode.setThreadPolicy(policy);
@@ -58,35 +56,41 @@ public class PlanJourneyActivity extends FragmentActivity implements OnMapReadyC
         auth = FirebaseAuth.getInstance();
         dirRef = FirebaseDatabase.getInstance().getReference("TestDirection");
         try {
-            url = new URL ("https://maps.googleapis.com/maps/api/directions/json?origin=Disneyland&destination=Universal+Studios+Hollywood4&key=" + APIKEY);
-            connection = (HttpURLConnection) url.openConnection();
-            connection.connect();
-            BufferedInputStream stream = new BufferedInputStream(connection.getInputStream());
-            BufferedReader read = new BufferedReader(new InputStreamReader(stream));
-            String jsonString = "";
-            String nextLine = read.readLine();
-            while(nextLine != null){
-                jsonString = append(jsonString, nextLine);
-                nextLine = read.readLine();
-            }
-            read.close();
-            stream.close();
-            connection.disconnect();
+            String jsonString = getDirectionsAsString("https://maps.googleapis.com/maps/api/directions/json?origin=Disneyland&destination=Universal+Studios+Hollywood4&key=" + APIKEY);
             HashMap<String, String> directionMap = new HashMap<>();
             directionMap.put(auth.getCurrentUser().getUid(), jsonString);
             dirRef.setValue(directionMap);
         }
-        catch (MalformedURLException e) {
-            Log.d(TAG, "BAD URL");
-        }
         catch (IOException e) {
-            Log.d(TAG, "FAILED TO OPEN URL");
+            Log.d(TAG, "COULDN'T RETRIEVE JSON");
         }
+
     }
 
     public String append(String a, String b){
         a = a + b;
         return a;
+    }
+
+    public String getDirectionsAsString(String s) throws IOException {
+        url = new URL (s);
+        connection = (HttpURLConnection) url.openConnection();
+        connection.connect();
+        BufferedInputStream stream = new BufferedInputStream(connection.getInputStream());
+        BufferedReader read = new BufferedReader(new InputStreamReader(stream));
+        JsonReader reader = new JsonReader(new InputStreamReader(stream));
+        String jsonString = "";
+        String nextLine = read.readLine();
+        String next = reader.nextString();
+        while(next != null){
+            jsonString = append(jsonString, next);
+            next = read.readLine();
+        }
+        read.close();
+        stream.close();
+        reader.close();
+        connection.disconnect();
+        return jsonString;
     }
 
 
