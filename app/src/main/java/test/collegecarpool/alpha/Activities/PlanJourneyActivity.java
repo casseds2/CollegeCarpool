@@ -78,31 +78,21 @@ public class PlanJourneyActivity extends FragmentActivity implements OnMapReadyC
         connection.connect();
         BufferedInputStream stream = new BufferedInputStream(connection.getInputStream());
         BufferedReader read = new BufferedReader(new InputStreamReader(stream));
-        JsonReader reader = new JsonReader(new InputStreamReader(stream));
+        //JsonReader reader = new JsonReader(new InputStreamReader(stream));
         String jsonString = "";
         String nextLine = read.readLine();
-        String next = reader.nextString();
-        while(next != null){
-            jsonString = append(jsonString, next);
-            next = read.readLine();
+        //String next = reader.nextString();
+        while(nextLine != null){
+            jsonString = append(jsonString, nextLine);
+            nextLine = read.readLine();
         }
         read.close();
         stream.close();
-        reader.close();
+        //reader.close();
         connection.disconnect();
         return jsonString;
     }
 
-
-    /**
-     * Manipulates the map once available.
-     * This callback is triggered when the map is ready to be used.
-     * This is where we can add markers or lines, add listeners or move the camera. In this case,
-     * we just add a marker near Sydney, Australia.
-     * If Google Play services is not installed on the device, the user will be prompted to install
-     * it inside the SupportMapFragment. This method will only be triggered once the user has
-     * installed Google Play services and returned to the app.
-     */
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
