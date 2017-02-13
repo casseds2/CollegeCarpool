@@ -38,7 +38,6 @@ import test.collegecarpool.alpha.Activities.ProfileActivity;
 import test.collegecarpool.alpha.Activities.SettingsActivity;
 import test.collegecarpool.alpha.Activities.LoginAndRegistrationActivities.SigninActivity;
 import test.collegecarpool.alpha.R;
-import test.collegecarpool.alpha.Services.FirebaseIdService;
 
 public class ChatRoomActivity extends AppCompatActivity {
 
@@ -64,9 +63,6 @@ public class ChatRoomActivity extends AppCompatActivity {
         ListView listview = (ListView) findViewById(R.id.listView);
         arrayAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, carList);
         listview.setAdapter(arrayAdapter);
-
-        Intent intent = new Intent(this, FirebaseIdService.class);
-        startService(intent);
 
         Log.d(TAG, "Token: " + FirebaseInstanceId.getInstance().getToken());
 
