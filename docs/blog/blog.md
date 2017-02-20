@@ -71,6 +71,6 @@ I will have to see how complex this is to design before I move on.
 I have been able to download the directions and store them as a Polyline. When I make the polyline form parsing the JSON String returned
 by parsing it and iterating through its levels I must decode the 'steps' section if the JSON string. Steps are the lowest denominator such
 as 'walk 10 meters and turn left'. They make up legs and legs make up routes. I need to find a way to decode this poly/json object. PolyUtil is
-a google library that seems to allow me to do this. ![ScreenShot](https://gitlab.computing.dcu.ie/casseds2/2017-ca400-casseds2/raw/master/docs/blog/images/FirstPolyLine.png)
+a google library that seems to allow me to do this. ![ScreenShot](https://gitlab.computing.dcu.ie/casseds2/2017-ca400-casseds2/blob/Directions/docs/blog/images/FirstPolyLine.png)
 
 
