@@ -52,6 +52,7 @@
 
         <!-- Location Service -->
         <service android:name=".Services.BackgroundLocationIntentService" />
+        <service android:name=".Services.JSONDirectionsIntentService"/>
 
         <!--
              The API key for Google Maps-based APIs is defined as a string resource.

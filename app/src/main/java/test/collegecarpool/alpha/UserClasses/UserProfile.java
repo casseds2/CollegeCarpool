@@ -3,7 +3,6 @@ package test.collegecarpool.alpha.UserClasses;
 import com.google.firebase.database.Exclude;
 
 import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Created by casseds95 23/01/2017.
@@ -30,7 +29,7 @@ public class UserProfile {
     }
 
     @Exclude //Marks as excluded from database
-    public Map<String, Object> toMap(){
+    public HashMap<String, Object> toMap(){
         HashMap<String, Object> info = new HashMap<>();
         info.put("firstName", firstName);
         info.put("secondName", secondName);
@@ -42,11 +41,11 @@ public class UserProfile {
     }
 
     public double getLongitude(){
-        return longitude;
+        return this.longitude;
     }
 
     public double getLatitude(){
-        return latitude;
+        return this.latitude;
     }
 
     public String getFirstName(){ return this.firstName; }
@@ -59,5 +58,9 @@ public class UserProfile {
 
     public boolean getBroadcastLocation(){
         return this.broadcastLocation;
+    }
+
+    public String toString(){
+        return "Name: " + firstName + " " + secondName + "\n" + email + "\n" + "LAT/LNG: " + latitude + "/" + longitude;
     }
 }

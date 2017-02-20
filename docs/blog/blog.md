@@ -3,7 +3,7 @@
 **Stephen Cassedy**
 
 ## My First Blog Entry
-Started development on teh login system with Firebase. Currently have a login, signup and forgot password
+Started development on the login system with Firebase. Currently have a login, signup and forgot password
 feature implemented. During th Signup phase, users are asked to enter sever details such as name, address,
 email and password. At the moment my system only support email and password verification. I may look into
 include other forms of login in the future. After the user submits their details, their information is then
@@ -66,5 +66,11 @@ sop I may end up making some sort of JSON parser in the process as many people s
 I will have to see how complex this is to design before I move on.
 -Update : Just occurred to me that I may not need to translate the String into JSON format for firebase, it should all be do-able locally.
           As far as I have read up on it though, to map the directions to the map, they need to be in JSON format.
+
+## My Eight Blog
+I have been able to download the directions and store them as a Polyline. When I make the polyline form parsing the JSON String returned
+by parsing it and iterating through its levels I must decode the 'steps' section if the JSON string. Steps are the lowest denominator such
+as 'walk 10 meters and turn left'. They make up legs and legs make up routes. I need to find a way to decode this poly/json object. PolyUtil is
+a google library that seems to allow me to do this.
 
 

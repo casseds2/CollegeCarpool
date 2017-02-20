@@ -52,6 +52,10 @@ public class SigninActivity extends AppCompatActivity {
 
         getSupportActionBar().setBackgroundDrawable(new ColorDrawable(Color.BLACK));
 
+        if(auth.getCurrentUser() != null){
+            startActivity(new Intent(SigninActivity.this, HomeScreenActivity.class));
+        }
+
         if(returnSaved("Email") != null && returnSaved("Password") != null){
             String savedEmail = returnSaved("Email");
             String savedPassword = returnSaved("Password");
