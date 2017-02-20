@@ -45,9 +45,9 @@ import com.google.firebase.database.ValueEventListener;
 
 import test.collegecarpool.alpha.Activities.LoginAndRegistrationActivities.SigninActivity;
 import test.collegecarpool.alpha.Activities.MessagingActivities.ChatRoomActivity;
-import test.collegecarpool.alpha.Activities.MessagingActivities.MessageActivity;
 import test.collegecarpool.alpha.R;
 import test.collegecarpool.alpha.Services.BackgroundLocationIntentService;
+import test.collegecarpool.alpha.Services.BackgroundLocationService;
 import test.collegecarpool.alpha.UserClasses.UserProfile;
 
 public class HomeScreenActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
@@ -78,14 +78,15 @@ public class HomeScreenActivity extends AppCompatActivity implements OnMapReadyC
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home_screen);
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
-        mapFragment.getMapAsync(this);
+        BackgroundLocationIntentService.pauseThread = true;
+        checkPermissions();
 
         shouldZoom = true;
 
         /**If User has Not Signed Out Specifically, Their Auth Instance Will Remain and They Can Skip Login ?**/
         auth = FirebaseAuth.getInstance();
         userRef = FirebaseDatabase.getInstance().getReference("UserProfile");
-        if(auth.getCurrentUser() != null) {
+        if (auth.getCurrentUser() != null) {
             broadcastRef = FirebaseDatabase.getInstance().getReference("UserProfile").child(auth.getCurrentUser().getUid()).child("broadcastLocation");
         }
 
@@ -96,16 +97,19 @@ public class HomeScreenActivity extends AppCompatActivity implements OnMapReadyC
 
         locationRequest = new LocationRequest();
 
-        if(auth.getCurrentUser() == null){
+        if (auth.getCurrentUser() == null) {
             startActivity(new Intent(this, SigninActivity.class));
             finish();
         }
         else{
-            Intent intentServiceLocation = new Intent(this, BackgroundLocationIntentService.class);
-            startService(intentServiceLocation);
+            BackgroundLocationIntentService.pauseThread = false;
+            //Intent intentServiceLocation = new Intent(this, BackgroundLocationIntentService.class);
+            //startService(intentServiceLocation);
+            //startService(new Intent(this, BackgroundLocationService.class));
             displayUserLocations();
             checkGPS();
             initDrawer();
+            mapFragment.getMapAsync(this);
 
             btnBroadcast.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -167,7 +171,7 @@ public class HomeScreenActivity extends AppCompatActivity implements OnMapReadyC
         actionBarDrawerToggle = new ActionBarDrawerToggle(this, drawerLayout, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawerLayout.addDrawerListener(actionBarDrawerToggle);
         actionBarDrawerToggle.syncState();
-        if(getSupportActionBar() != null) {
+        if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
             getSupportActionBar().setBackgroundDrawable(new ColorDrawable(Color.BLACK));
         }
@@ -180,9 +184,9 @@ public class HomeScreenActivity extends AppCompatActivity implements OnMapReadyC
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
+        startService(new Intent(this, BackgroundLocationService.class));
         mMap = googleMap;
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            checkPermissions();
             return;
         }
         mMap.setMyLocationEnabled(true);
@@ -202,6 +206,7 @@ public class HomeScreenActivity extends AppCompatActivity implements OnMapReadyC
         switch (requestCode) {
             case MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION: {
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    BackgroundLocationIntentService.pauseThread = false;
                     Log.d(TAG, "ACCESS TO FINE LOCATION GRANTED");
                 }
                 else {
