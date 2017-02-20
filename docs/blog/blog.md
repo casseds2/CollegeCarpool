@@ -72,5 +72,8 @@ I have been able to download the directions and store them as a Polyline. When I
 by parsing it and iterating through its levels I must decode the 'steps' section if the JSON string. Steps are the lowest denominator such
 as 'walk 10 meters and turn left'. They make up legs and legs make up routes. I need to find a way to decode this poly/json object. PolyUtil is
 a google library that seems to allow me to do this. ![ScreenShot](https://gitlab.computing.dcu.ie/casseds2/2017-ca400-casseds2/blob/Directions/docs/blog/images/FirstPolyLine.png)
+I finally was able to get the PolyLine loading. I was experiencing a problem with the mapFragment.getMapAsync() call as it was intialising the map before firebase had a chance to pull the new locations in.
+This lead to the PolyLine not being drawn. I fixed this by calling the method in the Firebase Value Listener once I noticed in Logcat that the URL was being generated before the 
+latitudes and longitudes were being defined.
 
 
