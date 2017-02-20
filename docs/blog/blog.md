@@ -72,8 +72,18 @@ I have been able to download the directions and store them as a Polyline. When I
 by parsing it and iterating through its levels I must decode the 'steps' section if the JSON string. Steps are the lowest denominator such
 as 'walk 10 meters and turn left'. They make up legs and legs make up routes. I need to find a way to decode this poly/json object. PolyUtil is
 a google library that seems to allow me to do this. ![ScreenShot](https://gitlab.computing.dcu.ie/casseds2/2017-ca400-casseds2/blob/Directions/docs/blog/images/FirstPolyLine.png)
-I finally was able to get the PolyLine loading. I was experiencing a problem with the mapFragment.getMapAsync() call as it was intialising the map before firebase had a chance to pull the new locations in.
+I finally was able to get the PolyLine loading. I was experiencing a problem with the mapFragment.getMapAsync() call as it was initializing the map before firebase had a chance to pull the new locations in.
 This lead to the PolyLine not being drawn. I fixed this by calling the method in the Firebase Value Listener once I noticed in Logcat that the URL was being generated before the 
 latitudes and longitudes were being defined.
+
+- I've decided to refactor a lot of my code. I have made an interface to deal with google clients. This exists in any activity that will build a client. I have read up on it and
+apparently the best way to use clients is to make them per activity, not carry the same one around so that takes a lot of messy work off my hands. I have also made a tool directory to hold utility
+classes. There is now a GoogleClientBuilder class, a LocationSettings class and a DrawDirections class. Client and location are straightforward and all draw does is
+return the polyline I need for directions. I am having trouble working with the runtime permissions since I have split the classes out. Pausing the location service thread
+isn't waiting on the permission for some reason. Could be to do with the flags I have controlling the service. I may also put all of my static variables into a
+separate class as I am losing track of some of them. Next step I think will be to add a 'search place' feature to the PlanJourneyActivity so people can choose
+where they would like to go. I have gotten the URL  needed for directions working too with my current location to location (x, y). The polyline does not look great
+but in the process of looking for something to decode the polyline, I found a google library called PolyUtils which I may be able to use to add custom markers and
+layouts. This also decodes my polyline now.
 
 
