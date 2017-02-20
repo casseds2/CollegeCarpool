@@ -1,4 +1,4 @@
-package test.collegecarpool.alpha.UserClasses;
+package test.collegecarpool.alpha.Tools;
 
 import android.util.Log;
 
