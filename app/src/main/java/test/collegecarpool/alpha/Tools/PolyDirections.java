@@ -20,13 +20,13 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 
-public class DrawDirections extends AsyncTask<URL, Void, ArrayList<LatLng>> {
+public class PolyDirections extends AsyncTask<URL, Void, ArrayList<LatLng>> {
 
     private static String TAG = "ROUTE DIRECTIONS";
     public Context context;
     private GoogleMap googleMap;
 
-    public DrawDirections(Context context, GoogleMap googleMap){
+    public PolyDirections(Context context, GoogleMap googleMap){
         this.context = context;
         this.googleMap = googleMap;
     }

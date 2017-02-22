@@ -13,11 +13,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-public class DirectionParser {
+class DirectionParser {
 
     private final static String TAG = "DIRECTION PASRSER";
 
-    public ArrayList<LatLng> getDirectionsAsList(JSONObject jsonObject){
+    ArrayList<LatLng> getDirectionsAsList(JSONObject jsonObject){
         ArrayList<LatLng> latLngArray = new ArrayList<>();
         /**Structure of JSON Document From Google Directions**/
         JSONArray routes;

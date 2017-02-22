@@ -1,5 +1,6 @@
 package test.collegecarpool.alpha.Tools;
 
+import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -10,10 +11,10 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationServices;
+;
+import test.collegecarpool.alpha.Services.BackgroundLocationIntentService;
 
-import test.collegecarpool.alpha.Interfaces.GoogleClientInterface;
-
-public class GoogleClientBuilder implements GoogleClientInterface, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
+public class GoogleClientBuilder extends Activity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
     private Context context;
     private GoogleApiClient googleApiClient;
@@ -25,8 +26,7 @@ public class GoogleClientBuilder implements GoogleClientInterface, GoogleApiClie
         this.googleApiClient = googleApiClient;
     }
 
-    @Override
-    public void buildGoogleClient() {
+    public void buildLocationClient() {
         if(googleApiClient == null) {
             googleApiClient = new GoogleApiClient.Builder(context)
                     .addApi(LocationServices.API)
@@ -34,11 +34,12 @@ public class GoogleClientBuilder implements GoogleClientInterface, GoogleApiClie
                     .addOnConnectionFailedListener(this)
                     .build();
             googleApiClient.connect();
-            Log.d(TAG, "CLIENT BUILT");
+            GPSChecker gpsChecker = new GPSChecker(context, googleApiClient);
+            gpsChecker.checkGPS();
+            Log.d(TAG, "LOCATION CLIENT BUILT");
         }
     }
 
-    @Override
     public boolean checkGooglePlayServicesAvailable() {
         Log.d(TAG, "CHECKING PLAY SERVICES");
         GoogleApiAvailability googleApiAvailability = GoogleApiAvailability.getInstance();
@@ -48,7 +49,8 @@ public class GoogleClientBuilder implements GoogleClientInterface, GoogleApiClie
 
     @Override
     public void onConnected(@Nullable Bundle bundle) {
-        locationSettings.requestLocationUpdates(googleApiClient);
+        if(!BackgroundLocationIntentService.pauseThread)
+            locationSettings.requestLocationUpdates(googleApiClient);
     }
 
     @Override

@@ -1,10 +1,7 @@
 package test.collegecarpool.alpha.Tools;
 
-import android.Manifest;
 import android.content.Context;
-import android.content.pm.PackageManager;
 import android.location.Location;
-import android.support.v4.app.ActivityCompat;
 import android.util.Log;
 
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -15,11 +12,9 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
-import test.collegecarpool.alpha.Activities.HomeScreenActivity;
-
 class LocationSettings implements LocationListener {
 
-    private Context context;
+    public Context context;
     private LocationRequest locationRequest;
     private static String TAG = "LOCATION SETTINGS";
     private FirebaseAuth auth = FirebaseAuth.getInstance();
