@@ -1,6 +1,5 @@
 package test.collegecarpool.alpha.Activities;
 
-import android.os.StrictMode;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -9,103 +8,77 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.BufferedInputStream;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.HashMap;
 
 import test.collegecarpool.alpha.R;
+import test.collegecarpool.alpha.Tools.PolyDirections;
+import test.collegecarpool.alpha.UserClasses.UserProfile;
 
-public class PlanJourneyActivity extends FragmentActivity implements OnMapReadyCallback {
+public class PlanJourneyActivity extends FragmentActivity implements OnMapReadyCallback{
 
-    private GoogleMap mMap;
+    private final static String TAG = "PlanJourneyActivity";
+    private final static String APIKEY = "AIzaSyD7LLJg_QOR-VzqRPYaXazOnbJHBgiQd3k";
 
-    final static String TAG = "PlanJourneyActivity";
+    private UserProfile userProfile = new UserProfile();
+    private double lat, lon;
 
-    final static String APIKEY = "AIzaSyD7LLJg_QOR-VzqRPYaXazOnbJHBgiQd3k";
-    private DatabaseReference dirRef;
-    private FirebaseAuth auth;
-    private URL url;
-    private HttpURLConnection connection;
+    private SupportMapFragment mapFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_plan_journey);
-        // Obtain the SupportMapFragment and get notified when the map is ready to be used.
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
-                .findFragmentById(R.id.map);
-        mapFragment.getMapAsync(this);
+        FirebaseAuth auth = FirebaseAuth.getInstance();
+        final FirebaseUser user = auth.getCurrentUser();
+        if(user != null) {
+            DatabaseReference userRef = FirebaseDatabase.getInstance().getReference("UserProfile").child(user.getUid());
+            userRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    userProfile = dataSnapshot.getValue(UserProfile.class);
+                    lat = userProfile.getLatitude();
+                    lon = userProfile.getLongitude();
 
-        if (android.os.Build.VERSION.SDK_INT > 9) {
-            StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
-            StrictMode.setThreadPolicy(policy);
-        }
+                    /**getMapAsync() Triggers onMapReady, NEED TO GET LAT/LNG FIRST!!!!!**/
+                    mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
+                    mapFragment.getMapAsync(PlanJourneyActivity.this);
+                }
 
-        auth = FirebaseAuth.getInstance();
-        dirRef = FirebaseDatabase.getInstance().getReference("TestDirection");
-        try {
-            url = new URL ("https://maps.googleapis.com/maps/api/directions/json?origin=Disneyland&destination=Universal+Studios+Hollywood4&key=" + APIKEY);
-            connection = (HttpURLConnection) url.openConnection();
-            connection.connect();
-            BufferedInputStream stream = new BufferedInputStream(connection.getInputStream());
-            BufferedReader read = new BufferedReader(new InputStreamReader(stream));
-            String jsonString = "";
-            String nextLine = read.readLine();
-            while(nextLine != null){
-                jsonString = append(jsonString, nextLine);
-                nextLine = read.readLine();
-            }
-            read.close();
-            stream.close();
-            connection.disconnect();
-            HashMap<String, String> directionMap = new HashMap<>();
-            directionMap.put(auth.getCurrentUser().getUid(), jsonString);
-            dirRef.setValue(directionMap);
-        }
-        catch (MalformedURLException e) {
-            Log.d(TAG, "BAD URL");
-        }
-        catch (IOException e) {
-            Log.d(TAG, "FAILED TO OPEN URL");
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+
+                }
+            });
         }
     }
 
-    public String append(String a, String b){
-        a = a + b;
-        return a;
-    }
-
-
-    /**
-     * Manipulates the map once available.
-     * This callback is triggered when the map is ready to be used.
-     * This is where we can add markers or lines, add listeners or move the camera. In this case,
-     * we just add a marker near Sydney, Australia.
-     * If Google Play services is not installed on the device, the user will be prompted to install
-     * it inside the SupportMapFragment. This method will only be triggered once the user has
-     * installed Google Play services and returned to the app.
-     */
     @Override
     public void onMapReady(GoogleMap googleMap) {
-        mMap = googleMap;
-
-        // Add a marker in Sydney and move the camera
-        LatLng sydney = new LatLng(-34, 151);
-        mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
+        try {
+            URL url = new URL("https://maps.googleapis.com/maps/api/directions/json?origin=" + lat + "," + lon + "&destination=53.385713,-6.231124&mode=walking&key=" + APIKEY);
+            Log.d(TAG, String.valueOf(url));
+            PolyDirections routeDirections = new PolyDirections(this, googleMap);
+            routeDirections.execute(url);
+            CameraPosition cameraPosition = new CameraPosition.Builder()
+                    .target(new LatLng(53.386123, -6.254953))
+                    .zoom(15)
+                    .tilt(20)
+                    .build();
+            googleMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+        }
+        catch (MalformedURLException e) {
+            Log.d(TAG, "MALFORMED URL");
+        }
     }
 }

@@ -29,17 +29,6 @@
             android:paddingLeft="10dp"
             android:paddingBottom="10dp"/>
 
-        <Button
-            android:id="@+id/find_me"
-            android:hint="@string/find_me"
-            android:textColorHint="@color/white"
-            android:background="@color/bg_main"
-            android:layout_width="190dp"
-            android:layout_height="wrap_content"
-            android:layout_gravity="bottom|right"
-            android:paddingRight="10dp"
-            android:paddingBottom="10dp"/>
-
     </fragment>
 
 

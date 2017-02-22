@@ -17,6 +17,19 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+
+    sourceSets{
+        main{
+            java{
+                //exclude '**/JSONDirectionsIntentService.java'
+            }
+        }
+        androidTest{
+            java{
+                //'**/TestJSONDirectionsIntentService.java'
+            }
+        }
+    }
 }
 
 dependencies {
@@ -30,9 +43,10 @@ dependencies {
     compile 'com.google.firebase:firebase-messaging:10.0.1'
     compile 'com.google.android.gms:play-services-maps:10.0.1'
     compile 'com.google.android.gms:play-services-location:10.0.1'
+    compile 'com.google.android.gms:play-services-places:10.0.1'
     compile 'com.android.support:support-v4:24.2.1'
     compile 'com.android.support:design:24.2.1'
-    //compile 'com.google.android.gms:play-services:10.0.1'
+    compile 'com.google.maps.android:android-maps-utils:0.4+' //FOR POLYUTIL
 }
 
 apply plugin: 'com.google.gms.google-services'
