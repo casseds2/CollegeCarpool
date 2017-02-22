@@ -86,4 +86,11 @@ where they would like to go. I have gotten the URL  needed for directions workin
 but in the process of looking for something to decode the polyline, I found a google library called PolyUtils which I may be able to use to add custom markers and
 layouts. This also decodes my polyline now.
 
+## My Ninth Blog
+Refactored more code. Now have object to display any users broadcasting location and a GPS checker object to make sure location services are on. I have gotten rid of the 
+Google Client Interface as it is a bit pointless at this stage. Instead everything goes on it the GoogleClientBuilder object. I hope to have methods in this class that will
+allow me to make different tyes of client, depending on the service it caters for, E.g. Location services / Places service. I have also managed to get rid of the runtime permissions
+bug that has annoyed me for a long time. It was due to where I was synchronizing the map. I believe it is working correctly now. I have started to move variables to a Variables class
+but that is not urgent and I am only doing it as I come across the variables instead of going over the whole project in one go.
+Next up, add a places search bar in PlanJourneyActivity.
 
