@@ -66,7 +66,6 @@ public class HomeScreenActivity extends AppCompatActivity implements OnMapReadyC
         shouldZoom = true;
         Button btnBroadcast = (Button) findViewById(R.id.broadcast_location);
         initDrawer();
-        mapFragment.getMapAsync(this);
 
         btnBroadcast.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -142,6 +141,9 @@ public class HomeScreenActivity extends AppCompatActivity implements OnMapReadyC
     private void checkPermissions() {
         if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION}, MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
+        }
+        else{
+            mapFragment.getMapAsync(this);
         }
     }
 
