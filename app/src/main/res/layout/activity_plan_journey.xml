@@ -1,8 +1,74 @@
-<fragment xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:map="http://schemas.android.com/apk/res-auto"
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/map"
-    android:name="com.google.android.gms.maps.SupportMapFragment"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="test.collegecarpool.alpha.Activities.PlanJourneyActivity" />
+    android:orientation="vertical"
+    tools:context="test.collegecarpool.alpha.Activities.PlanJourneyActivity"
+    android:weightSum="1">
+
+    <fragment
+        android:id="@+id/autocom"
+        android:name="com.google.android.gms.location.places.ui.PlaceAutocompleteFragment"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_gravity="top"
+        android:layout_weight="0.29" />
+
+    <TextView
+        android:id="@+id/entry_1"
+        android:layout_width="276dp"
+        android:layout_height="20dp" />
+
+    <Button
+        android:id="@+id/remove_entry1"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:text="Remove" />
+
+    <TextView
+        android:id="@+id/entry_2"
+        android:layout_width="276dp"
+        android:layout_height="20dp" />
+
+    <Button
+        android:id="@+id/remove_entry2"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:text="Remove" />
+
+    <TextView
+        android:id="@+id/entry_3"
+        android:layout_width="276dp"
+        android:layout_height="20dp" />
+
+    <Button
+        android:id="@+id/remove_entry3"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:text="Remove" />
+
+    <TextView
+        android:id="@+id/entry_4"
+        android:layout_width="276dp"
+        android:layout_height="20dp" />
+
+    <Button
+        android:id="@+id/remove_entry4"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:text="Remove" />
+
+    <Button
+        android:id="@+id/submit_address"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/submit_address" />
+
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/view_journey"
+        android:hint="@string/view_journey"/>
+
+</LinearLayout>

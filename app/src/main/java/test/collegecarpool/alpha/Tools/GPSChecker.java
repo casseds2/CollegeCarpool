@@ -16,18 +16,17 @@ import com.google.android.gms.location.LocationSettingsResult;
 import com.google.android.gms.location.LocationSettingsStatusCodes;
 
 public class GPSChecker {
-
     private Context context;
     private GoogleApiClient googleApiClient;
     private static String TAG = "GPS CHECKER";
     private LocationRequest locationRequest;
 
-    GPSChecker(Context context, GoogleApiClient googleApiClient){
+    public GPSChecker(Context context, GoogleApiClient googleApiClient){
         this.context = context;
         this.googleApiClient = googleApiClient;
     }
 
-    void checkGPS(){
+    public void checkGPS(){
         createLocationRequest();
         LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder().addLocationRequest(locationRequest);
         builder.setAlwaysShow(true);

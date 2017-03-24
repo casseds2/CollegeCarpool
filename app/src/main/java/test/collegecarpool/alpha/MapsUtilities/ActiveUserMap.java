@@ -1,4 +1,4 @@
-package test.collegecarpool.alpha.Tools;
+package test.collegecarpool.alpha.MapsUtilities;
 
 import android.util.Log;
 

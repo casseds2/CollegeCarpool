@@ -1,84 +1,196 @@
 package test.collegecarpool.alpha.Activities;
 
-import android.support.v4.app.FragmentActivity;
+import android.content.Intent;
+import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.TextView;
+import android.widget.Toast;
 
-import com.google.android.gms.maps.CameraUpdateFactory;
-import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.OnMapReadyCallback;
-import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.CameraPosition;
-import com.google.android.gms.maps.model.LatLng;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
+import com.google.android.gms.common.api.Status;
+import com.google.android.gms.location.places.AutocompleteFilter;
+import com.google.android.gms.location.places.Place;
+import com.google.android.gms.location.places.ui.PlaceAutocompleteFragment;
+import com.google.android.gms.location.places.ui.PlaceSelectionListener;
 
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.util.LinkedList;
 
 import test.collegecarpool.alpha.R;
-import test.collegecarpool.alpha.Tools.PolyDirections;
-import test.collegecarpool.alpha.UserClasses.UserProfile;
 
-public class PlanJourneyActivity extends FragmentActivity implements OnMapReadyCallback{
+public class PlanJourneyActivity extends AppCompatActivity {
 
-    private final static String TAG = "PlanJourneyActivity";
-    private final static String APIKEY = "AIzaSyD7LLJg_QOR-VzqRPYaXazOnbJHBgiQd3k";
-
-    private UserProfile userProfile = new UserProfile();
-    private double lat, lon;
-
-    private SupportMapFragment mapFragment;
+    private TextView entry1, entry2, entry3, entry4;
+    static final String TAG = "PLAN JOURNEY";
+    private LinkedList<Place> places = new LinkedList<>();
+    private PlaceAutocompleteFragment autocompleteFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_plan_journey);
-        FirebaseAuth auth = FirebaseAuth.getInstance();
-        final FirebaseUser user = auth.getCurrentUser();
-        if(user != null) {
-            DatabaseReference userRef = FirebaseDatabase.getInstance().getReference("UserProfile").child(user.getUid());
-            userRef.addListenerForSingleValueEvent(new ValueEventListener() {
-                @Override
-                public void onDataChange(DataSnapshot dataSnapshot) {
-                    userProfile = dataSnapshot.getValue(UserProfile.class);
-                    lat = userProfile.getLatitude();
-                    lon = userProfile.getLongitude();
+        initSubmitButton();
+        initSearchBar();
+        initAddressFields();
+        initRemoveButtons();
+        initViewJourney();
+        clearUI();
+    }
 
-                    /**getMapAsync() Triggers onMapReady, NEED TO GET LAT/LNG FIRST!!!!!**/
-                    mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
-                    mapFragment.getMapAsync(PlanJourneyActivity.this);
-                }
-
-                @Override
-                public void onCancelled(DatabaseError databaseError) {
-
-                }
-            });
+    /*Log list of elements currently entered*/
+    private void printPlacesArray(LinkedList<Place> p){
+        for(int i = 0; i < p.size(); i++){
+            Place pTemp = p.get(i);
+            Log.d(TAG, "Element(" + i + ") is " + pTemp.getName());
         }
     }
 
-    @Override
-    public void onMapReady(GoogleMap googleMap) {
-        try {
-            URL url = new URL("https://maps.googleapis.com/maps/api/directions/json?origin=" + lat + "," + lon + "&destination=53.385713,-6.231124&mode=walking&key=" + APIKEY);
-            Log.d(TAG, String.valueOf(url));
-            PolyDirections routeDirections = new PolyDirections(this, googleMap);
-            routeDirections.execute(url);
-            CameraPosition cameraPosition = new CameraPosition.Builder()
-                    .target(new LatLng(53.386123, -6.254953))
-                    .zoom(15)
-                    .tilt(20)
-                    .build();
-            googleMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
-        }
-        catch (MalformedURLException e) {
-            Log.d(TAG, "MALFORMED URL");
+    /*Initialize the Remove Entry Buttons*/
+    private void initRemoveButtons(){
+        Button removeEntry1 = (Button) findViewById(R.id.remove_entry1);
+        removeEntry1.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                clearUI();
+                if(places.peekFirst() != null) {
+                        Log.d(TAG, "Removed : " + places.get(0).getName());
+                        places.remove(0);
+                }
+                updateUiAddress(places);
+                printPlacesArray(places);
+            }
+        });
+        Button removeEntry2 = (Button) findViewById(R.id.remove_entry2);
+        removeEntry2.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                clearUI();
+                if(places.peekFirst() != null) {
+                    Log.d(TAG, "Removed : " + places.get(1).getName());
+                    places.remove(1);
+                }
+                updateUiAddress(places);
+                printPlacesArray(places);
+            }
+        });
+        Button removeEntry3 = (Button) findViewById(R.id.remove_entry3);
+        removeEntry3.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                clearUI();
+                if(places.peekFirst() != null) {
+                    Log.d(TAG, "Removed : " + places.get(2).getName());
+                    places.remove(2);
+                }
+                updateUiAddress(places);
+                printPlacesArray(places);
+            }
+        });
+        Button removeEntry4 = (Button) findViewById(R.id.remove_entry4);
+        removeEntry4.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                clearUI();
+                if(places.peekFirst() != null) {
+                    Log.d(TAG, "Removed : " + places.get(3).getName());
+                    places.remove(3);
+                }
+                updateUiAddress(places);
+                printPlacesArray(places);
+            }
+        });
+    }
+
+    /*Initialize the View Journey Button*/
+    private void initViewJourney(){
+        Button btn2 = (Button) findViewById(R.id.view_journey);
+        btn2.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //HANDLE LOGIC FOR GETTING THE GPS LOCATIONS OF THE ENTERED FIELDS FROM PLACES ARRAY
+                //MAP THE POLYLINE
+                //ESTIMATE TIME IT WILL TAKE
+                //DJAKSTRAS ALGORITHM FOR TRAVELLING SALESMAN PROBLEM
+                //CHECK OUT GOOGLE'S OPTIMIZE METHOD
+                startActivity(new Intent(PlanJourneyActivity.this, ViewJourneyActivity.class));
+            }
+        });
+    }
+
+    /*Initialize the submit button to confirm an address*/
+    private void initSubmitButton(){
+        Button btn1 = (Button) findViewById(R.id.submit_address);
+        btn1.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                updateUiAddress(places);
+                autocompleteFragment.setText("");
+            }
+        });
+    }
+
+    /*Initialize te Text Views for the addresses*/
+    private void initAddressFields(){
+        entry1 = (TextView) findViewById(R.id.entry_1);
+        entry2 = (TextView) findViewById(R.id.entry_2);
+        entry3 = (TextView) findViewById(R.id.entry_3);
+        entry4 = (TextView) findViewById(R.id.entry_4);
+    }
+
+    /*Initialise the Autocomplete Fragment Search Bar*/
+    private void initSearchBar(){
+        autocompleteFragment = (PlaceAutocompleteFragment) getFragmentManager().findFragmentById(R.id.autocom);
+        autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
+            @Override
+            public void onPlaceSelected(Place place) {
+                if(places.size() == 4) {
+                    Toast.makeText(PlanJourneyActivity.this, "Only allowed 4 stops", Toast.LENGTH_LONG).show();
+                }
+                places.add(place);
+                autocompleteFragment.setText("");
+            }
+
+            @Override
+            public void onError(Status status) {
+                Log.d(TAG, "Error obtaining place name " + status);
+            }
+        });
+
+        AutocompleteFilter countryFilter = new AutocompleteFilter.Builder().setCountry("IE").build();
+        autocompleteFragment.setFilter(countryFilter);
+    }
+
+    private void clearUI(){
+        entry1.setText(getResources().getString(R.string.stop1));
+        entry2.setText(getResources().getString(R.string.stop2));
+        entry3.setText(getResources().getString(R.string.stop3));
+        entry4.setText(getResources().getString(R.string.stop4));
+    }
+
+    /*Update the Route List in the UI*/
+    private void updateUiAddress(LinkedList<Place> places){
+        if(places != null) {
+            for (int i = 0; i < places.size(); i++) {
+                switch(i){
+                    case 0 :
+                        entry1.append(places.get(i).getName());
+                        Log.d(TAG, "ADDED " + places.get(i).getName());
+                        break;
+                    case 1 :
+                        entry2.append(places.get(i).getName());
+                        Log.d(TAG, "ADDED " + places.get(i).getName());
+                        break;
+                    case 2 :
+                        entry3.append(places.get(i).getName());
+                        Log.d(TAG, "ADDED " + places.get(i).getName());
+                        break;
+                    case 3 :
+                        entry4.append(places.get(i).getName());
+                        Log.d(TAG, "ADDED " + places.get(i).getName());
+                        break;
+                }
+            }
         }
     }
 }

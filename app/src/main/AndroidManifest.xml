@@ -73,9 +73,10 @@
             android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version" />
 
+        <activity android:name=".Activities.PlanJourneyActivity" />
         <activity
-            android:name=".Activities.PlanJourneyActivity"
-            android:label="@string/title_activity_plan_journey"></activity>
+            android:name=".Activities.ViewJourneyActivity"
+            android:label="@string/title_activity_view_journey"></activity>
     </application>
 
 </manifest>
