@@ -1,0 +1,1 @@
+College Carpool is is a mobile application designed for an Android system. It caters for college students looking to carpool to and from college. The app has a few main features including login/registration, instant messaging, real-time user mapping and carpool planning. User information is stored in JSON format in a Firebase database.

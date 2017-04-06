@@ -1,5 +1,6 @@
 package test.collegecarpool.alpha.Activities;
 
+import android.content.Intent;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 
@@ -7,41 +8,42 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.LatLng;
 
-import java.net.URL;
+import java.util.ArrayList;
 
 import test.collegecarpool.alpha.R;
-import test.collegecarpool.alpha.Tools.GPSChecker;
-import test.collegecarpool.alpha.Tools.PolyDirections;
+import test.collegecarpool.alpha.Tools.GoogleClientBuilder;
+import test.collegecarpool.alpha.Tools.PolyURLBuilder;
 
 public class ViewJourneyActivity extends FragmentActivity implements OnMapReadyCallback {
 
     private GoogleMap googleMap;
-    private GoogleApiClient googleApiClient;
+    private GoogleApiClient googleApiClient = null;
+    private ArrayList<LatLng> places;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_view_journey);
 
-        checkLocationAvailable();
-
+        GoogleClientBuilder googleClientBuilder = new GoogleClientBuilder(this, googleApiClient);
+        if(googleClientBuilder.checkGooglePlayServicesAvailable())
+            googleClientBuilder.buildLocationClient();
+        Intent intent = getIntent();
+        places = intent.getParcelableArrayListExtra("LAT/LNG");
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
     }
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
-
+        this.googleMap = googleMap;
+        getPolyLine();
     }
 
-    public void getPolyLine(URL url){
-        PolyDirections polyDirections = new PolyDirections(this, googleMap);
-        polyDirections.execute(url);
-    }
-
-    public void checkLocationAvailable(){
-        GPSChecker gpsChecker = new GPSChecker(this, googleApiClient);
-        gpsChecker.checkGPS();
+    public void getPolyLine(){
+        PolyURLBuilder urlBuilder = new PolyURLBuilder(this, googleMap, places);
+        urlBuilder.buildPolyURL();
     }
 }

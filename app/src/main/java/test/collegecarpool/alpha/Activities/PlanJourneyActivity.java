@@ -14,8 +14,9 @@ import com.google.android.gms.location.places.AutocompleteFilter;
 import com.google.android.gms.location.places.Place;
 import com.google.android.gms.location.places.ui.PlaceAutocompleteFragment;
 import com.google.android.gms.location.places.ui.PlaceSelectionListener;
+import com.google.android.gms.maps.model.LatLng;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 
 import test.collegecarpool.alpha.R;
 
@@ -23,7 +24,7 @@ public class PlanJourneyActivity extends AppCompatActivity {
 
     private TextView entry1, entry2, entry3, entry4;
     static final String TAG = "PLAN JOURNEY";
-    private LinkedList<Place> places = new LinkedList<>();
+    private ArrayList<Place> places = new ArrayList<>();
     private PlaceAutocompleteFragment autocompleteFragment;
 
     @Override
@@ -39,7 +40,7 @@ public class PlanJourneyActivity extends AppCompatActivity {
     }
 
     /*Log list of elements currently entered*/
-    private void printPlacesArray(LinkedList<Place> p){
+    private void printPlacesArray(ArrayList<Place> p){
         for(int i = 0; i < p.size(); i++){
             Place pTemp = p.get(i);
             Log.d(TAG, "Element(" + i + ") is " + pTemp.getName());
@@ -53,7 +54,7 @@ public class PlanJourneyActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 clearUI();
-                if(places.peekFirst() != null) {
+                if(!places.isEmpty()) {
                         Log.d(TAG, "Removed : " + places.get(0).getName());
                         places.remove(0);
                 }
@@ -66,7 +67,7 @@ public class PlanJourneyActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 clearUI();
-                if(places.peekFirst() != null) {
+                if(!places.isEmpty()) {
                     Log.d(TAG, "Removed : " + places.get(1).getName());
                     places.remove(1);
                 }
@@ -79,7 +80,7 @@ public class PlanJourneyActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 clearUI();
-                if(places.peekFirst() != null) {
+                if(!places.isEmpty()) {
                     Log.d(TAG, "Removed : " + places.get(2).getName());
                     places.remove(2);
                 }
@@ -92,7 +93,7 @@ public class PlanJourneyActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 clearUI();
-                if(places.peekFirst() != null) {
+                if(!places.isEmpty()) {
                     Log.d(TAG, "Removed : " + places.get(3).getName());
                     places.remove(3);
                 }
@@ -113,7 +114,14 @@ public class PlanJourneyActivity extends AppCompatActivity {
                 //ESTIMATE TIME IT WILL TAKE
                 //DJAKSTRAS ALGORITHM FOR TRAVELLING SALESMAN PROBLEM
                 //CHECK OUT GOOGLE'S OPTIMIZE METHOD
-                startActivity(new Intent(PlanJourneyActivity.this, ViewJourneyActivity.class));
+                ArrayList<LatLng> latLngs = new ArrayList<>();
+                for(int i = 0; i < places.size(); i++){
+                    LatLng latLng = places.get(i).getLatLng();
+                    latLngs.add(latLng);
+                }
+                Intent intent = new Intent(PlanJourneyActivity.this, ViewJourneyActivity.class);
+                intent.putExtra("LAT/LNG", latLngs);
+                startActivity(intent);
             }
         });
     }
@@ -169,7 +177,7 @@ public class PlanJourneyActivity extends AppCompatActivity {
     }
 
     /*Update the Route List in the UI*/
-    private void updateUiAddress(LinkedList<Place> places){
+    private void updateUiAddress(ArrayList<Place> places){
         if(places != null) {
             for (int i = 0; i < places.size(); i++) {
                 switch(i){
