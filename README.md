@@ -1,6 +1,6 @@
 ## College Carpool
 
-4th year project. Carpool app aimed towards DCU students. Built in payment system and traffic prediction system.
+4th year project. Carpool app aimed towards DCU students. Built in payment system.
 Aims to reduce traffic and increase parking availability around DCU. 
 
 ## Additional Resources
