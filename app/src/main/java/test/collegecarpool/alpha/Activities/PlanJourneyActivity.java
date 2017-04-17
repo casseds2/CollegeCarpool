@@ -121,7 +121,10 @@ public class PlanJourneyActivity extends AppCompatActivity {
                 }
                 Intent intent = new Intent(PlanJourneyActivity.this, ViewJourneyActivity.class);
                 intent.putExtra("LAT/LNG", latLngs);
-                startActivity(intent);
+                if(latLngs.size() > 1)
+                    startActivity(intent);
+                else
+                    Toast.makeText(PlanJourneyActivity.this, "Enter at Least Start & Stop Address", Toast.LENGTH_LONG).show();
             }
         });
     }

@@ -1,4 +1,4 @@
-package test.collegecarpool.alpha.Activities.MessagingActivities;
+package test.collegecarpool.alpha.MessagingActivities;
 
 import android.content.Intent;
 import android.graphics.Color;
@@ -27,7 +27,7 @@ import com.google.firebase.database.ValueEventListener;
 import test.collegecarpool.alpha.Activities.HomeScreenActivity;
 import test.collegecarpool.alpha.Activities.ProfileActivity;
 import test.collegecarpool.alpha.Activities.SettingsActivity;
-import test.collegecarpool.alpha.Activities.LoginAndRegistrationActivities.SigninActivity;
+import test.collegecarpool.alpha.LoginAndRegistrationActivities.SigninActivity;
 import test.collegecarpool.alpha.R;
 import test.collegecarpool.alpha.UserClasses.Message;
 import test.collegecarpool.alpha.UserClasses.UserProfile;

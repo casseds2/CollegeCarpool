@@ -17,17 +17,50 @@ class DirectionParser {
 
     private final static String TAG = "DIRECTION PASRSER";
 
+    DirectionParser(){}
+
+    /*Replaced by zoomPoly() in PolyDirections.java*/
+    /*
+    ArrayList<LatLng> getBounds(JSONObject jsonObject){
+        ArrayList<LatLng> boundsArray = new ArrayList<>();
+        LatLng latLng;
+        JSONArray routes;
+        double lat, lon;
+
+        try{
+            routes = jsonObject.getJSONArray("routes");
+            for(int i = 0; i < routes.length(); i++){
+                lat = Double.parseDouble((String) routes.getJSONObject(0).getJSONObject("northeast").get("lat"));
+                lon = Double.parseDouble((String) routes.getJSONObject(0).getJSONObject("northeast").get("lng"));
+                latLng = new LatLng(lat, lon);
+                boundsArray.add(latLng);
+                lat = Double.parseDouble((String) routes.getJSONObject(0).getJSONObject("southwest").get("lat"));
+                lon = Double.parseDouble((String) routes.getJSONObject(0).getJSONObject("southwest").get("lng"));
+                latLng = new LatLng(lat, lon);
+                boundsArray.add(latLng);
+            }
+        }
+        catch (JSONException e) {
+            e.printStackTrace();
+            Log.d(TAG, "JSON Error");
+        }
+
+        return boundsArray;
+    }
+    */
+
     ArrayList<LatLng> getDirectionsAsList(JSONObject jsonObject){
         ArrayList<LatLng> latLngArray = new ArrayList<>();
-        /**Structure of JSON Document From Google Directions**/
+        /*Structure of JSON Document From Google Directions*/
         JSONArray routes;
         JSONArray legs;
         JSONArray steps;
         String routeLine;
 
         try{
+            /*When you look at JSON URL, you can see bound, set Map view to be incorporate these bounds*/
             routes = jsonObject.getJSONArray("routes");
-            /**PATH IS 3 "LAYERS" DEEP**/
+            /*PATH IS 3 "LAYERS" DEEP*/
             for(int i = 0; i < routes.length(); i++){
                 legs = ((JSONObject) routes.get(i)).getJSONArray("legs");
                 for(int j = 0; j < legs.length(); j++){

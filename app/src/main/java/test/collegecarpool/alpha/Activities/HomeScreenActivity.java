@@ -26,8 +26,8 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
-import test.collegecarpool.alpha.Activities.LoginAndRegistrationActivities.SigninActivity;
-import test.collegecarpool.alpha.Activities.MessagingActivities.ChatRoomActivity;
+import test.collegecarpool.alpha.LoginAndRegistrationActivities.SigninActivity;
+import test.collegecarpool.alpha.MessagingActivities.ChatRoomActivity;
 import test.collegecarpool.alpha.R;
 import test.collegecarpool.alpha.Services.BackgroundLocationIntentService;
 import test.collegecarpool.alpha.Services.BackgroundLocationService;
@@ -99,6 +99,10 @@ public class HomeScreenActivity extends AppCompatActivity implements OnMapReadyC
                     case R.id.nav_messages:
                         startActivity(new Intent(HomeScreenActivity.this, ChatRoomActivity.class));
                         onStop();
+                        return true;
+                    case R.id.nav_payment:
+                        startActivity(new Intent(HomeScreenActivity.this, PaymentActivity.class));
+                        onStart();
                         return true;
                     case R.id.nav_profile:
                         startActivity(new Intent(HomeScreenActivity.this, ProfileActivity.class));

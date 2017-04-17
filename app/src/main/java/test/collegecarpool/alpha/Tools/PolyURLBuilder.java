@@ -24,7 +24,7 @@ public class PolyURLBuilder {
     private DatabaseReference userRef;
     private URL url;
     private String urlString;
-    private String urlStart = "https://maps.googleapis.com/maps/api/directions/json?origin=";
+    private String origin = "https://maps.googleapis.com/maps/api/directions/json?origin=";
     private UserProfile userProfile;
     private double lat, lon;
     private Context context;
@@ -60,17 +60,12 @@ public class PolyURLBuilder {
                             lat = userProfile.getLatitude();
                             lon = userProfile.getLongitude();
 
-                            //THIS COULD BE WHERE WE PLUG DIJKSTRA IN
-
-                            urlString = urlStart + lat + "," + lon + "&destination=";
+                            urlString = origin + lat + "," + lon + "&waypoints=optimize:true|";
                             for(int i = 0; i < places.size()-2; i++){
-                                if(i == 0){
-                                    urlString = urlString + places.get(i).latitude + "," + places.get(i).longitude+ "&waypoints=via:";
-                                }
-                                urlString = urlString + places.get(i).latitude + "%2C" + places.get(i).longitude + "%7C";
+                                urlString = urlString + places.get(i).latitude + "," + places.get(i).longitude + "|";
                                 Log.d(TAG, urlString);
                             }
-                            urlString = urlString + places.get(places.size()-1).latitude + "%2C" + places.get(places.size()-1).longitude;
+                            urlString = urlString + "&destination=" + places.get(places.size()-1).latitude + "," + places.get(places.size()-1).longitude;
                             Log.d(TAG, urlString);
                             try {
                                 url = new URL(urlString);

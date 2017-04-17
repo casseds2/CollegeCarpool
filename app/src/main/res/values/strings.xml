@@ -33,6 +33,7 @@
     <string name="nav_settings">Settings</string>
     <string name="nav_logout">Logout</string>
     <string name="nav_journey">Plan A Journey</string>
+    <string name="nav_payment">Payment</string>
 
     <!-- Toolbar Titles
     <string-array name="nav_activity_titles">
