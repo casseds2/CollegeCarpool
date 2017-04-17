@@ -27,9 +27,7 @@ public class BackgroundLocationIntentService extends IntentService{
     @Override
     protected void onHandleIntent(Intent intent) {
         GoogleClientBuilder googleClientBuilder = new GoogleClientBuilder(this, googleApiClient);
-        if(googleClientBuilder.checkGooglePlayServicesAvailable()) {
-            googleClientBuilder.buildLocationClient();
-        }
+        googleClientBuilder.buildLocationClient();
         Log.d(TAG, "HANDLED THREAD");
     }
 }

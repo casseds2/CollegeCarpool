@@ -1,4 +1,4 @@
-package test.collegecarpool.alpha.Activities.LoginAndRegistrationActivities;
+package test.collegecarpool.alpha.LoginAndRegistrationActivities;
 
 import android.content.Intent;
 import android.graphics.Color;
@@ -47,11 +47,11 @@ public class SignupActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_signup);
 
-        /**Get Firebase Instances**/
+        /*Get Firebase Instances*/
         auth = FirebaseAuth.getInstance();
         userRef = FirebaseDatabase.getInstance().getReference("UserProfile");
 
-        /**Define XML Elements**/
+        /*Define XML Elements*/
         btn_Signup = (Button) findViewById(R.id.btn_Signup);
         inputEmail = (EditText) findViewById(R.id.email);
         inputPassword = (EditText) findViewById(R.id.password);
@@ -63,12 +63,12 @@ public class SignupActivity extends AppCompatActivity {
             getSupportActionBar().setBackgroundDrawable(new ColorDrawable(Color.BLACK));
         }
 
-        /**Set Listener for Signup Button**/
+        /*Set Listener for Signup Button*/
         btn_Signup.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v){
 
-                /**Retrieve Text from Fields**/
+                /*Retrieve Text from Fields*/
                 email = inputEmail.getText().toString().trim();
                 password = inputPassword.getText().toString().trim();
                 firstName = inputFirstName.getText().toString().trim();
@@ -89,7 +89,7 @@ public class SignupActivity extends AppCompatActivity {
 
                 progressBar.setVisibility(View.VISIBLE);
 
-                /**Create a User**/
+                /*Create a User*/
                 auth.createUserWithEmailAndPassword(email, password)
                         .addOnCompleteListener(SignupActivity.this, new OnCompleteListener<AuthResult>() {
                             @Override
@@ -131,7 +131,8 @@ public class SignupActivity extends AppCompatActivity {
 
     /**Add the User to a Database**/
     private void saveUserProfile(){
-        UserProfile userProfile = new UserProfile(firstName, secondName, email, 0.0, 0.0, false);
+
+        UserProfile userProfile = new UserProfile(firstName, secondName, email, 0, 0, false);
         HashMap<String, Object> children = new HashMap<>();
         if(auth.getCurrentUser() != null) {
             children.put(auth.getCurrentUser().getUid(), userProfile.toMap());

@@ -15,8 +15,7 @@ import com.google.android.gms.location.LocationSettingsRequest;
 import com.google.android.gms.location.LocationSettingsResult;
 import com.google.android.gms.location.LocationSettingsStatusCodes;
 
-public class GPSChecker {
-
+class GPSChecker {
     private Context context;
     private GoogleApiClient googleApiClient;
     private static String TAG = "GPS CHECKER";
@@ -27,7 +26,7 @@ public class GPSChecker {
         this.googleApiClient = googleApiClient;
     }
 
-    void checkGPS(){
+     void checkGPS(){
         createLocationRequest();
         LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder().addLocationRequest(locationRequest);
         builder.setAlwaysShow(true);

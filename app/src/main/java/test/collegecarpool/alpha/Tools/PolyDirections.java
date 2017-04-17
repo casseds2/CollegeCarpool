@@ -5,8 +5,10 @@ import android.graphics.Color;
 import android.os.AsyncTask;
 import android.util.Log;
 
+import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.PolylineOptions;
 
 import org.json.JSONException;
@@ -20,13 +22,13 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 
-public class PolyDirections extends AsyncTask<URL, Void, ArrayList<LatLng>> {
+class PolyDirections extends AsyncTask<URL, Void, ArrayList<LatLng>> {
 
     private static String TAG = "ROUTE DIRECTIONS";
     public Context context;
     private GoogleMap googleMap;
 
-    public PolyDirections(Context context, GoogleMap googleMap){
+    PolyDirections(Context context, GoogleMap googleMap){
         this.context = context;
         this.googleMap = googleMap;
     }
@@ -67,6 +69,15 @@ public class PolyDirections extends AsyncTask<URL, Void, ArrayList<LatLng>> {
         PolylineOptions polylineOptions = new PolylineOptions();
         polylineOptions.addAll(latLngArray).width(5).color(Color.BLUE);
         googleMap.addPolyline(polylineOptions);
+        zoomPoly(latLngArray);
         Log.d(TAG, "POLYLINE DRAWN");
+    }
+
+    private void zoomPoly(ArrayList<LatLng> latLngArray){
+        LatLngBounds.Builder builder = new LatLngBounds.Builder();
+        for(LatLng latLng : latLngArray){
+            builder.include(latLng);
+        }
+        googleMap.moveCamera(CameraUpdateFactory.newLatLngBounds(builder.build(), 20));
     }
 }

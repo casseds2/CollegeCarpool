@@ -94,3 +94,9 @@ bug that has annoyed me for a long time. It was due to where I was synchronizing
 but that is not urgent and I am only doing it as I come across the variables instead of going over the whole project in one go.
 Next up, add a places search bar in PlanJourneyActivity.
 
+## My Tenth Blog
+Being a while since I edited, I got straight back into incorporating multiple way points which the user inputs. This is done in the PLANJOURNEY
+Activity. Then, the user can view their planned journey when they click View Journey. A PlaceAutoComplete Fragment identifies google places and then I break them down into
+lat/longs which I can work with. I then implement a URL Builder class to form a URL which I can pass to PolyDirections. This will build the PolyLine which will be
+put onto the google map. Routes NOT OPTIMISED yet.
+

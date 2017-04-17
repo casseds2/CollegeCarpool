@@ -1,4 +1,4 @@
-package test.collegecarpool.alpha.Activities.LoginAndRegistrationActivities;
+package test.collegecarpool.alpha.LoginAndRegistrationActivities;
 
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;

@@ -26,12 +26,12 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
-import test.collegecarpool.alpha.Activities.LoginAndRegistrationActivities.SigninActivity;
-import test.collegecarpool.alpha.Activities.MessagingActivities.ChatRoomActivity;
+import test.collegecarpool.alpha.LoginAndRegistrationActivities.SigninActivity;
+import test.collegecarpool.alpha.MessagingActivities.ChatRoomActivity;
 import test.collegecarpool.alpha.R;
 import test.collegecarpool.alpha.Services.BackgroundLocationIntentService;
 import test.collegecarpool.alpha.Services.BackgroundLocationService;
-import test.collegecarpool.alpha.Tools.ActiveUserMap;
+import test.collegecarpool.alpha.MapsUtilities.ActiveUserMap;
 import test.collegecarpool.alpha.Tools.GoogleClientBuilder;
 
 import static test.collegecarpool.alpha.Tools.Variables.MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION;
@@ -40,18 +40,12 @@ import static test.collegecarpool.alpha.Tools.Variables.shouldZoom;
 public class HomeScreenActivity extends AppCompatActivity implements OnMapReadyCallback{
 
     private GoogleApiClient googleApiClient = null;
-
-
-    private final static String TAG = "HomeScreenActivity";
-
+    private static String TAG = "HomeScreenActivity";
     private boolean broadcastIsClicked = false;
-
     private ActionBarDrawerToggle actionBarDrawerToggle;
-
     private FirebaseAuth auth = FirebaseAuth.getInstance();
     private DatabaseReference broadcastRef;
-
-    SupportMapFragment mapFragment;
+    private SupportMapFragment mapFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,10 +55,12 @@ public class HomeScreenActivity extends AppCompatActivity implements OnMapReadyC
         if(auth.getCurrentUser() != null)
             broadcastRef = FirebaseDatabase.getInstance().getReference("UserProfile").child(auth.getCurrentUser().getUid()).child("broadcastLocation");
         GoogleClientBuilder googleClientBuilder = new GoogleClientBuilder(this, googleApiClient);
-        googleClientBuilder.buildLocationClient();
+        if(googleClientBuilder.checkGooglePlayServicesAvailable())
+            googleClientBuilder.buildLocationClient();
         checkPermissions();
         shouldZoom = true;
         Button btnBroadcast = (Button) findViewById(R.id.broadcast_location);
+        Button btnPlanJourney = (Button) findViewById(R.id.plan_journey);
         initDrawer();
 
         btnBroadcast.setOnClickListener(new View.OnClickListener() {
@@ -75,6 +71,16 @@ public class HomeScreenActivity extends AppCompatActivity implements OnMapReadyC
                 broadcastIsClicked = true;
             }
         });
+
+
+        btnPlanJourney.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Log.d(TAG, "PLAN JOURNEY");
+                startActivity(new Intent(HomeScreenActivity.this, PlanJourneyActivity.class));
+            }
+        });
+
     }
 
     public void initDrawer() {
@@ -93,6 +99,10 @@ public class HomeScreenActivity extends AppCompatActivity implements OnMapReadyC
                     case R.id.nav_messages:
                         startActivity(new Intent(HomeScreenActivity.this, ChatRoomActivity.class));
                         onStop();
+                        return true;
+                    case R.id.nav_payment:
+                        startActivity(new Intent(HomeScreenActivity.this, PaymentActivity.class));
+                        onStart();
                         return true;
                     case R.id.nav_profile:
                         startActivity(new Intent(HomeScreenActivity.this, ProfileActivity.class));
@@ -146,7 +156,6 @@ public class HomeScreenActivity extends AppCompatActivity implements OnMapReadyC
             mapFragment.getMapAsync(this);
         }
     }
-
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {

@@ -4,9 +4,6 @@ import com.google.firebase.database.Exclude;
 
 import java.util.HashMap;
 
-/**
- * Created by casseds95 23/01/2017.
- */
 
 public class UserProfile {
 
@@ -19,12 +16,12 @@ public class UserProfile {
 
     public UserProfile(){}
 
-    public UserProfile(String firstName, String secondName, String email, double latitude, double longitude, boolean broadcastLocation) {
+    public UserProfile(String firstName, String secondName, String email,double lat, double lon, boolean broadcastLocation) {
         this.firstName = firstName;
         this.secondName = secondName;
         this.email = email;
-        this.latitude = latitude;
-        this.longitude = longitude;
+        this.latitude = lat;
+        this.longitude = lon;
         this.broadcastLocation = broadcastLocation;
     }
 
@@ -34,19 +31,17 @@ public class UserProfile {
         info.put("firstName", firstName);
         info.put("secondName", secondName);
         info.put("email", email);
+        //info.put("latitude", latitude);
+        //info.put("longitude", longitude);
         info.put("latitude", latitude);
         info.put("longitude", longitude);
         info.put("broadcastLocation", broadcastLocation);
         return info;
     }
 
-    public double getLongitude(){
-        return this.longitude;
-    }
+    public double getLongitude(){ return this.longitude; }
 
-    public double getLatitude(){
-        return this.latitude;
-    }
+    public double getLatitude(){ return latitude; }
 
     public String getFirstName(){ return this.firstName; }
 
@@ -61,6 +56,6 @@ public class UserProfile {
     }
 
     public String toString(){
-        return "Name: " + firstName + " " + secondName + "\n" + email + "\n" + "LAT/LNG: " + latitude + "/" + longitude;
+        return "Name: " + firstName + " " + secondName + "\n" + email + "\n" + "LAT/LNG: " + getLatitude() + "/" + getLongitude();
     }
 }

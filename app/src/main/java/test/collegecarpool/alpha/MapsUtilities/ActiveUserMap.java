@@ -1,4 +1,4 @@
-package test.collegecarpool.alpha.Tools;
+package test.collegecarpool.alpha.MapsUtilities;
 
 import android.util.Log;
 
@@ -43,7 +43,7 @@ public class ActiveUserMap {
                                 .target(new LatLng(userProfile.getLatitude(), userProfile.getLongitude()))// Sets the center of the map to location user
                                 .zoom(15) // Sets the zoom
                                 .build();
-                        Log.d(TAG, "Marker Added For User, Zoom: " + shouldZoom);
+                        Log.d(TAG, "Marker Added For User at " + userProfile.getLatitude() + "/" + userProfile.getLongitude() + ", Zoom: " + shouldZoom);
                         if(googleMap != null)
                             googleMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
                         shouldZoom = false;

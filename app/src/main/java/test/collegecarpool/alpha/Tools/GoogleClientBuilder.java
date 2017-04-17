@@ -5,13 +5,15 @@ import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationServices;
-;
+import com.google.android.gms.location.places.Places;
+
 import test.collegecarpool.alpha.Services.BackgroundLocationIntentService;
 
 public class GoogleClientBuilder extends Activity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
@@ -26,8 +28,9 @@ public class GoogleClientBuilder extends Activity implements GoogleApiClient.Con
         this.googleApiClient = googleApiClient;
     }
 
+    /**Google Client Builder For Location**/
     public void buildLocationClient() {
-        if(googleApiClient == null) {
+        if(googleApiClient == null && checkGooglePlayServicesAvailable()) {
             googleApiClient = new GoogleApiClient.Builder(context)
                     .addApi(LocationServices.API)
                     .addConnectionCallbacks(this)
@@ -37,6 +40,19 @@ public class GoogleClientBuilder extends Activity implements GoogleApiClient.Con
             GPSChecker gpsChecker = new GPSChecker(context, googleApiClient);
             gpsChecker.checkGPS();
             Log.d(TAG, "LOCATION CLIENT BUILT");
+        }
+    }
+
+    /**Google Client Builder For Places**/
+    public void buildPlacesClient(){
+        if(googleApiClient == null && checkGooglePlayServicesAvailable()){
+            googleApiClient = new GoogleApiClient.Builder(context)
+                    .addApi(Places.GEO_DATA_API)
+                    .addApi(Places.PLACE_DETECTION_API)
+                    .enableAutoManage((FragmentActivity) context, this)
+                    .build();
+            googleApiClient.connect();
+            Log.d(TAG, "PLACES CLIENT BUILT");
         }
     }
 
@@ -55,11 +71,11 @@ public class GoogleClientBuilder extends Activity implements GoogleApiClient.Con
 
     @Override
     public void onConnectionSuspended(int i) {
-
+        Log.d(TAG, "GOOGLE CLIENT SUSPENDED");
     }
 
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-
+        Log.d(TAG, "GOOGLE CLIENT UNABLE TO CONNECT");
     }
 }

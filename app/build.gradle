@@ -18,14 +18,14 @@ android {
         }
     }
 
-    sourceSets{
-        main{
-            java{
+    sourceSets {
+        main {
+            java {
                 //exclude '**/JSONDirectionsIntentService.java'
             }
         }
-        androidTest{
-            java{
+        androidTest {
+            java {
                 //'**/TestJSONDirectionsIntentService.java'
             }
         }
@@ -37,6 +37,8 @@ dependencies {
     androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
+    //FOR POLYUTIL
+    //compile 'com.android.support.constraint:constraint-layout:+'
     compile 'com.android.support:appcompat-v7:24.2.1'
     compile 'com.google.firebase:firebase-auth:10.0.1'
     compile 'com.google.firebase:firebase-database:10.0.1'
@@ -46,7 +48,9 @@ dependencies {
     compile 'com.google.android.gms:play-services-places:10.0.1'
     compile 'com.android.support:support-v4:24.2.1'
     compile 'com.android.support:design:24.2.1'
-    compile 'com.google.maps.android:android-maps-utils:0.4+' //FOR POLYUTIL
+    compile 'com.google.maps.android:android-maps-utils:0.4.+'
+    compile 'com.google.android.gms:play-services:10.0.1'
+    compile 'com.android.support.constraint:constraint-layout:+'
 }
 
 apply plugin: 'com.google.gms.google-services'
