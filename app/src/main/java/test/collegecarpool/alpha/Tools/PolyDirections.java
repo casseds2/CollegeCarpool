@@ -40,7 +40,6 @@ class PolyDirections extends AsyncTask<URL, Void, ArrayList<LatLng>> {
         ArrayList<LatLng> latLngArray = new ArrayList<>();
         try {
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-            assert connection != null;
             connection.connect();
             BufferedInputStream stream = new BufferedInputStream(connection.getInputStream());
             BufferedReader read = new BufferedReader(new InputStreamReader(stream));

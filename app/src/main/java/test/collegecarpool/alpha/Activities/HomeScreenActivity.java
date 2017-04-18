@@ -144,8 +144,7 @@ public class HomeScreenActivity extends AppCompatActivity implements OnMapReadyC
         googleMap.setMyLocationEnabled(true);
         googleMap.setBuildingsEnabled(true);
         googleMap.setTrafficEnabled(true);
-        ActiveUserMap activeUserMap = new ActiveUserMap(googleMap);
-        activeUserMap.displayUserLocations();
+        new ActiveUserMap(googleMap).displayUserLocations();
     }
 
     private void checkPermissions() {

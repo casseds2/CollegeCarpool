@@ -62,8 +62,7 @@ public class ViewJourneyActivity extends AppCompatActivity implements OnMapReady
     }
 
     private void drawPolyLine(){
-        PolyURLBuilder urlBuilder = new PolyURLBuilder(this, googleMap, places);
-        urlBuilder.buildPolyURL();
+        new PolyURLBuilder(this, googleMap,places).buildPolyURL();
     }
 
     public void initDrawer() {

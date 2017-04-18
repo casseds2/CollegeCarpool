@@ -109,11 +109,6 @@ public class PlanJourneyActivity extends AppCompatActivity {
         btn2.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //HANDLE LOGIC FOR GETTING THE GPS LOCATIONS OF THE ENTERED FIELDS FROM PLACES ARRAY
-                //MAP THE POLYLINE
-                //ESTIMATE TIME IT WILL TAKE
-                //DJAKSTRAS ALGORITHM FOR TRAVELLING SALESMAN PROBLEM
-                //CHECK OUT GOOGLE'S OPTIMIZE METHOD
                 ArrayList<LatLng> latLngs = new ArrayList<>();
                 for(int i = 0; i < places.size(); i++){
                     LatLng latLng = places.get(i).getLatLng();
@@ -121,10 +116,8 @@ public class PlanJourneyActivity extends AppCompatActivity {
                 }
                 Intent intent = new Intent(PlanJourneyActivity.this, ViewJourneyActivity.class);
                 intent.putExtra("LAT/LNG", latLngs);
-                if(latLngs.size() > 1)
+                if(latLngs.size() > 0)
                     startActivity(intent);
-                else
-                    Toast.makeText(PlanJourneyActivity.this, "Enter at Least Start & Stop Address", Toast.LENGTH_LONG).show();
             }
         });
     }

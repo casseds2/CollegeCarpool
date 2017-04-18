@@ -22,7 +22,7 @@ public class PolyURLBuilder {
 
     private FirebaseAuth auth = FirebaseAuth.getInstance();
     private DatabaseReference userRef;
-    private URL url;
+    private URL url = null;
     private String urlString;
     private String origin = "https://maps.googleapis.com/maps/api/directions/json?origin=";
     private UserProfile userProfile;
@@ -46,7 +46,7 @@ public class PolyURLBuilder {
         }
     }
 
-    public void buildPolyURL(){
+    public URL buildPolyURL(){
         initFirebase();
         userRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -61,7 +61,7 @@ public class PolyURLBuilder {
                             lon = userProfile.getLongitude();
 
                             urlString = origin + lat + "," + lon + "&waypoints=optimize:true|";
-                            for(int i = 0; i < places.size()-2; i++){
+                            for(int i = 0; i < places.size()-1; i++){
                                 urlString = urlString + places.get(i).latitude + "," + places.get(i).longitude + "|";
                                 Log.d(TAG, urlString);
                             }
@@ -85,5 +85,7 @@ public class PolyURLBuilder {
 
             }
         });
+        Log.d(TAG, String.valueOf(url));
+        return url;
     }
 }

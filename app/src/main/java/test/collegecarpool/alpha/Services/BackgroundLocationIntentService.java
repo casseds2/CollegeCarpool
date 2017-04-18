@@ -30,4 +30,6 @@ public class BackgroundLocationIntentService extends IntentService{
         googleClientBuilder.buildLocationClient();
         Log.d(TAG, "HANDLED THREAD");
     }
+
+    /*Program Sat/Nav in here*/
 }

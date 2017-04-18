@@ -30,7 +30,7 @@
             <intent-filter>
                 <action android:name="android.nfc.action.NDEF_DISCOVERED"/>
                 <category android:name="android.intent.category.DEFAULT"/>
-                <data android:mimeType="application/vnd.com.example.android.beam"/>
+                <data android:mimeType="application/test.collegecarpool.alpha"/>
             </intent-filter>
         </activity>
 
@@ -76,10 +76,6 @@
             android:name="com.google.android.geo.API_KEY"
             android:value="@string/google_maps_key" />
 
-        <!--
- ATTENTION: This was auto-generated to add Google Play services to your project for
-     App Indexing.  See https://g.co/AppIndexing/AndroidStudio for more information.
-        -->
         <meta-data
             android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version" />
