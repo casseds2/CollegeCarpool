@@ -38,6 +38,8 @@ public class ActiveUserMap {
                     googleMap.clear();
                 for(DataSnapshot dataSnapshot1 : dataSnapshots){
                     UserProfile userProfile = dataSnapshot1.getValue(UserProfile.class);
+                    //Log.d(TAG, String.valueOf("Auth" + auth.getCurrentUser().getEmail()));
+                    //Log.d(TAG, "Profile:" +  userProfile.getEmail());
                     if(auth.getCurrentUser() != null && userProfile.getEmail().equals(auth.getCurrentUser().getEmail()) && shouldZoom){
                         CameraPosition cameraPosition = new CameraPosition.Builder()
                                 .target(new LatLng(userProfile.getLatitude(), userProfile.getLongitude()))// Sets the center of the map to location user

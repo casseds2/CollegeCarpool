@@ -71,4 +71,11 @@
         android:id="@+id/view_journey"
         android:hint="@string/view_journey"/>
 
+    <Button
+        android:id="@+id/dateDialog"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Pick A Date" />
+
+
 </LinearLayout>

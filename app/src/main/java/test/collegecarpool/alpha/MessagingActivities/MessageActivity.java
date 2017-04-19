@@ -29,7 +29,6 @@ import test.collegecarpool.alpha.Activities.ProfileActivity;
 import test.collegecarpool.alpha.Activities.SettingsActivity;
 import test.collegecarpool.alpha.LoginAndRegistrationActivities.SigninActivity;
 import test.collegecarpool.alpha.R;
-import test.collegecarpool.alpha.UserClasses.Message;
 import test.collegecarpool.alpha.UserClasses.UserProfile;
 
 public class MessageActivity extends AppCompatActivity {

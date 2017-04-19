@@ -129,10 +129,9 @@ public class SignupActivity extends AppCompatActivity {
         progressBar.setVisibility(View.GONE);
     }
 
-    /**Add the User to a Database**/
+    /*Add the User to a Database*/
     private void saveUserProfile(){
-
-        UserProfile userProfile = new UserProfile(firstName, secondName, email, 0, 0, false);
+        UserProfile userProfile = new UserProfile(firstName, secondName, email, 0, 0, false, 10);
         HashMap<String, Object> children = new HashMap<>();
         if(auth.getCurrentUser() != null) {
             children.put(auth.getCurrentUser().getUid(), userProfile.toMap());

@@ -69,8 +69,7 @@ public class PolyURLBuilder {
                             Log.d(TAG, urlString);
                             try {
                                 url = new URL(urlString);
-                                PolyDirections polyDirections = new PolyDirections(context, googleMap);
-                                polyDirections.execute(url);
+                                new PolyDirections(context, googleMap).execute(url);
                                 Log.d(TAG, "PolyURLBuilt");
                             }
                             catch(MalformedURLException e){

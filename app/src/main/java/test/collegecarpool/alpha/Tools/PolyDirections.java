@@ -66,7 +66,7 @@ class PolyDirections extends AsyncTask<URL, Void, ArrayList<LatLng>> {
     protected void onPostExecute(ArrayList<LatLng> latLngArray) {
         super.onPostExecute(latLngArray);
         PolylineOptions polylineOptions = new PolylineOptions();
-        polylineOptions.addAll(latLngArray).width(5).color(Color.BLUE);
+        polylineOptions.addAll(latLngArray).width(8).color(Color.BLUE);
         googleMap.addPolyline(polylineOptions);
         zoomPoly(latLngArray);
         Log.d(TAG, "POLYLINE DRAWN");

@@ -1,4 +1,4 @@
-package test.collegecarpool.alpha.UserClasses;
+package test.collegecarpool.alpha.MessagingActivities;
 
 /**
  * Created by casseds95 for 4TH YEAR Project 07/02/2017.
