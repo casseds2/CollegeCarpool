@@ -1,14 +1,18 @@
 package test.collegecarpool.alpha.Activities;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.nfc.NdefMessage;
 import android.nfc.NdefRecord;
 import android.nfc.NfcAdapter;
 import android.nfc.NfcEvent;
 import android.os.Parcelable;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
 import android.widget.NumberPicker;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -29,10 +33,12 @@ import static android.nfc.NdefRecord.createMime;
 public class PaymentActivity extends AppCompatActivity implements NfcAdapter.CreateNdefMessageCallback, NfcAdapter.OnNdefPushCompleteCallback {
 
     public NfcAdapter nfcAdapter;
-    private TextView balance;
+    private TextView balance, amountPaid;
     private final String TAG = "PaymentActivity";
     private FirebaseUser currentUser;
     private DatabaseReference userRef;
+    private int euro, cent;
+    private boolean acceptRequest = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,6 +49,20 @@ public class PaymentActivity extends AppCompatActivity implements NfcAdapter.Cre
         initFirebaseAuth();
         initNumWheels();
         displayBalance();
+
+
+        /*Test Code to Check Euro and Cents are Changing*/
+        amountPaid = (TextView) findViewById(R.id.amountPaid);
+
+        Button button = (Button) findViewById(R.id.refreshTest);
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                amountPaid.setText(euro + "." + cent);
+            }
+        });
+        /*End  of the test code*/
+
 
         nfcAdapter = NfcAdapter.getDefaultAdapter(this);
         if(null != nfcAdapter && nfcAdapter.isEnabled()){
@@ -56,6 +76,27 @@ public class PaymentActivity extends AppCompatActivity implements NfcAdapter.Cre
         }
     }
 
+    /*Offer a Choice to Accept NFC*/
+    private boolean initAlertDialog(){
+        new AlertDialog.Builder(getApplicationContext())
+                .setTitle("NFC Detected")
+                .setMessage("Do you want to accept this Request")
+                .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        acceptRequest = true;
+                    }
+                })
+                .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        acceptRequest = false;
+                    }
+                })
+                .setIcon(android.R.drawable.ic_dialog_alert)
+                .show();
+        return acceptRequest;
+    }
 
     private void initNumWheels(){
         initNumPickerOne();
@@ -71,12 +112,14 @@ public class PaymentActivity extends AppCompatActivity implements NfcAdapter.Cre
             @Override
             public void onValueChange(NumberPicker picker, int oldVal, int newVal) {
                 Log.d(TAG, oldVal + " changed to " + newVal);
+                euro = newVal;
             }
         });
+        Log.d(TAG, "NEW EURO: " + String.valueOf(euro));
     }
 
     private void initNumPickerTwo(){
-        NumberPicker numPickerTwo = (NumberPicker) findViewById(R.id.numPickerOne);
+        NumberPicker numPickerTwo = (NumberPicker) findViewById(R.id.numPickerTwo);
         numPickerTwo.setMinValue(0);
         numPickerTwo.setMaxValue(99);
         numPickerTwo.setWrapSelectorWheel(true);
@@ -84,33 +127,39 @@ public class PaymentActivity extends AppCompatActivity implements NfcAdapter.Cre
             @Override
             public void onValueChange(NumberPicker picker, int oldVal, int newVal) {
                 Log.d(TAG, oldVal + " changed to " + newVal);
+                cent = newVal;
             }
         });
+        Log.d(TAG, "NEW CENT: " + cent);
     }
 
     @Override
     public NdefMessage createNdefMessage(NfcEvent event) {
-        String message = ("Beam me up Scotty \n Beam Time: " + System.currentTimeMillis());
+        //String message = ("Beam me up Scotty \n Beam Time: " + System.currentTimeMillis());
+        String message = String.valueOf(euro) + "." + String.valueOf(cent);
         return new NdefMessage(new NdefRecord[]{ createMime("application/test.collegecarpool.alpha", message.getBytes())});
     }
 
     @Override
     public void onNdefPushComplete(NfcEvent event) {
-        Toast.makeText(this, "Payload Delivered", Toast.LENGTH_SHORT).show();
-        Log.d(TAG, "Payload Delivered");
+        //Toast.makeText(this, "Payload Delivered", Toast.LENGTH_SHORT).show();
+        Log.d(TAG, "Payload Delivered: " + String.valueOf(euro) + "." + String.valueOf(cent));
     }
 
     @Override
     protected void onNewIntent(Intent intent) {
         setIntent(intent);
         if(null != intent && NfcAdapter.ACTION_NDEF_DISCOVERED.equals(intent.getAction())){
-            Parcelable[] rawMessages = intent.getParcelableArrayExtra(NfcAdapter.EXTRA_NDEF_MESSAGES);
-            if(null != rawMessages){
-                NdefMessage ndefMessage = (NdefMessage) rawMessages[0];
-                Log.d(TAG, "NDEF is " + String.valueOf(ndefMessage));
-                String message = new String(ndefMessage.getRecords()[0].getPayload());
-                balance.setText(message);
-                Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+            initAlertDialog();
+            if(acceptRequest) {
+                Parcelable[] rawMessages = intent.getParcelableArrayExtra(NfcAdapter.EXTRA_NDEF_MESSAGES);
+                if (null != rawMessages) {
+                    NdefMessage ndefMessage = (NdefMessage) rawMessages[0];
+                    Log.d(TAG, "NDEF is " + String.valueOf(ndefMessage));
+                    String message = new String(ndefMessage.getRecords()[0].getPayload());
+                    //balance.setText(message);
+                    Toast.makeText(this, "Amount to be Paid: " + message, Toast.LENGTH_SHORT).show();
+                }
             }
         }
     }
