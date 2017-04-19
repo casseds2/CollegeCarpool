@@ -100,3 +100,9 @@ Activity. Then, the user can view their planned journey when they click View Jou
 lat/longs which I can work with. I then implement a URL Builder class to form a URL which I can pass to PolyDirections. This will build the PolyLine which will be
 put onto the google map. Routes NOT OPTIMISED yet.
 
+## My Eleventh Blog
+Worked on establishing the Near Frequency Controller (NFC) communication between phones. Successfully beamed messages between phones based off of user
+input so once I establish a way to select how much money is to be sent, that should be do-able. The money will be 'exchanged' and firebase updated.
+Also added a journey planner to Firebase. Each journey is saved based off of a unique timestamp and contains a date object and the name of the place along with its
+latitude and longitude.
+
