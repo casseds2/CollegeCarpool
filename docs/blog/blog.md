@@ -106,3 +106,12 @@ input so once I establish a way to select how much money is to be sent, that sho
 Also added a journey planner to Firebase. Each journey is saved based off of a unique timestamp and contains a date object and the name of the place along with its
 latitude and longitude.
 
+##My Twelfth Blog
+Today I set up a Journey Planner back end. Journeys are still stored based off of unique EPOCH times. I found out today (after a long time struggling with the issue)
+that when cycling through the Firebase, I could not retrieve an object. This happened when I attempted to get the Journey Object Back and received null object errors.
+The user can now see all Journeys that they have submitted in the past. This may be soon replaced by a 'Save Journey' button once I get the desired waypoints into a
+listView adapter and clean up the User Interface a bit. I have successfully made popup menus too that will appear if the user holds down a long click on the listView
+item. Tomorrow I will attempt to put selected waypoints in the 'PlanJourney' Activity into listViews to clean up the UI a bit. I also want to take another look into the
+instant messaging. I think I may be able to do it better by making a MessageBook parent in the Firebase and storing conversations between two users, sorted by user IDS.
+This is a future feature though. I also want to take another look at the NDEF exchange with the NFC payment feature.
+
