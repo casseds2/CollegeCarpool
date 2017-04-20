@@ -46,6 +46,7 @@
     -->
     <string name="broadcast_location">Broadcast Location</string>
     <string name="plan_journey">Plan A Journey</string>
+    <string name="view_journey_planner">View Journey Planner</string>
 
     <string name="submit_address">Submit Address</string>
     <string name="view_journey">View Journey</string>

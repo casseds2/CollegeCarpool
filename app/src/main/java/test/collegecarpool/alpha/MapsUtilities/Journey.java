@@ -9,6 +9,7 @@ public class Journey {
 
     private Date date;
     private ArrayList<String> places;
+    private String timeStamp;
 
     public Journey(){}
 
@@ -21,6 +22,8 @@ public class Journey {
         return date;
     }
 
+    public void setDate(Date date) { this.date = date; }
+
     public HashMap<String, Object> toMap(){
         HashMap<String, Object> info = new HashMap<>();
         info.put("date", date);
@@ -30,5 +33,11 @@ public class Journey {
 
     public ArrayList<String> getPlaces(){
         return places;
+    }
+
+    public void setPlaces(ArrayList<String> places) { this.places = places; }
+
+    public String toString(){
+        return this.date.toString() + " : " + this.places.toString();
     }
 }

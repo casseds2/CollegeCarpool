@@ -5,14 +5,12 @@ import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.location.places.Places;
 
 import test.collegecarpool.alpha.Services.BackgroundLocationIntentService;
 
@@ -43,7 +41,8 @@ public class GoogleClientBuilder extends Activity implements GoogleApiClient.Con
         }
     }
 
-    /**Google Client Builder For Places**/
+    /*
+    //Google Client Builder For Places
     public void buildPlacesClient(){
         if(googleApiClient == null && checkGooglePlayServicesAvailable()){
             googleApiClient = new GoogleApiClient.Builder(context)
@@ -55,6 +54,7 @@ public class GoogleClientBuilder extends Activity implements GoogleApiClient.Con
             Log.d(TAG, "PLACES CLIENT BUILT");
         }
     }
+    */
 
     public boolean checkGooglePlayServicesAvailable() {
         Log.d(TAG, "CHECKING PLAY SERVICES");

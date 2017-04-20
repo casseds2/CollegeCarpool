@@ -2,9 +2,16 @@ package test.collegecarpool.alpha.Activities;
 
 import android.app.DatePickerDialog;
 import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
+import android.support.annotation.NonNull;
+import android.support.design.widget.NavigationView;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.DatePicker;
@@ -26,8 +33,10 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
 
+import test.collegecarpool.alpha.LoginAndRegistrationActivities.SigninActivity;
 import test.collegecarpool.alpha.MapsUtilities.Journey;
 import test.collegecarpool.alpha.MapsUtilities.MyPlace;
+import test.collegecarpool.alpha.MessagingActivities.ChatRoomActivity;
 import test.collegecarpool.alpha.R;
 import test.collegecarpool.alpha.UserClasses.Date;
 
@@ -44,6 +53,8 @@ public class PlanJourneyActivity extends AppCompatActivity implements DatePicker
     private FirebaseUser user;
     private DatabaseReference userRef;
     private Journey journey;
+    private ActionBarDrawerToggle actionBarDrawerToggle;
+    private FirebaseAuth auth = FirebaseAuth.getInstance();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,6 +64,7 @@ public class PlanJourneyActivity extends AppCompatActivity implements DatePicker
         Calendar calendar = Calendar.getInstance();
         datePickerDialog = new DatePickerDialog(PlanJourneyActivity.this, PlanJourneyActivity.this, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH));
 
+        initDrawer();
         initSubmitButton();
         initSearchBar();
         initAddressFields();
@@ -139,6 +151,15 @@ public class PlanJourneyActivity extends AppCompatActivity implements DatePicker
                 datePickerDialog.show();
             }
         });
+
+        /*Initialise Button For Journey Planner*/
+        Button viewJourneyPlanner = (Button) findViewById(R.id.view_journey_planner);
+        viewJourneyPlanner.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(PlanJourneyActivity.this, ViewJourneyPlannerActivity.class));
+            }
+        });
     }
 
     /*Initialize the View Journey Button*/
@@ -167,11 +188,11 @@ public class PlanJourneyActivity extends AppCompatActivity implements DatePicker
 
     /*Push the new Journey Planner to Firebase...Pull Planner down to local variable, add to it and re-upload*/
     private void pushJourneyToFirebase() {
-        HashMap<String, Object> map = new HashMap<>();
+        HashMap<String, Object> children = new HashMap<>();
         userRef = FirebaseDatabase.getInstance().getReference("UserProfile").child(user.getUid());
         String timeStamp = Long.toString(System.currentTimeMillis()); //Use timeStamps cause they are unique
-        map.put("/JourneyPlanner/" + timeStamp, journey);
-        userRef.updateChildren(map);
+        children.put("JourneyPlanner/" + timeStamp, journey.toMap());
+        userRef.updateChildren(children);
     }
 
     /*Initialize the submit button to confirm an address*/
@@ -256,5 +277,59 @@ public class PlanJourneyActivity extends AppCompatActivity implements DatePicker
     public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
         date = new Date(dayOfMonth, month + 1, year); //+1 to accomodate for the ol' [0-11] array being 12 in size...
         dateChosen = true;
+    }
+
+    private void initDrawer() {
+        DrawerLayout drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
+        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
+            @Override
+            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                switch (item.getItemId()) {
+                    case R.id.nav_home:
+                        startActivity(new Intent(PlanJourneyActivity.this, HomeScreenActivity.class));
+                        onStop();
+                        return true;
+                    case R.id.nav_journey:
+                        startActivity(new Intent(PlanJourneyActivity.this, PlanJourneyActivity.class));
+                        onStop();
+                        return true;
+                    case R.id.nav_messages:
+                        startActivity(new Intent(PlanJourneyActivity.this, ChatRoomActivity.class));
+                        onStop();
+                        return true;
+                    case R.id.nav_payment:
+                        startActivity(new Intent(PlanJourneyActivity.this, PaymentActivity.class));
+                        onStart();
+                        return true;
+                    case R.id.nav_profile:
+                        startActivity(new Intent(PlanJourneyActivity.this, ProfileActivity.class));
+                        onStop();
+                        return true;
+                    case R.id.nav_settings:
+                        startActivity(new Intent(PlanJourneyActivity.this, SettingsActivity.class));
+                        onStop();
+                        return true;
+                    case R.id.nav_logout:
+                        auth.signOut();
+                        startActivity(new Intent(PlanJourneyActivity.this, SigninActivity.class));
+                        onStop();
+                        return true;
+                }
+                return false;
+            }
+        });
+        actionBarDrawerToggle = new ActionBarDrawerToggle(this, drawerLayout, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        drawerLayout.addDrawerListener(actionBarDrawerToggle);
+        actionBarDrawerToggle.syncState();
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            getSupportActionBar().setBackgroundDrawable(new ColorDrawable(Color.BLACK));
+        }
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        return actionBarDrawerToggle.onOptionsItemSelected(item) || super.onOptionsItemSelected(item);
     }
 }
