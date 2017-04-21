@@ -65,7 +65,6 @@ public class PlanJourneyActivity extends AppCompatActivity implements DatePicker
         datePickerDialog = new DatePickerDialog(PlanJourneyActivity.this, PlanJourneyActivity.this, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH));
 
         initDrawer();
-        initSubmitButton();
         initSearchBar();
         initAddressFields();
         initRemoveButtons();
@@ -196,12 +195,18 @@ public class PlanJourneyActivity extends AppCompatActivity implements DatePicker
     }
 
     /*Initialize the submit button to confirm an address*/
-    private void initSubmitButton() {
+    private void initSubmitButton(final Place place) {
         Button btn1 = (Button) findViewById(R.id.submit_address);
         btn1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                updateUiAddress(places);
+                if(!places.contains(place)) {
+                    places.add(place);
+                    printPlacesArray(places);
+                    updateUiAddress(places);
+                }
+                else
+                    Toast.makeText(PlanJourneyActivity.this, "Already Picked", Toast.LENGTH_SHORT).show();
                 autocompleteFragment.setText("");
             }
         });
@@ -218,14 +223,19 @@ public class PlanJourneyActivity extends AppCompatActivity implements DatePicker
     /*Initialise the Autocomplete Fragment Search Bar*/
     private void initSearchBar() {
         autocompleteFragment = (PlaceAutocompleteFragment) getFragmentManager().findFragmentById(R.id.autocom);
+        autocompleteFragment.setHint("Enter Address");
         autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
             @Override
             public void onPlaceSelected(Place place) {
-                if (places.size() == 4) {
-                    Toast.makeText(PlanJourneyActivity.this, "Only allowed 4 stops", Toast.LENGTH_LONG).show();
-                }
-                places.add(place);
-                autocompleteFragment.setText("");
+                //if (places.size() == 4) {
+                //   Toast.makeText(PlanJourneyActivity.this, "Only allowed 4 stops", Toast.LENGTH_LONG).show();
+                //}
+                //if(!places.contains(place))
+                //    places.add(place);
+                //if(places.contains(place))
+                //    Toast.makeText(PlanJourneyActivity.this, "Already Entered", Toast.LENGTH_SHORT).show();
+                //autocompleteFragment.setText("");
+                initSubmitButton(place);
             }
 
             @Override
@@ -248,6 +258,7 @@ public class PlanJourneyActivity extends AppCompatActivity implements DatePicker
 
     /*Update the Route List in the UI*/
     private void updateUiAddress(ArrayList<Place> places) {
+        clearUI();
         if (places != null) {
             for (int i = 0; i < places.size(); i++) {
                 switch (i) {

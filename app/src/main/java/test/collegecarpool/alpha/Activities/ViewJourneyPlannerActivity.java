@@ -31,14 +31,15 @@ import com.google.firebase.database.ValueEventListener;
 import java.util.ArrayList;
 
 import test.collegecarpool.alpha.LoginAndRegistrationActivities.SigninActivity;
+import test.collegecarpool.alpha.MapsUtilities.Journey;
 import test.collegecarpool.alpha.MessagingActivities.ChatRoomActivity;
 import test.collegecarpool.alpha.R;
+import test.collegecarpool.alpha.UserClasses.Date;
 
 public class ViewJourneyPlannerActivity extends AppCompatActivity {
 
     private DatabaseReference journeyRef;
-    ArrayList<ArrayList<String>> places = new ArrayList<>();
-    ArrayList<String> placesJson = new ArrayList<>();
+    ArrayList<Journey> journeys = new ArrayList<>();
     private final String TAG = "JOURNEY PLANNER";
     private ActionBarDrawerToggle actionBarDrawerToggle;
     private FirebaseAuth auth;
@@ -65,7 +66,7 @@ public class ViewJourneyPlannerActivity extends AppCompatActivity {
             journeyRef = FirebaseDatabase.getInstance().getReference("UserProfile").child(user.getUid()).child("JourneyPlanner");
     }
 
-    /*registerForContextMenu Callback .. Allows onLongCLick of Menu Items*/
+    /*registerForContextMenu Callback ... Allows onLongCLick of Menu Items*/
     @Override
     public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
         super.onCreateContextMenu(menu, v, menuInfo);
@@ -86,57 +87,36 @@ public class ViewJourneyPlannerActivity extends AppCompatActivity {
                 Toast.makeText(this, "Up for Editing", Toast.LENGTH_SHORT).show();
                 //EDIT THE ENTRY
                 break;
+            case R.id.start_journey_planner_item_id :
+                Toast.makeText(this, "Start Journey", Toast.LENGTH_SHORT).show();
+                //Start A Navigation Service for This Journey
+                break;
             default :
                 return super.onContextItemSelected(item);
         }
         return super.onContextItemSelected(item);
     }
 
-    /*Make List Items Clickable and Long Clickable*/
-    /*
-    private void makeListClickable() {
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                String message = "Short Click";
-                Toast.makeText(ViewJourneyPlannerActivity.this, message, Toast.LENGTH_SHORT).show();
-            }
-        });
-
-        //Original Pop Up Menu Item
-
-        listView.setLongClickable(true);
-        listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
-            @Override
-            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-                String message = "Long Click";
-                Toast.makeText(ViewJourneyPlannerActivity.this, message, Toast.LENGTH_SHORT).show();
-                //PopupMenu popupMenu = new PopupMenu(ViewJourneyPlannerActivity.this, view);
-                //MenuInflater inflater = popupMenu.getMenuInflater();
-                //inflater.inflate(R.menu.journey_planner_popup_menu, popupMenu.getMenu());
-                //popupMenu.show();
-                return false;
-            }
-        });
-    }
-    */
-
     /*Turn the place Json Object into start and end place of journey Strings*/
-    private ArrayList<String> stringifyPlaces(){
+    private ArrayList<String> stringifyJourneys(){
         ArrayList<String> stops = new ArrayList<>();
-        String temp;
-        for(ArrayList<String> array : places) { //Cycles Through Array of Node Arrays
-            if(array.size() < 4)
-                temp = array.get(0);
-            else
-                temp = array.get(0) + " -> " + array.get(array.size() - 3);
+        for(Journey j : journeys) {
+            ArrayList<String> array= j.getPlaces();
+            String temp = j.getDate().toString() + ": ";
+            for (int i = 0; i < array.size(); i++) {
+                if (i % 3 == 0 && i != array.size() - 3) {
+                    temp = temp + array.get(i) + " -> ";
+                } else if (i % 3 == 0 && i == array.size() - 3) {
+                    temp = temp + array.get(i);
+                }
+            }
             stops.add(temp);
         }
         return stops;
     }
 
     private void initListView() {
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, R.layout.journey_planner_list, stringifyPlaces());
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, R.layout.journey_planner_list, stringifyJourneys());
         ListView listView = (ListView) findViewById(R.id.journey_planner_list_view);
         listView.setAdapter(adapter);
         registerForContextMenu(listView);
@@ -144,20 +124,27 @@ public class ViewJourneyPlannerActivity extends AppCompatActivity {
     }
 
     private void getPlannedJourneys() {
-        final GenericTypeIndicator<ArrayList<String>> t = new GenericTypeIndicator<ArrayList<String>>() {}; //Cannot retrieve List Without
+        final GenericTypeIndicator<ArrayList<String>> typeString = new GenericTypeIndicator<ArrayList<String>>() {}; //Cannot retrieve List Without
         journeyRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 Iterable <DataSnapshot> dataSnapshots = dataSnapshot.getChildren();
                 for(DataSnapshot data1 : dataSnapshots){
                     Iterable<DataSnapshot> dataSnapshots1 = data1.getChildren();
+                    Journey journey = new Journey();
                     for(DataSnapshot data2 : dataSnapshots1){
+                        if(data2.getKey().equals("date")){
+                            Date date = data2.getValue(Date.class);
+                            //Log.d(TAG, "DATE IS: " + date.toString());
+                            journey.setDate(date);
+                        }
                         if(data2.getKey().equals("places")){
-                            placesJson = data2.getValue(t); //assign the place to a list
-                            Log.d(TAG, placesJson.toString());
-                            places.add(placesJson); //put this list in a list of places
+                            journey.setPlaces(data2.getValue(typeString)); //assign the place to a list
+                            //Log.d(TAG, placesJson.toString());
                         }
                     }
+                    Log.d(TAG, "JOURNEY" + journey.toString());
+                    journeys.add(journey);
                 }
                 initListView(); //Once all 'places' nodes have been stored
             }
@@ -222,4 +209,33 @@ public class ViewJourneyPlannerActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         return actionBarDrawerToggle.onOptionsItemSelected(item) || super.onOptionsItemSelected(item);
     }
+
+        /*Make List Items Clickable and Long Clickable*/
+    /*
+    private void makeListClickable() {
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                String message = "Short Click";
+                Toast.makeText(ViewJourneyPlannerActivity.this, message, Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        //Original Pop Up Menu Item
+
+        listView.setLongClickable(true);
+        listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+                String message = "Long Click";
+                Toast.makeText(ViewJourneyPlannerActivity.this, message, Toast.LENGTH_SHORT).show();
+                //PopupMenu popupMenu = new PopupMenu(ViewJourneyPlannerActivity.this, view);
+                //MenuInflater inflater = popupMenu.getMenuInflater();
+                //inflater.inflate(R.menu.journey_planner_popup_menu, popupMenu.getMenu());
+                //popupMenu.show();
+                return false;
+            }
+        });
+    }
+    */
 }
