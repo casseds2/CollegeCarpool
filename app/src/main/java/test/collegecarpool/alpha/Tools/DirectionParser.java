@@ -13,13 +13,23 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-class DirectionParser {
+public class DirectionParser {
 
     private final static String TAG = "DIRECTION PASRSER";
+    private String jsonString = "";
 
-    DirectionParser(){}
+    DirectionParser(String jsonString){
+        this.jsonString = jsonString;
+    }
 
-    public ArrayList<LatLng> getDirectionsAsList(JSONObject jsonObject){
+    public ArrayList<LatLng> getDirectionsAsList(){
+        JSONObject jsonObject = null;
+        try {
+            jsonObject = new JSONObject(jsonString);
+        }
+        catch(JSONException e){
+            Log.d(TAG, "MALFORMED JSON");
+        }
         ArrayList<LatLng> latLngArray = new ArrayList<>();
         /*Structure of JSON Document From Google Directions*/
         JSONArray routes;
@@ -29,7 +39,10 @@ class DirectionParser {
 
         try{
             /*When you look at JSON URL, you can see bound, set Map view to be incorporate these bounds*/
-            routes = jsonObject.getJSONArray("routes");
+            if(null != jsonObject)
+                routes = jsonObject.getJSONArray("routes");
+            else
+                return null;
             /*PATH IS 3 "LAYERS" DEEP*/
             for(int i = 0; i < routes.length(); i++){
                 legs = ((JSONObject) routes.get(i)).getJSONArray("legs");

@@ -20,6 +20,8 @@ import test.collegecarpool.alpha.UserClasses.UserProfile;
 
 public class PolyURLBuilder {
 
+    private Context context;
+    private GoogleMap googleMap;
     private FirebaseAuth auth = FirebaseAuth.getInstance();
     private DatabaseReference userRef;
     private URL url = null;
@@ -27,15 +29,18 @@ public class PolyURLBuilder {
     private String origin = "https://maps.googleapis.com/maps/api/directions/json?origin=";
     private UserProfile userProfile;
     private double lat, lon;
-    private Context context;
-    private GoogleMap googleMap;
     private ArrayList<LatLng> places;
+
 
     private final String TAG = "POLYURL BUILDER";
 
     public PolyURLBuilder(Context context, GoogleMap googleMap, ArrayList<LatLng> places){
         this.context = context;
         this.googleMap = googleMap;
+        this.places = places;
+    }
+
+    public PolyURLBuilder(ArrayList<LatLng> places){
         this.places = places;
     }
 
@@ -69,7 +74,8 @@ public class PolyURLBuilder {
                             Log.d(TAG, urlString);
                             try {
                                 url = new URL(urlString);
-                                new PolyDirections(context, googleMap).execute(url);
+                                if(!Variables.SAT_NAV_ENABLED) //ONLY IF NOT IN SAT_NAV MODE DRAW IT
+                                    new PolyDirections(context, googleMap).execute(url);
                                 Log.d(TAG, "PolyURLBuilt");
                             }
                             catch(MalformedURLException e){

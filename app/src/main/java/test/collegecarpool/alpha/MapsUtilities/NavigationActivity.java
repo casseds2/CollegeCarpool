@@ -35,7 +35,7 @@ public class NavigationActivity extends FragmentActivity implements OnMapReadyCa
         /*Start The Navigation Service*/
         Intent intent = new Intent(NavigationActivity.this, NavigationService.class);
         intent.putExtra("SelectedJourney", journey);
-        //startService(intent);
+        startService(intent);
 
         /*This Journey Contains the LAT/LNG of each place/waypoint!*/
         /*Need to Parse these from the String Array from Journey and pass to the Nav Service*/
