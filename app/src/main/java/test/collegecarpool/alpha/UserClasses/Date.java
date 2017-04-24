@@ -1,6 +1,8 @@
 package test.collegecarpool.alpha.UserClasses;
 
-public class Date {
+import java.io.Serializable;
+
+public class Date implements Serializable{ //implements so it can be passed in Journey object as intent extra
 
     private int day;
 
@@ -39,8 +41,13 @@ public class Date {
         return this.year;
     }
 
-    boolean compareTo(Date d){
+    public boolean compareTo(Date d){
         return day == d.day && month == d.month && year == d.year;
+    }
+
+    //If date is more present than d, return true if date is in future/present, false otherwise
+    public boolean inThePast(Date d){
+        return this.year <= d.year && this.month <= d.month && this.day <= d.day;
     }
 
     public String toString(){

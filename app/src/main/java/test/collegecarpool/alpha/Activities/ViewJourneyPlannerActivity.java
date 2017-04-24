@@ -25,24 +25,30 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.GenericTypeIndicator;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 
 import test.collegecarpool.alpha.LoginAndRegistrationActivities.SigninActivity;
 import test.collegecarpool.alpha.MapsUtilities.Journey;
+import test.collegecarpool.alpha.MapsUtilities.LatLng;
+import test.collegecarpool.alpha.MapsUtilities.NavigationActivity;
+import test.collegecarpool.alpha.MapsUtilities.Waypoint;
 import test.collegecarpool.alpha.MessagingActivities.ChatRoomActivity;
 import test.collegecarpool.alpha.R;
 import test.collegecarpool.alpha.UserClasses.Date;
 
+import static test.collegecarpool.alpha.Tools.Variables.SAT_NAV_ENABLED;
+
 public class ViewJourneyPlannerActivity extends AppCompatActivity {
 
     private DatabaseReference journeyRef;
-    ArrayList<Journey> journeys = new ArrayList<>();
+    private ArrayList<Journey> journeys = new ArrayList<>(); //SEND THIS TO NAVIGATION - PICK CORRESPONDING JOURNEY TO CLICKED JOURNEY OUT OF IT AND SEND TO NAVIGATION
     private final String TAG = "JOURNEY PLANNER";
     private ActionBarDrawerToggle actionBarDrawerToggle;
     private FirebaseAuth auth;
+    private ArrayAdapter<String> adapter;
+    private ListView listView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,12 +56,9 @@ public class ViewJourneyPlannerActivity extends AppCompatActivity {
         setContentView(R.layout.activity_view_journey_planner);
 
         initDrawer();
-        initListView();
         initFirebase();
         getPlannedJourneys();
-        //makeListClickable();
-        
-
+        initListView();
     }
 
     /*Initialise Firebase Components*/
@@ -79,17 +82,20 @@ public class ViewJourneyPlannerActivity extends AppCompatActivity {
         AdapterView.AdapterContextMenuInfo adapterContextMenuInfo = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
         switch(item.getItemId()){
             case R.id.remove_planner_item_id :
-                Toast.makeText(this, "Up for Deletion", Toast.LENGTH_SHORT).show();
                 //REMOVE THE ITEM FROM THE LIST || && FIREBASE
-                //int s = adapterContextMenuInfo.position; //How We Identify What Has Been Pressed
-                break;
-            case R.id.edit_planner_item_id :
-                Toast.makeText(this, "Up for Editing", Toast.LENGTH_SHORT).show();
-                //EDIT THE ENTRY
+                int index = adapterContextMenuInfo.position;
+                removeJourney(getSelectedJourney(index)); //Remove Journey From Firebase
+                journeys.remove(getSelectedJourney(index)); //Remove the Journey From Local Array
+                Toast.makeText(ViewJourneyPlannerActivity.this, "Removed Journey", Toast.LENGTH_SHORT).show();
+                updateUI();
                 break;
             case R.id.start_journey_planner_item_id :
-                Toast.makeText(this, "Start Journey", Toast.LENGTH_SHORT).show();
                 //Start A Navigation Service for This Journey
+                index = adapterContextMenuInfo.position;
+                Intent intent = new Intent(ViewJourneyPlannerActivity.this, NavigationActivity.class);
+                intent.putExtra("SelectedJourney", getSelectedJourney(index)); //Adds the Journey (Date, ArrayList<Place>) to an extra
+                SAT_NAV_ENABLED = true; //Set the static variable to true
+                startActivity(intent);
                 break;
             default :
                 return super.onContextItemSelected(item);
@@ -97,56 +103,136 @@ public class ViewJourneyPlannerActivity extends AppCompatActivity {
         return super.onContextItemSelected(item);
     }
 
-    /*Turn the place Json Object into start and end place of journey Strings*/
+    /*Return Journey Selected in Menu*/
+    private Journey getSelectedJourney(int index){
+        return journeys.get(index);
+    }
+
+    /*Convert an Array of Waypoints into String of Names*/
     private ArrayList<String> stringifyJourneys(){
+        journeys = new Journey().sortJourneys(journeys);
         ArrayList<String> stops = new ArrayList<>();
         for(Journey j : journeys) {
-            ArrayList<String> array= j.getPlaces();
-            String temp = j.getDate().toString() + ": ";
-            for (int i = 0; i < array.size(); i++) {
-                if (i % 3 == 0 && i != array.size() - 3) {
-                    temp = temp + array.get(i) + " -> ";
-                } else if (i % 3 == 0 && i == array.size() - 3) {
-                    temp = temp + array.get(i);
-                }
+            ArrayList<Waypoint> waypoints = j.getWaypoints();
+            String journeyString = j.getDate().toString() + ": ";
+            for(Waypoint waypoint : waypoints){
+                String wayName = waypoint.getName();
+                if(waypoint != waypoints.get(waypoints.size()-1))
+                    journeyString = journeyString + wayName + " -> ";
+                else
+                    journeyString = journeyString + wayName;
             }
-            stops.add(temp);
+            stops.add(journeyString);
         }
         return stops;
     }
 
     private void initListView() {
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, R.layout.journey_planner_list, stringifyJourneys());
-        ListView listView = (ListView) findViewById(R.id.journey_planner_list_view);
+        adapter = new ArrayAdapter<>(this, R.layout.journey_planner_list, stringifyJourneys());
+        listView = (ListView) findViewById(R.id.journey_planner_list_view);
         listView.setAdapter(adapter);
         registerForContextMenu(listView);
-        //makeListClickable();
+    }
+
+    private void updateUI(){
+        adapter = new ArrayAdapter<>(this, R.layout.journey_planner_list, stringifyJourneys());
+        listView = (ListView) findViewById(R.id.journey_planner_list_view);
+        listView.setAdapter(adapter);
+        registerForContextMenu(listView);
+    }
+
+    private void removeJourney(final Journey journey){
+        journeyRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                Iterable<DataSnapshot> dataSnapshots = dataSnapshot.getChildren();
+                for(DataSnapshot data1 : dataSnapshots){ //For Each TimeStamp
+                    Iterable<DataSnapshot> dataSnapshots1 = data1.getChildren();
+                    Journey tempJourney = new Journey();
+                    for(DataSnapshot data2 : dataSnapshots1){ //FOR EACH DATE / Waypoints list
+                        if(data2.getKey().equals("date")){
+                            Date date = data2.getValue(Date.class);
+                            tempJourney.setDate(date);
+                        }
+                        if(data2.getKey().equals("journeyWaypoints")){
+                            Iterable<DataSnapshot> dataSnapshots2 = data2.getChildren();
+                            ArrayList<Waypoint> waypoints = new ArrayList<>();
+                            for(DataSnapshot data3 :  dataSnapshots2){ //FOR EACH LIST ITEM, ERROR CAUSED CAUSE IM NOT AT RIGHT LEVEL YET
+                                Iterable<DataSnapshot> dataSnapshots3 = data3.getChildren();
+                                Waypoint waypoint = new Waypoint();
+                                for(DataSnapshot data4 : dataSnapshots3) {
+                                    if (data4.getKey().equals("latLng")) {
+                                        LatLng latLng = data4.getValue(LatLng.class);
+                                        Log.d(TAG, "LAT/LNG IS " + latLng.toString());
+                                        waypoint.setLatLng(latLng);
+                                    }
+                                    if (data4.getKey().equals("name")) {
+                                        String name = data4.getValue(String.class);
+                                        Log.d(TAG, "NAME IS " + name);
+                                        waypoint.setName(name);
+                                    }
+                                }
+                                waypoints.add(waypoint);
+                            }
+                            tempJourney.setWaypoints(waypoints);
+                        }
+                    }
+                    //Log.d(TAG, "BOOLEAN JOURNEY: " + journey.compareTo(tempJourney));
+                    //Log.d(TAG, "BOOLEAN DATE: " + journey.getDate().compareTo(tempJourney.getDate()));
+                    //Log.d(TAG, "BOOLEAN WAYPOINTS: " + journey.getWaypoints().equals(tempJourney.getWaypoints()));
+                    if(journey.compareTo(tempJourney)){
+                        data1.getRef().setValue(null);
+                        Log.d(TAG, "JOURNEYS FIRE " + journeys.toString());
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
     }
 
     private void getPlannedJourneys() {
-        final GenericTypeIndicator<ArrayList<String>> typeString = new GenericTypeIndicator<ArrayList<String>>() {}; //Cannot retrieve List Without
-        journeyRef.addValueEventListener(new ValueEventListener() {
+        journeyRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 Iterable <DataSnapshot> dataSnapshots = dataSnapshot.getChildren();
-                for(DataSnapshot data1 : dataSnapshots){
+                for(DataSnapshot data1 : dataSnapshots){ //FOR EACH TIMESTAMP
                     Iterable<DataSnapshot> dataSnapshots1 = data1.getChildren();
                     Journey journey = new Journey();
-                    for(DataSnapshot data2 : dataSnapshots1){
+                    for(DataSnapshot data2 : dataSnapshots1){ //FOR EACH DATE / PLACES LIST
                         if(data2.getKey().equals("date")){
                             Date date = data2.getValue(Date.class);
-                            //Log.d(TAG, "DATE IS: " + date.toString());
                             journey.setDate(date);
                         }
-                        if(data2.getKey().equals("places")){
-                            journey.setPlaces(data2.getValue(typeString)); //assign the place to a list
-                            //Log.d(TAG, placesJson.toString());
+                        if(data2.getKey().equals("journeyWaypoints")){
+                            Iterable<DataSnapshot> dataSnapshots2 = data2.getChildren();
+                            ArrayList<Waypoint> waypoints = new ArrayList<>();
+                            for(DataSnapshot data3 :  dataSnapshots2){ //FOR EACH LIST ITEM, ERROR CAUSED CAUSE IM NOT AT RIGHT LEVEL YET
+                                Iterable<DataSnapshot> dataSnapshots3 = data3.getChildren();
+                                Waypoint waypoint = new Waypoint();
+                                for(DataSnapshot data4 : dataSnapshots3) { //FOR EACH WAYPOINT
+                                    if (data4.getKey().equals("latLng")) {
+                                        LatLng latLng = data4.getValue(LatLng.class);
+                                        Log.d(TAG, "LAT/LNG IS " + latLng.toString());
+                                        waypoint.setLatLng(latLng);
+                                    }
+                                    if (data4.getKey().equals("name")) {
+                                        String name = data4.getValue(String.class);
+                                        Log.d(TAG, "NAME IS " + name);
+                                        waypoint.setName(name);
+                                    }
+                                }
+                                waypoints.add(waypoint);
+                            }
+                            journey.setWaypoints(waypoints);
                         }
                     }
-                    Log.d(TAG, "JOURNEY" + journey.toString());
                     journeys.add(journey);
                 }
-                initListView(); //Once all 'places' nodes have been stored
+                initListView(); //When Journeys Are Down, Initialize ListView
             }
 
             @Override
@@ -209,33 +295,4 @@ public class ViewJourneyPlannerActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         return actionBarDrawerToggle.onOptionsItemSelected(item) || super.onOptionsItemSelected(item);
     }
-
-        /*Make List Items Clickable and Long Clickable*/
-    /*
-    private void makeListClickable() {
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                String message = "Short Click";
-                Toast.makeText(ViewJourneyPlannerActivity.this, message, Toast.LENGTH_SHORT).show();
-            }
-        });
-
-        //Original Pop Up Menu Item
-
-        listView.setLongClickable(true);
-        listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
-            @Override
-            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-                String message = "Long Click";
-                Toast.makeText(ViewJourneyPlannerActivity.this, message, Toast.LENGTH_SHORT).show();
-                //PopupMenu popupMenu = new PopupMenu(ViewJourneyPlannerActivity.this, view);
-                //MenuInflater inflater = popupMenu.getMenuInflater();
-                //inflater.inflate(R.menu.journey_planner_popup_menu, popupMenu.getMenu());
-                //popupMenu.show();
-                return false;
-            }
-        });
-    }
-    */
 }

@@ -1,43 +1,90 @@
 package test.collegecarpool.alpha.MapsUtilities;
 
+import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 
 import test.collegecarpool.alpha.UserClasses.Date;
 
-public class Journey {
+public class Journey implements Serializable { //Implements Serializable So That It can Be Sent as an Extra
 
     private Date date;
-    private ArrayList<String> places;
-    private String timeStamp;
+    private ArrayList<Waypoint> waypoints;
 
-    public Journey(){}
-
-    public Journey(Date date, ArrayList<String> places){
-        this.date = date;
-        this.places = places;
+    public Journey() {
     }
 
-    public Date getDate(){
+    public Journey(Date date, ArrayList<Waypoint> waypoints) {
+        this.date = date;
+        this.waypoints = waypoints;
+    }
+
+    public Date getDate() {
         return date;
     }
 
-    public void setDate(Date date) { this.date = date; }
+    public void setDate(Date date) {
+        this.date = date;
+    }
 
-    public HashMap<String, Object> toMap(){
+    public HashMap<String, Object> toMap() {
         HashMap<String, Object> info = new HashMap<>();
         info.put("date", date);
-        info.put("places", places);
+        info.put("journeyWaypoints", waypoints); //WAS ORIGINALLY ARRAY LIST<STRING>
         return info;
     }
 
-    public ArrayList<String> getPlaces(){
-        return places;
+    public ArrayList<Waypoint> getWaypoints() {
+        return waypoints;
     }
 
-    public void setPlaces(ArrayList<String> places) { this.places = places; }
+    public void setWaypoints(ArrayList<Waypoint> places) {
+        this.waypoints = places;
+    }
 
-    public String toString(){
-        return this.date.toString() + " : " + this.places.toString();
+    public String toString() {
+        return this.date.toString() + " : " + this.waypoints.toString();
+    }
+
+    public boolean isElementOf(ArrayList<Journey> journeys){
+        for(Journey journey : journeys){
+            if(journey.compareTo(this))
+                return true;
+        }
+        return false;
+    }
+
+    /*Sort A List of Journeys Based On Their Date*/
+    public ArrayList<Journey> sortJourneys(ArrayList<Journey> journeys){
+        if(journeys.size() > 1) {
+            for (int i = 0; i < journeys.size() - 1; i++) {
+                Date dateFirst = journeys.get(i).getDate();
+                Date dateSecond = journeys.get(i+1).getDate();
+                if(!dateFirst.inThePast(dateSecond)) {
+                    Collections.swap(journeys, i, i + 1);
+                    i = 0;
+                }
+            }
+        }
+        return journeys;
+    }
+
+    /*Compares One Journey To Another*/
+    public boolean compareTo(Journey journey) {
+        if (this.date.compareTo(journey.getDate())) {
+            ArrayList<Waypoint> tempList = journey.getWaypoints();
+            if (this.waypoints.size() == tempList.size()) {
+                for (int i = 0; i < this.waypoints.size(); i++) {
+                    if (this.waypoints.get(i).getName().equals(tempList.get(i).getName())) {
+                        return this.waypoints.get(i).getLatLng().equals(tempList.get(i).getLatLng());
+                    }
+                }
+                return false;
+            }
+            return false;
+        }
+        return false;
     }
 }

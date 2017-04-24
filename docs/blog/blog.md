@@ -106,7 +106,7 @@ input so once I establish a way to select how much money is to be sent, that sho
 Also added a journey planner to Firebase. Each journey is saved based off of a unique timestamp and contains a date object and the name of the place along with its
 latitude and longitude.
 
-##My Twelfth Blog
+## My Twelfth Blog
 Today I set up a Journey Planner back end. Journeys are still stored based off of unique EPOCH times. I found out today (after a long time struggling with the issue)
 that when cycling through the Firebase, I could not retrieve an object. This happened when I attempted to get the Journey Object Back and received null object errors.
 The user can now see all Journeys that they have submitted in the past. This may be soon replaced by a 'Save Journey' button once I get the desired waypoints into a
@@ -114,4 +114,33 @@ listView adapter and clean up the User Interface a bit. I have successfully made
 item. Tomorrow I will attempt to put selected waypoints in the 'PlanJourney' Activity into listViews to clean up the UI a bit. I also want to take another look into the
 instant messaging. I think I may be able to do it better by making a MessageBook parent in the Firebase and storing conversations between two users, sorted by user IDS.
 This is a future feature though. I also want to take another look at the NDEF exchange with the NFC payment feature.
+
+## My Thirteenth Blog
+Edited more of the Journey Planner and fixed UI bugs (and enough of them!). I came across an error I hadn't seen before called a ConcurrentModificationException error.
+After researching it, I found that it was to do with iterating over a collection while removing items from it. This was necessary for the UI so I had to find
+a way around it. I researched more into it amd found that I would have to create a separate collection to store desired items in to be removed and then
+remove this collection form the original. I have also changed the PlanJourney Activity to incorporate a ListView of all of the stops a user must make.
+They can now view or save a journey separately so not every journey they see will be saved. Constraints for viewing a journey are also less as
+no date is needed but it is for saving a journey. I have begun implementing the popup menus in PlanJourney to remove/prioritise stops.
+
+## My Fourteenth Blog
+When beginning the navigation service, I came across the problem of retrieving the LAT/LNGs of the Journey as they were previously stored as Strings.
+This meant I had to find a way to parse the String array for double and then match the double to its place name etc. I thought this way of doing it was too
+sloppy so I decided to attempt to neaten things up. I made a waypoint class that encapsulated a location name and its LAT/LNG. I would then
+push this object to Firebase by storing every waypoint in a list of waypoints that corresponded to the journey object. Errors with pushing to firebase lead me
+to have to implement the serializable interface in any objects I made that were pushed to Firebase. The LatLng object that google supply also became
+ an issue as it had no default no args constructor. Firebase didn't like this. I had to make my own LatLng object that encapsulated the
+ LatLng of a location. I could then set the LAT/LNG of each waypoint to this object and push/pull from Firebase. Found retrieving nested objects from
+ Firebase difficult to understand at the start but after iterating through layers (4 layers deep to get lat/lng), I have come to terms with it.
+ I also made a class much similar to my ActiveUser class that displays the waypoints of a journey on the map if viewing a potential journey or if navigating
+ a journey. Whether I clear these off while the navigation goes through them is for another day.
+ -Temporarily got sidetracked by removing entries from Firebase (Journey Objects). I feel my code is inefficient (possibly not) as when I want
+ to remove a Journey Object, I have to iterate through the whole Firebase Journey Planner to find and remove the object. I found this
+ very repetitive of the code I used to initially populate data into the Journey object. It also lead me to have to make a long winded 'compareTo'
+ method to compare one Journey to another. Removing the object from the UI also has lead to issues as I think the Firebase is reacting quicker
+ than the UI can respond to the changes. I'm not definite about this and am looking into it further.
+ -Journey Planner Now Organised in Chronological Order, comparator method in date and Journey Objects. Solved Firebase UI problem when
+ deleting Journeys by reinitializing the list view and adapter on a change. Not the most elegant solution but its better than the alternative
+ of restarting the activity to refresh the layout.
+
 

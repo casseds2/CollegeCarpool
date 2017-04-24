@@ -6,13 +6,11 @@ import android.util.Log;
 import com.google.android.gms.common.api.GoogleApiClient;
 
 import test.collegecarpool.alpha.Tools.GoogleClientBuilder;
+import test.collegecarpool.alpha.Tools.Variables;
 
 public class BackgroundLocationIntentService extends IntentService{
 
     GoogleApiClient googleApiClient;
-
-    public static volatile boolean stopThread = false;
-    public static volatile boolean pauseThread = true;
 
     private static final String TAG = "LocationIntentService";
 
@@ -26,10 +24,7 @@ public class BackgroundLocationIntentService extends IntentService{
 
     @Override
     protected void onHandleIntent(Intent intent) {
-        GoogleClientBuilder googleClientBuilder = new GoogleClientBuilder(this, googleApiClient);
-        googleClientBuilder.buildLocationClient();
+        new GoogleClientBuilder(this, googleApiClient).buildLocationClient();
         Log.d(TAG, "HANDLED THREAD");
     }
-
-    /*Program Sat/Nav in here*/
 }

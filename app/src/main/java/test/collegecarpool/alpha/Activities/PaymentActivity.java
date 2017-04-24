@@ -1,13 +1,12 @@
 package test.collegecarpool.alpha.Activities;
 
-import android.content.DialogInterface;
+import android.app.PendingIntent;
 import android.content.Intent;
 import android.nfc.NdefMessage;
 import android.nfc.NdefRecord;
 import android.nfc.NfcAdapter;
 import android.nfc.NfcEvent;
 import android.os.Parcelable;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -28,6 +27,7 @@ import com.google.firebase.database.ValueEventListener;
 import test.collegecarpool.alpha.R;
 import test.collegecarpool.alpha.UserClasses.UserProfile;
 
+import static android.nfc.NdefRecord.createApplicationRecord;
 import static android.nfc.NdefRecord.createMime;
 
 public class PaymentActivity extends AppCompatActivity implements NfcAdapter.CreateNdefMessageCallback, NfcAdapter.OnNdefPushCompleteCallback {
@@ -38,7 +38,7 @@ public class PaymentActivity extends AppCompatActivity implements NfcAdapter.Cre
     private FirebaseUser currentUser;
     private DatabaseReference userRef;
     private int euro, cent;
-    private boolean acceptRequest = false;
+    private double cost = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,9 +47,8 @@ public class PaymentActivity extends AppCompatActivity implements NfcAdapter.Cre
         balance = (TextView) findViewById(R.id.balance);
 
         initFirebaseAuth();
-        initNumWheels();
         displayBalance();
-
+        initNumWheels();
 
         /*Test Code to Check Euro and Cents are Changing*/
         amountPaid = (TextView) findViewById(R.id.amountPaid);
@@ -76,28 +75,6 @@ public class PaymentActivity extends AppCompatActivity implements NfcAdapter.Cre
         }
     }
 
-    /*Offer a Choice to Accept NFC*/
-    private boolean initAlertDialog(){
-        new AlertDialog.Builder(getApplicationContext())
-                .setTitle("NFC Detected")
-                .setMessage("Do you want to accept this Request")
-                .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        acceptRequest = true;
-                    }
-                })
-                .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        acceptRequest = false;
-                    }
-                })
-                .setIcon(android.R.drawable.ic_dialog_alert)
-                .show();
-        return acceptRequest;
-    }
-
     private void initNumWheels(){
         initNumPickerOne();
         initNumPickerTwo();
@@ -106,7 +83,7 @@ public class PaymentActivity extends AppCompatActivity implements NfcAdapter.Cre
     private void initNumPickerOne(){
         NumberPicker numPickerOne = (NumberPicker) findViewById(R.id.numPickerOne);
         numPickerOne.setMinValue(0);
-        numPickerOne.setMaxValue(50);
+        numPickerOne.setMaxValue(20);
         numPickerOne.setWrapSelectorWheel(true);
         numPickerOne.setOnValueChangedListener(new NumberPicker.OnValueChangeListener() {
             @Override
@@ -133,33 +110,69 @@ public class PaymentActivity extends AppCompatActivity implements NfcAdapter.Cre
         Log.d(TAG, "NEW CENT: " + cent);
     }
 
+    /*Called when NFC Tag is detected in Range*/
+    //Issue With If User (To be Paid)
+    //Has Num Wheel Set To Something, The money will be taken out of their account
     @Override
     public NdefMessage createNdefMessage(NfcEvent event) {
-        //String message = ("Beam me up Scotty \n Beam Time: " + System.currentTimeMillis());
         String message = String.valueOf(euro) + "." + String.valueOf(cent);
-        return new NdefMessage(new NdefRecord[]{ createMime("application/test.collegecarpool.alpha", message.getBytes())});
+        cost = Double.parseDouble(message);
+        /*This incorrect loop cause money to be taken away irregardless of message being beamed*/
+        Log.d(TAG, "Personal Balance is " + String.valueOf(getPersonalBalance()) + " and Cost is " + String.valueOf(cost));
+        if(userHasEnoughCredit(cost)) { //This is the point where its going wrong
+            removeCostFromWallet(cost);
+            displayBalance();
+            return new NdefMessage(new NdefRecord[]{
+                    createMime("application/test.collegecarpool.alpha", message.getBytes()), //Inserts the Mime Message
+                    createApplicationRecord("test.collegecarpool.alpha") //Embeds Android Application Record into Ndef Message to Start Correct Package
+            });
+        }
+        else{
+            Log.d(TAG, "ENTERED ELSE NDEF STATE");
+            String ErrorMessage = "Not Enough Credit";
+            return new NdefMessage(new NdefRecord[]{
+               createMime("application/test.collegecarpool.alpha", ErrorMessage.getBytes()),
+               createApplicationRecord("test.collegecarpool.alpha")
+            });
+        }
     }
 
+    /*Retrieve the User Balance From the Wallet TextView*/
+    private double getPersonalBalance(){
+        Log.d(TAG, "getPersonalBalance() is " + balance.getText().toString());
+        return Double.parseDouble(balance.getText().toString());
+    }
+
+    /*Check if the Cost Parameter is Less than the User Balance*/
+    private boolean userHasEnoughCredit(double cost){
+        return getPersonalBalance() > cost;
+    }
+
+    /*Called When The message was successfully sent*/
     @Override
     public void onNdefPushComplete(NfcEvent event) {
         //Toast.makeText(this, "Payload Delivered", Toast.LENGTH_SHORT).show();
         Log.d(TAG, "Payload Delivered: " + String.valueOf(euro) + "." + String.valueOf(cent));
     }
 
+    /*Called When Ndef Message Received*/
     @Override
     protected void onNewIntent(Intent intent) {
         setIntent(intent);
-        if(null != intent && NfcAdapter.ACTION_NDEF_DISCOVERED.equals(intent.getAction())){
-            initAlertDialog();
-            if(acceptRequest) {
-                Parcelable[] rawMessages = intent.getParcelableArrayExtra(NfcAdapter.EXTRA_NDEF_MESSAGES);
-                if (null != rawMessages) {
-                    NdefMessage ndefMessage = (NdefMessage) rawMessages[0];
-                    Log.d(TAG, "NDEF is " + String.valueOf(ndefMessage));
-                    String message = new String(ndefMessage.getRecords()[0].getPayload());
-                    //balance.setText(message);
-                    Toast.makeText(this, "Amount to be Paid: " + message, Toast.LENGTH_SHORT).show();
+        if(null != intent && NfcAdapter.ACTION_NDEF_DISCOVERED.equals(intent.getAction())) {
+            Parcelable[] rawMessages = intent.getParcelableArrayExtra(NfcAdapter.EXTRA_NDEF_MESSAGES);
+            if (null != rawMessages) {
+                NdefMessage ndefMessage = (NdefMessage) rawMessages[0];
+                String message = new String(ndefMessage.getRecords()[0].getPayload());
+                Log.d(TAG, "NDEF MESSAGE!!! " + ndefMessage.toString());
+                Log.d(TAG, "NFC MESSAGE!!! " + message);
+                if (!message.equals("Not Enough Credit")) {
+                    cost = Double.parseDouble(message);
+                    Log.d(TAG, "RECEIVED COST IS" + cost);
+                    addCostToWallet(cost);
                 }
+                else
+                    Toast.makeText(PaymentActivity.this, "User Hasn't Enough Credit", Toast.LENGTH_SHORT).show();
             }
         }
     }
@@ -168,16 +181,18 @@ public class PaymentActivity extends AppCompatActivity implements NfcAdapter.Cre
     public void onResume() {
         super.onResume();
         if(NfcAdapter.ACTION_NDEF_DISCOVERED.equals(getIntent().getAction())){
-           Toast.makeText(this, "PHONE SEEN", Toast.LENGTH_SHORT).show();
+           //Toast.makeText(this, "PHONE SEEN", Toast.LENGTH_SHORT).show();
            onNewIntent(getIntent());
         }
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, new Intent(this, getClass()).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP), 0);
+        nfcAdapter.enableForegroundDispatch(this, pendingIntent, null, null);
     }
 
     @Override
     public void onStart(){
         super.onStart();
         if(NfcAdapter.ACTION_NDEF_DISCOVERED.equals(getIntent().getAction())){
-            Toast.makeText(this, "PHONE SEEN", Toast.LENGTH_SHORT).show();
+            //Toast.makeText(this, "PHONE SEEN", Toast.LENGTH_SHORT).show();
             onNewIntent(getIntent());
         }
     }
@@ -210,19 +225,12 @@ public class PaymentActivity extends AppCompatActivity implements NfcAdapter.Cre
         });
     }
 
-    private double getBalance(){
-        return Double.parseDouble((String)balance.getText());
-    }
-
-    private boolean checkEnoughCredit(double expense){
-        return getBalance() > expense;
-    }
-
+    /*Function that when Given Incoming Amount, Will Update User's Wallet*/
     private void removeCostFromWallet(double cost){
         userRef = FirebaseDatabase.getInstance().getReference("UserProfile");
-        double newBalance = getBalance();
-        if(checkEnoughCredit(cost)){
-            newBalance = getBalance() - cost;
+        double newBalance = 0;
+        if(userHasEnoughCredit(cost)){
+            newBalance = getPersonalBalance() - cost;
         }
         else{
             Toast.makeText(this, "Not Enough in Wallet", Toast.LENGTH_SHORT).show();
@@ -230,6 +238,17 @@ public class PaymentActivity extends AppCompatActivity implements NfcAdapter.Cre
         if(null != currentUser){
             userRef.child(currentUser.getUid()).child("wallet").setValue(newBalance);
             displayBalance();
+        }
+    }
+
+    private void addCostToWallet(double cost){
+        userRef = FirebaseDatabase.getInstance().getReference("UserProfile");
+        double newBalance = getPersonalBalance();
+        newBalance = newBalance + cost;
+        if(null != currentUser){
+            userRef.child(currentUser.getUid()).child("wallet").setValue(newBalance);
+            displayBalance();
+            Toast.makeText(PaymentActivity.this, "Transaction Complete", Toast.LENGTH_SHORT).show();
         }
     }
 }

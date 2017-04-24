@@ -54,9 +54,7 @@ public class HomeScreenActivity extends AppCompatActivity implements OnMapReadyC
         mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         if(auth.getCurrentUser() != null)
             broadcastRef = FirebaseDatabase.getInstance().getReference("UserProfile").child(auth.getCurrentUser().getUid()).child("broadcastLocation");
-        GoogleClientBuilder googleClientBuilder = new GoogleClientBuilder(this, googleApiClient);
-        if(googleClientBuilder.checkGooglePlayServicesAvailable())
-            googleClientBuilder.buildLocationClient();
+        new GoogleClientBuilder(this, googleApiClient).buildLocationClient();
         checkPermissions();
         shouldZoom = true;
         Button btnBroadcast = (Button) findViewById(R.id.broadcast_location);
@@ -83,7 +81,7 @@ public class HomeScreenActivity extends AppCompatActivity implements OnMapReadyC
 
     }
 
-    public void initDrawer() {
+    private void initDrawer() {
         DrawerLayout drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
@@ -162,7 +160,6 @@ public class HomeScreenActivity extends AppCompatActivity implements OnMapReadyC
         switch (requestCode) {
             case MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION: {
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    BackgroundLocationIntentService.pauseThread = false;
                     mapFragment.getMapAsync(this);
                     Log.d(TAG, "ACCESS TO FINE LOCATION GRANTED");
                 }
@@ -178,7 +175,6 @@ public class HomeScreenActivity extends AppCompatActivity implements OnMapReadyC
     @Override
     protected void onStart() {
         super.onStart();
-        BackgroundLocationIntentService.stopThread = false;
         if(broadcastIsClicked && auth.getCurrentUser() != null)
            broadcastRef.setValue(true);
     }
@@ -186,7 +182,6 @@ public class HomeScreenActivity extends AppCompatActivity implements OnMapReadyC
     @Override
     protected void onStop() {
         super.onStop();
-        BackgroundLocationIntentService.stopThread = true; //Will kill the location thread
         if(auth.getCurrentUser() != null)
             broadcastRef.setValue(false);
     }
@@ -194,13 +189,11 @@ public class HomeScreenActivity extends AppCompatActivity implements OnMapReadyC
     @Override
     protected void onResume() {
         super.onResume();
-        BackgroundLocationIntentService.pauseThread = false;
     }
 
     @Override
     protected void onPause() {
         super.onPause();
         broadcastRef.setValue(false);
-        BackgroundLocationIntentService.pauseThread = true;
     }
 }

@@ -21,6 +21,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import java.util.ArrayList;
 
 import test.collegecarpool.alpha.LoginAndRegistrationActivities.SigninActivity;
+import test.collegecarpool.alpha.MapsUtilities.WaypointsInitializer;
 import test.collegecarpool.alpha.MessagingActivities.ChatRoomActivity;
 import test.collegecarpool.alpha.R;
 import test.collegecarpool.alpha.Tools.GoogleClientBuilder;
@@ -30,7 +31,7 @@ public class ViewJourneyActivity extends AppCompatActivity implements OnMapReady
 
     private GoogleMap googleMap;
     private GoogleApiClient googleApiClient = null;
-    private ArrayList<LatLng> places;
+    private ArrayList<LatLng> latLngs;
     private ActionBarDrawerToggle actionBarDrawerToggle;
     private FirebaseAuth auth;
 
@@ -44,8 +45,7 @@ public class ViewJourneyActivity extends AppCompatActivity implements OnMapReady
         GoogleClientBuilder googleClientBuilder = new GoogleClientBuilder(this, googleApiClient);
         if(googleClientBuilder.checkGooglePlayServicesAvailable())
             googleClientBuilder.buildLocationClient();
-        Intent intent = getIntent();
-        places = intent.getParcelableArrayListExtra("LAT/LNG");
+        latLngs = getIntent().getParcelableArrayListExtra("LAT/LNG");
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
     }
@@ -58,11 +58,8 @@ public class ViewJourneyActivity extends AppCompatActivity implements OnMapReady
     @Override
     public void onMapReady(GoogleMap googleMap) {
         this.googleMap = googleMap;
-        drawPolyLine();
-    }
-
-    private void drawPolyLine(){
-        new PolyURLBuilder(this, googleMap,places).buildPolyURL();
+        new PolyURLBuilder(this, googleMap, latLngs).buildPolyURL();
+        new WaypointsInitializer(googleMap).displayWaypoints(latLngs);
     }
 
     public void initDrawer() {

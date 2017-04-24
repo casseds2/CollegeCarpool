@@ -21,71 +21,37 @@ android:id="@+id/drawer_layout">
             android:id="@+id/autocom"
             android:name="com.google.android.gms.location.places.ui.PlaceAutocompleteFragment"
             android:layout_width="match_parent"
-            android:layout_height="40dp"
+            android:layout_height="50dp"
             android:layout_gravity="top"
             android:layout_weight="0.29" />
 
-        <TextView
-            android:id="@+id/entry_1"
-            android:layout_width="276dp"
-            android:layout_height="20dp" />
-
-        <Button
-            android:id="@+id/remove_entry1"
-            android:layout_width="match_parent"
-            android:layout_height="40dp"
-            android:text="Remove" />
-
-        <TextView
-            android:id="@+id/entry_2"
-            android:layout_width="276dp"
-            android:layout_height="20dp" />
-
-        <Button
-            android:id="@+id/remove_entry2"
-            android:layout_width="match_parent"
-            android:layout_height="40dp"
-            android:text="Remove" />
-
-        <TextView
-            android:id="@+id/entry_3"
-            android:layout_width="276dp"
-            android:layout_height="20dp" />
-
-        <Button
-            android:id="@+id/remove_entry3"
-            android:layout_width="match_parent"
-            android:layout_height="40dp"
-            android:text="Remove" />
-
-        <TextView
-            android:id="@+id/entry_4"
-            android:layout_width="276dp"
-            android:layout_height="20dp" />
-
-        <Button
-            android:id="@+id/remove_entry4"
-            android:layout_width="match_parent"
-            android:layout_height="40dp"
-            android:text="Remove" />
-
-        <Button
-            android:id="@+id/submit_address"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="@string/submit_address" />
+        <ListView
+            android:paddingTop="10dp"
+            android:layout_width="368dp"
+            android:layout_height="200dp"
+            android:id="@+id/plan_journey_list_view"
+            android:longClickable="true"
+            tools:layout_editor_absoluteY="8dp"
+            tools:layout_editor_absoluteX="8dp">
+        </ListView>
 
         <Button
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:id="@+id/view_journey"
-            android:hint="@string/view_journey"/>
+            android:text="@string/view_journey"/>
 
         <Button
-            android:id="@+id/dateDialog"
+            android:id="@+id/date_dialog"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Pick A Date" />
+            android:text="@string/pick_date" />
+
+        <Button
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/save_journey"
+            android:id="@+id/save_journey"/>
 
         <Button
             android:text="@string/view_journey_planner"

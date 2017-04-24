@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/remove_stop_item_id"
+        android:title="@string/remove_stop"/>
+    <item
+        android:id="@+id/move_stop_up_item_id"
+        android:title="@string/move_stop_up"/>
+    <item
+        android:id="@+id/move_stop_down_item_id"
+        android:title="@string/move_stop_down"/>
+
+</menu>

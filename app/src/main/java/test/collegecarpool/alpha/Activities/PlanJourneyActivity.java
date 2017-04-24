@@ -11,11 +11,15 @@ import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.ContextMenu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.DatePicker;
-import android.widget.TextView;
+import android.widget.ListView;
 import android.widget.Toast;
 
 import com.google.android.gms.common.api.Status;
@@ -26,26 +30,31 @@ import com.google.android.gms.location.places.ui.PlaceSelectionListener;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
+import java.util.ConcurrentModificationException;
 import java.util.HashMap;
 
 import test.collegecarpool.alpha.LoginAndRegistrationActivities.SigninActivity;
 import test.collegecarpool.alpha.MapsUtilities.Journey;
-import test.collegecarpool.alpha.MapsUtilities.MyPlace;
+import test.collegecarpool.alpha.MapsUtilities.Waypoint;
+import test.collegecarpool.alpha.MapsUtilities.WaypointFromPlaceGenerator;
 import test.collegecarpool.alpha.MessagingActivities.ChatRoomActivity;
 import test.collegecarpool.alpha.R;
 import test.collegecarpool.alpha.UserClasses.Date;
 
 public class PlanJourneyActivity extends AppCompatActivity implements DatePickerDialog.OnDateSetListener {
 
-    private TextView entry1, entry2, entry3, entry4;
-    static final String TAG = "PLAN JOURNEY";
+    private final String TAG = "PLAN JOURNEY";
     private ArrayList<Place> places = new ArrayList<>();
-    private PlaceAutocompleteFragment autocompleteFragment;
+    private ArrayList<String> placeNames = new ArrayList<>();
     private DatePickerDialog datePickerDialog;
     private Date date;
     private boolean dateChosen = false;
@@ -55,29 +64,127 @@ public class PlanJourneyActivity extends AppCompatActivity implements DatePicker
     private Journey journey;
     private ActionBarDrawerToggle actionBarDrawerToggle;
     private FirebaseAuth auth = FirebaseAuth.getInstance();
+    private ArrayAdapter<String> adapter;
+    private PlaceAutocompleteFragment autocompleteFragment;
+    private Calendar calendar = Calendar.getInstance();
+    private ArrayList<Journey> fireJourneys = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_plan_journey);
 
-        Calendar calendar = Calendar.getInstance();
         datePickerDialog = new DatePickerDialog(PlanJourneyActivity.this, PlanJourneyActivity.this, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH));
 
         initDrawer();
         initSearchBar();
-        initAddressFields();
-        initRemoveButtons();
+        initButtons();
         initViewJourney();
         initFirebase();
-        clearUI();
+        initListView();
+        getCurrentJourneys();
+    }
+
+    /*Initialise the List View Adapter*/
+    private void initListView() {
+        adapter = new ArrayAdapter<>(this, R.layout.plan_journey_list, placeNames);
+        ListView listView = (ListView) findViewById(R.id.plan_journey_list_view);
+        listView.setAdapter(adapter);
+        registerForContextMenu(listView);
+    }
+
+    /*registerForContextMenu Callback ... Allows onLongCLick of Menu Items*/
+    @Override
+    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
+        super.onCreateContextMenu(menu, v, menuInfo);
+        MenuInflater menuInflater = getMenuInflater();
+        menuInflater.inflate(R.menu.plan_journey_popup_menu, menu);
+    }
+
+    /*Context Menu For Popup Menu*/
+    @Override
+    public boolean onContextItemSelected(MenuItem item) {
+        AdapterView.AdapterContextMenuInfo adapterContextMenuInfo = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
+        switch(item.getItemId()){
+            case R.id.remove_stop_item_id :
+                //Issue with concurrent modification Exception
+                //Arise from iterating over construct while another part
+                //is writing/reading from it
+                //Interrupts UI slightly...
+                try {
+                    int index = adapterContextMenuInfo.position;
+                    places.removeAll(removeStringFromPlaces(placeNames.get(index)));
+                    placeNames.remove(index);
+                    printPlaceNamesArray();
+                    adapter.notifyDataSetChanged();
+                }
+                catch (ConcurrentModificationException c){
+                    Log.d(TAG, "Concurrent Modification Exception");
+                }
+                break;
+
+            case R.id.move_stop_up_item_id :
+                int index = adapterContextMenuInfo.position;
+                moveStringUp(placeNames.get(index));
+                adapter.notifyDataSetChanged();
+                break;
+
+            case R.id.move_stop_down_item_id :
+                index = adapterContextMenuInfo.position;
+                moveStringDown(placeNames.get(index));
+                adapter.notifyDataSetChanged();
+                break;
+            default :
+                return super.onContextItemSelected(item);
+        }
+        return super.onContextItemSelected(item);
+    }
+
+    /*Move The Item Down In The List*/
+    private void moveStringDown(String s) {
+        int position = placeNames.indexOf(s);
+        Log.d(TAG, "OLD INDEX IS " + position);
+        if(placeNames.get(position + 1) != null) { //Need statement that checks if element after is not null
+            Collections.swap(placeNames, position, position + 1);
+            //position = placeNames.indexOf(s);
+            //Log.d(TAG, "NEW INDEX IS " + position);
+            //Error Is Index out of bounds
+        }
+        else
+            Toast.makeText(PlanJourneyActivity.this, "Can't Move Down", Toast.LENGTH_SHORT).show();
+    }
+
+    /*Move the Item Up In The List*/
+    private void moveStringUp(String s) {
+        if(placeNames.size() > 1) {
+            int position = placeNames.indexOf(s);
+            Collections.swap(placeNames, position, position - 1);
+        }
+        else
+            Toast.makeText(PlanJourneyActivity.this, "Can't Move Up", Toast.LENGTH_SHORT).show();
+    }
+
+    /*Remove the Item From the List*/
+    private ArrayList<Place> removeStringFromPlaces(String s) {
+        ArrayList<Place> temp = new ArrayList<>();
+        for(Place p : places){
+            if(p.getName().toString().equals(s))
+                temp.add(p);
+        }
+        return temp;
     }
 
     /*Log list of elements currently entered*/
-    private void printPlacesArray(ArrayList<Place> p) {
-        for (int i = 0; i < p.size(); i++) {
-            Place pTemp = p.get(i);
-            Log.d(TAG, "Element(" + i + ") is " + pTemp.getName());
+    private void printPlacesArray() {
+        for (int i = 0; i < places.size(); i++) {
+            Log.d(TAG, "Element(" + i + ") is " + places.get(i).getName().toString() + " in Places");
+        }
+    }
+
+    /*Print the Place Name Array*/
+    private void printPlaceNamesArray(){
+        for(int i = 0; i < placeNames.size(); i++){
+            Log.d(TAG, "Element(" + i + ") is " + placeNames.get(i) + " in PlaceNames");
         }
     }
 
@@ -88,70 +195,8 @@ public class PlanJourneyActivity extends AppCompatActivity implements DatePicker
         userRef = FirebaseDatabase.getInstance().getReference("UserProfile").child(user.getUid());
     }
 
-    /*Initialize the  Buttons*/
-    private void initRemoveButtons() {
-        Button removeEntry1 = (Button) findViewById(R.id.remove_entry1);
-        removeEntry1.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                clearUI();
-                if (!places.isEmpty()) {
-                    Log.d(TAG, "Removed : " + places.get(0).getName());
-                    places.remove(0);
-                }
-                updateUiAddress(places);
-                printPlacesArray(places);
-            }
-        });
-        Button removeEntry2 = (Button) findViewById(R.id.remove_entry2);
-        removeEntry2.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                clearUI();
-                if (!places.isEmpty()) {
-                    Log.d(TAG, "Removed : " + places.get(1).getName());
-                    places.remove(1);
-                }
-                updateUiAddress(places);
-                printPlacesArray(places);
-            }
-        });
-        Button removeEntry3 = (Button) findViewById(R.id.remove_entry3);
-        removeEntry3.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                clearUI();
-                if (!places.isEmpty()) {
-                    Log.d(TAG, "Removed : " + places.get(2).getName());
-                    places.remove(2);
-                }
-                updateUiAddress(places);
-                printPlacesArray(places);
-            }
-        });
-        Button removeEntry4 = (Button) findViewById(R.id.remove_entry4);
-        removeEntry4.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                clearUI();
-                if (!places.isEmpty()) {
-                    Log.d(TAG, "Removed : " + places.get(3).getName());
-                    places.remove(3);
-                }
-                updateUiAddress(places);
-                printPlacesArray(places);
-            }
-        });
-
-        Button dateDialog = (Button) findViewById(R.id.dateDialog);
-        dateDialog.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                datePickerDialog.show();
-            }
-        });
-
-        /*Initialise Button For Journey Planner*/
+    /*Initialise Button For Journey Planner*/
+    private void initButtons(){
         Button viewJourneyPlanner = (Button) findViewById(R.id.view_journey_planner);
         viewJourneyPlanner.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -159,6 +204,51 @@ public class PlanJourneyActivity extends AppCompatActivity implements DatePicker
                 startActivity(new Intent(PlanJourneyActivity.this, ViewJourneyPlannerActivity.class));
             }
         });
+
+        Button dateDialog = (Button) findViewById(R.id.date_dialog);
+        dateDialog.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                datePickerDialog.show();
+            }
+        });
+
+        Button saveJourney = (Button) findViewById(R.id.save_journey);
+        saveJourney.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (places.size() > 0 && dateChosen) {
+                    journey = new Journey(date, new WaypointFromPlaceGenerator().convertPlacesToWayPoints(places)); //Pushes a Journey with a date and a list of place names taken from MyPlaces
+                    Log.d(TAG, "Fire Journey: " + fireJourneys.toString());
+                    Log.d(TAG, "BOOL: " + !journey.isElementOf(fireJourneys));
+                    if (!journey.isElementOf(fireJourneys)) {
+                        pushJourneyToFirebase(); //new MyPlace().convertPlacesToMyPlace(places) converts the ArrayList<Places> to and ArrayList<String> of the place names
+                        Toast.makeText(PlanJourneyActivity.this, "Saved Journey to Planner", Toast.LENGTH_SHORT).show();
+                    }
+                    else
+                        Toast.makeText(PlanJourneyActivity.this, "Already in Planner", Toast.LENGTH_SHORT).show();
+                }
+                else
+                    if(places.size() == 0 && dateChosen)
+                    Toast.makeText(PlanJourneyActivity.this, "Enter a Journey", Toast.LENGTH_SHORT).show();
+                else
+                    if(places.size() > 0 && !dateChosen)
+                    Toast.makeText(PlanJourneyActivity.this, "Pick A Date", Toast.LENGTH_SHORT).show();
+                else
+                    if(places.size() == 0 && !dateChosen)
+                    Toast.makeText(PlanJourneyActivity.this, "Enter a Journey & Date", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    /*Push the new Journey Planner to Firebase...Pull Planner down to local variable, add to it and re-upload*/
+    private void pushJourneyToFirebase() {
+        HashMap<String, Object> children = new HashMap<>();
+        userRef = FirebaseDatabase.getInstance().getReference("UserProfile").child(user.getUid());
+        String timeStamp = Long.toString(System.currentTimeMillis()); //Use timeStamps cause they are unique
+        children.put("JourneyPlanner/" + timeStamp, journey.toMap());
+        userRef.updateChildren(children);
+        getCurrentJourneys();
     }
 
     /*Initialize the View Journey Button*/
@@ -174,50 +264,11 @@ public class PlanJourneyActivity extends AppCompatActivity implements DatePicker
                 }
                 Intent intent = new Intent(PlanJourneyActivity.this, ViewJourneyActivity.class);
                 intent.putExtra("LAT/LNG", latLngs);
-                if (latLngs.size() > 0 && dateChosen) {
-                    journey = new Journey(date, new MyPlace().convertPlacesToMyPlace(places));
-                    pushJourneyToFirebase();
+                if (latLngs.size() > 0) {
                     startActivity(intent);
                 }
-                if (!dateChosen)
-                    Toast.makeText(getApplicationContext(), "Pick A Date", Toast.LENGTH_SHORT).show();
             }
         });
-    }
-
-    /*Push the new Journey Planner to Firebase...Pull Planner down to local variable, add to it and re-upload*/
-    private void pushJourneyToFirebase() {
-        HashMap<String, Object> children = new HashMap<>();
-        userRef = FirebaseDatabase.getInstance().getReference("UserProfile").child(user.getUid());
-        String timeStamp = Long.toString(System.currentTimeMillis()); //Use timeStamps cause they are unique
-        children.put("JourneyPlanner/" + timeStamp, journey.toMap());
-        userRef.updateChildren(children);
-    }
-
-    /*Initialize the submit button to confirm an address*/
-    private void initSubmitButton(final Place place) {
-        Button btn1 = (Button) findViewById(R.id.submit_address);
-        btn1.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if(!places.contains(place)) {
-                    places.add(place);
-                    printPlacesArray(places);
-                    updateUiAddress(places);
-                }
-                else
-                    Toast.makeText(PlanJourneyActivity.this, "Already Picked", Toast.LENGTH_SHORT).show();
-                autocompleteFragment.setText("");
-            }
-        });
-    }
-
-    /*Initialize te Text Views for the addresses*/
-    private void initAddressFields() {
-        entry1 = (TextView) findViewById(R.id.entry_1);
-        entry2 = (TextView) findViewById(R.id.entry_2);
-        entry3 = (TextView) findViewById(R.id.entry_3);
-        entry4 = (TextView) findViewById(R.id.entry_4);
     }
 
     /*Initialise the Autocomplete Fragment Search Bar*/
@@ -227,15 +278,23 @@ public class PlanJourneyActivity extends AppCompatActivity implements DatePicker
         autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
             @Override
             public void onPlaceSelected(Place place) {
-                //if (places.size() == 4) {
-                //   Toast.makeText(PlanJourneyActivity.this, "Only allowed 4 stops", Toast.LENGTH_LONG).show();
-                //}
-                //if(!places.contains(place))
-                //    places.add(place);
-                //if(places.contains(place))
-                //    Toast.makeText(PlanJourneyActivity.this, "Already Entered", Toast.LENGTH_SHORT).show();
-                //autocompleteFragment.setText("");
-                initSubmitButton(place);
+                if(places.contains(place))
+                    Toast.makeText(PlanJourneyActivity.this, "Already Picked", Toast.LENGTH_SHORT).show();
+                if(places.size() == 4)
+                    Toast.makeText(PlanJourneyActivity.this, "Only Allowed 4 Places", Toast.LENGTH_SHORT).show();
+                autocompleteFragment.setText("");
+                if(!places.contains(place) && places.size() < 4) {
+                    if(place.getLatLng() != null) {
+                        places.add(place);
+                        Log.d(TAG, "ADDED " + place.getName() + " " + place.getLatLng().toString());
+                        placeNames.add(place.getName().toString());
+                        printPlacesArray();
+                        printPlaceNamesArray();
+                        adapter.notifyDataSetChanged();
+                    }
+                    else
+                        Toast.makeText(PlanJourneyActivity.this, "No LAT/LNG Available", Toast.LENGTH_SHORT).show();
+                }
             }
 
             @Override
@@ -248,46 +307,17 @@ public class PlanJourneyActivity extends AppCompatActivity implements DatePicker
         autocompleteFragment.setFilter(countryFilter);
     }
 
-    /*Clear the stops*/
-    private void clearUI() {
-        entry1.setText(getResources().getString(R.string.stop1));
-        entry2.setText(getResources().getString(R.string.stop2));
-        entry3.setText(getResources().getString(R.string.stop3));
-        entry4.setText(getResources().getString(R.string.stop4));
-    }
-
-    /*Update the Route List in the UI*/
-    private void updateUiAddress(ArrayList<Place> places) {
-        clearUI();
-        if (places != null) {
-            for (int i = 0; i < places.size(); i++) {
-                switch (i) {
-                    case 0:
-                        entry1.append(places.get(i).getName());
-                        Log.d(TAG, "ADDED " + places.get(i).getName());
-                        break;
-                    case 1:
-                        entry2.append(places.get(i).getName());
-                        Log.d(TAG, "ADDED " + places.get(i).getName());
-                        break;
-                    case 2:
-                        entry3.append(places.get(i).getName());
-                        Log.d(TAG, "ADDED " + places.get(i).getName());
-                        break;
-                    case 3:
-                        entry4.append(places.get(i).getName());
-                        Log.d(TAG, "ADDED " + places.get(i).getName());
-                        break;
-                }
-            }
-        }
-    }
-
     /*Callback for when a date is chosen from dialog*/
     @Override
     public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
-        date = new Date(dayOfMonth, month + 1, year); //+1 to accomodate for the ol' [0-11] array being 12 in size...
-        dateChosen = true;
+        date = new Date(dayOfMonth, month + 1, year); //+1 to accommodate for the ol' [0-11] array being 12 in size...
+        Date today = new Date(calendar.get(Calendar.DAY_OF_MONTH), calendar.get(Calendar.MONTH), calendar.get(Calendar.YEAR));
+        if(today.inThePast(date))
+            dateChosen = true;
+        else {
+            dateChosen = false;
+            Toast.makeText(PlanJourneyActivity.this, "Date in the Past", Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void initDrawer() {
@@ -342,5 +372,54 @@ public class PlanJourneyActivity extends AppCompatActivity implements DatePicker
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         return actionBarDrawerToggle.onOptionsItemSelected(item) || super.onOptionsItemSelected(item);
+    }
+
+    private void getCurrentJourneys(){
+        DatabaseReference journeyRef = FirebaseDatabase.getInstance().getReference("UserProfile").child(user.getUid()).child("JourneyPlanner");
+        journeyRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                Iterable<DataSnapshot> dataSnapshots = dataSnapshot.getChildren();
+                for(DataSnapshot data1 : dataSnapshots){ //For Each TimeStamp
+                    Iterable<DataSnapshot> dataSnapshots1 = data1.getChildren();
+                    Journey tempJourney = new Journey();
+                    for(DataSnapshot data2 : dataSnapshots1){ //FOR EACH DATE / Waypoints list
+                        if(data2.getKey().equals("date")){
+                            Date date = data2.getValue(Date.class);
+                            tempJourney.setDate(date);
+                        }
+                        if(data2.getKey().equals("journeyWaypoints")){
+                            Iterable<DataSnapshot> dataSnapshots2 = data2.getChildren();
+                            ArrayList<Waypoint> waypoints = new ArrayList<>();
+                            for(DataSnapshot data3 :  dataSnapshots2){ //FOR EACH LIST ITEM, ERROR CAUSED CAUSE IM NOT AT RIGHT LEVEL YET
+                                Iterable<DataSnapshot> dataSnapshots3 = data3.getChildren();
+                                Waypoint waypoint = new Waypoint();
+                                for(DataSnapshot data4 : dataSnapshots3) {
+                                    if (data4.getKey().equals("latLng")) {
+                                        test.collegecarpool.alpha.MapsUtilities.LatLng latLng = data4.getValue(test.collegecarpool.alpha.MapsUtilities.LatLng.class);
+                                        Log.d(TAG, "LAT/LNG IS " + latLng.toString());
+                                        waypoint.setLatLng(latLng);
+                                    }
+                                    if (data4.getKey().equals("name")) {
+                                        String name = data4.getValue(String.class);
+                                        Log.d(TAG, "NAME IS " + name);
+                                        waypoint.setName(name);
+                                    }
+                                }
+                                waypoints.add(waypoint);
+                            }
+                            tempJourney.setWaypoints(waypoints);
+                        }
+                    }
+                    //TEMP JOURNEY IS EQUAL DON'T UPLOAD IT
+                    fireJourneys.add(tempJourney);
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
     }
 }

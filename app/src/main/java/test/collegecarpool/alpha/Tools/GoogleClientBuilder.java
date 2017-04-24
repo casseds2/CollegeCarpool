@@ -12,8 +12,6 @@ import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationServices;
 
-import test.collegecarpool.alpha.Services.BackgroundLocationIntentService;
-
 public class GoogleClientBuilder extends Activity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
     private Context context;
@@ -26,7 +24,7 @@ public class GoogleClientBuilder extends Activity implements GoogleApiClient.Con
         this.googleApiClient = googleApiClient;
     }
 
-    /**Google Client Builder For Location**/
+    /*Google Client Builder For Location*/
     public void buildLocationClient() {
         if(googleApiClient == null && checkGooglePlayServicesAvailable()) {
             googleApiClient = new GoogleApiClient.Builder(context)
@@ -35,26 +33,12 @@ public class GoogleClientBuilder extends Activity implements GoogleApiClient.Con
                     .addOnConnectionFailedListener(this)
                     .build();
             googleApiClient.connect();
-            GPSChecker gpsChecker = new GPSChecker(context, googleApiClient);
-            gpsChecker.checkGPS();
+            new GPSChecker(context, googleApiClient).checkGPS();
             Log.d(TAG, "LOCATION CLIENT BUILT");
         }
+        else
+            Log.d(TAG, "ERROR BUILDING CLIENT");
     }
-
-    /*
-    //Google Client Builder For Places
-    public void buildPlacesClient(){
-        if(googleApiClient == null && checkGooglePlayServicesAvailable()){
-            googleApiClient = new GoogleApiClient.Builder(context)
-                    .addApi(Places.GEO_DATA_API)
-                    .addApi(Places.PLACE_DETECTION_API)
-                    .enableAutoManage((FragmentActivity) context, this)
-                    .build();
-            googleApiClient.connect();
-            Log.d(TAG, "PLACES CLIENT BUILT");
-        }
-    }
-    */
 
     public boolean checkGooglePlayServicesAvailable() {
         Log.d(TAG, "CHECKING PLAY SERVICES");
@@ -65,7 +49,6 @@ public class GoogleClientBuilder extends Activity implements GoogleApiClient.Con
 
     @Override
     public void onConnected(@Nullable Bundle bundle) {
-        if(!BackgroundLocationIntentService.pauseThread)
             locationSettings.requestLocationUpdates(googleApiClient);
     }
 

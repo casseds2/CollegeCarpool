@@ -19,37 +19,7 @@ class DirectionParser {
 
     DirectionParser(){}
 
-    /*Replaced by zoomPoly() in PolyDirections.java*/
-    /*
-    ArrayList<LatLng> getBounds(JSONObject jsonObject){
-        ArrayList<LatLng> boundsArray = new ArrayList<>();
-        LatLng latLng;
-        JSONArray routes;
-        double lat, lon;
-
-        try{
-            routes = jsonObject.getJSONArray("routes");
-            for(int i = 0; i < routes.length(); i++){
-                lat = Double.parseDouble((String) routes.getJSONObject(0).getJSONObject("northeast").get("lat"));
-                lon = Double.parseDouble((String) routes.getJSONObject(0).getJSONObject("northeast").get("lng"));
-                latLng = new LatLng(lat, lon);
-                boundsArray.add(latLng);
-                lat = Double.parseDouble((String) routes.getJSONObject(0).getJSONObject("southwest").get("lat"));
-                lon = Double.parseDouble((String) routes.getJSONObject(0).getJSONObject("southwest").get("lng"));
-                latLng = new LatLng(lat, lon);
-                boundsArray.add(latLng);
-            }
-        }
-        catch (JSONException e) {
-            e.printStackTrace();
-            Log.d(TAG, "JSON Error");
-        }
-
-        return boundsArray;
-    }
-    */
-
-    ArrayList<LatLng> getDirectionsAsList(JSONObject jsonObject){
+    public ArrayList<LatLng> getDirectionsAsList(JSONObject jsonObject){
         ArrayList<LatLng> latLngArray = new ArrayList<>();
         /*Structure of JSON Document From Google Directions*/
         JSONArray routes;

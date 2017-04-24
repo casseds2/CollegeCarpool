@@ -4,9 +4,6 @@
         android:id="@+id/remove_planner_item_id"
         android:title="Remove"/>
     <item
-        android:id="@+id/edit_planner_item_id"
-        android:title="Edit"/>
-    <item
         android:id="@+id/start_journey_planner_item_id"
         android:title="Start Journey"/>
 </menu>

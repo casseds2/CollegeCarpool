@@ -15,7 +15,9 @@ android:id="@+id/drawer_layout">
         android:id="@+id/journey_planner_list_view"
         android:longClickable="true"
         tools:layout_editor_absoluteY="8dp"
-        tools:layout_editor_absoluteX="8dp">
+        tools:layout_editor_absoluteX="8dp"
+        android:textAlignment="textStart"
+        android:scrollbarStyle="outsideInset">
     </ListView>
 
 <android.support.design.widget.NavigationView
