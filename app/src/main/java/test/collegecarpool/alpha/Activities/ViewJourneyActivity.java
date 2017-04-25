@@ -18,7 +18,6 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.firebase.auth.FirebaseAuth;
 
-import java.net.URL;
 import java.util.ArrayList;
 
 import test.collegecarpool.alpha.LoginAndRegistrationActivities.SigninActivity;
@@ -26,7 +25,6 @@ import test.collegecarpool.alpha.MapsUtilities.WaypointsInitializer;
 import test.collegecarpool.alpha.MessagingActivities.ChatRoomActivity;
 import test.collegecarpool.alpha.R;
 import test.collegecarpool.alpha.Tools.GoogleClientBuilder;
-import test.collegecarpool.alpha.Tools.PolyDirections;
 import test.collegecarpool.alpha.Tools.PolyURLBuilder;
 
 public class ViewJourneyActivity extends AppCompatActivity implements OnMapReadyCallback {

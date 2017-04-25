@@ -22,11 +22,6 @@ public class PolyDirections extends AsyncTask<URL, Void, ArrayList<LatLng>> {
     private GoogleMap googleMap;
     private DirectionParser directionParser;
 
-    /*Only interested in Parser*/
-    public PolyDirections(DirectionParser directionParser){
-        this.directionParser = directionParser;
-    }
-
     /*Return the Direction Parser For Use in the Navigation Service*/
     public DirectionParser getDirectionParser(){
         return directionParser;
@@ -36,6 +31,8 @@ public class PolyDirections extends AsyncTask<URL, Void, ArrayList<LatLng>> {
         this.context = context;
         this.googleMap = googleMap;
     }
+
+    public PolyDirections(){}
 
     @Override
     protected ArrayList<LatLng> doInBackground(URL... params) {

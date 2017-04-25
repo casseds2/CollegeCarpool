@@ -4,6 +4,7 @@ import android.app.DatePickerDialog;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
+import android.os.CountDownTimer;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
 import android.support.v4.widget.DrawerLayout;
@@ -22,6 +23,7 @@ import android.widget.DatePicker;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.places.AutocompleteFilter;
 import com.google.android.gms.location.places.Place;
@@ -48,6 +50,7 @@ import test.collegecarpool.alpha.MapsUtilities.Waypoint;
 import test.collegecarpool.alpha.MapsUtilities.WaypointFromPlaceGenerator;
 import test.collegecarpool.alpha.MessagingActivities.ChatRoomActivity;
 import test.collegecarpool.alpha.R;
+import test.collegecarpool.alpha.Tools.GoogleClientBuilder;
 import test.collegecarpool.alpha.UserClasses.Date;
 
 public class PlanJourneyActivity extends AppCompatActivity implements DatePickerDialog.OnDateSetListener {
@@ -68,6 +71,11 @@ public class PlanJourneyActivity extends AppCompatActivity implements DatePicker
     private PlaceAutocompleteFragment autocompleteFragment;
     private Calendar calendar = Calendar.getInstance();
     private ArrayList<Journey> fireJourneys = new ArrayList<>();
+    private GoogleApiClient googleApiClient = null;
+    private GoogleClientBuilder googleClientBuilder;
+    private Place place = null;
+    private Place tempPlace = null;
+    private boolean locationButtonEnabled = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,12 +84,16 @@ public class PlanJourneyActivity extends AppCompatActivity implements DatePicker
 
         datePickerDialog = new DatePickerDialog(PlanJourneyActivity.this, PlanJourneyActivity.this, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH));
 
+        googleClientBuilder = new GoogleClientBuilder(this, googleApiClient, place);
+        googleClientBuilder.buildPlacesClient();
+
         initDrawer();
         initSearchBar();
         initButtons();
         initViewJourney();
         initFirebase();
         initListView();
+        initAddMyLocation();
         getCurrentJourneys();
     }
 
@@ -114,6 +126,11 @@ public class PlanJourneyActivity extends AppCompatActivity implements DatePicker
                 try {
                     int index = adapterContextMenuInfo.position;
                     places.removeAll(removeStringFromPlaces(placeNames.get(index)));
+                    if(null != tempPlace){
+                        if(tempPlace.getName().toString().equals(placeNames.get(index))){
+                            locationButtonEnabled = true; //If removed is my location, re-enable use of button
+                        }
+                    }
                     placeNames.remove(index);
                     printPlaceNamesArray();
                     adapter.notifyDataSetChanged();
@@ -140,25 +157,31 @@ public class PlanJourneyActivity extends AppCompatActivity implements DatePicker
         return super.onContextItemSelected(item);
     }
 
-    /*Move The Item Down In The List*/
+    /*Move The Item Down In The List of PLaceNames and Places*/
     private void moveStringDown(String s) {
-        int position = placeNames.indexOf(s);
-        Log.d(TAG, "OLD INDEX IS " + position);
-        if(placeNames.get(position + 1) != null) { //Need statement that checks if element after is not null
-            Collections.swap(placeNames, position, position + 1);
-            //position = placeNames.indexOf(s);
-            //Log.d(TAG, "NEW INDEX IS " + position);
-            //Error Is Index out of bounds
+        int index = placeNames.indexOf(s); //position in array
+        if(placeNames.size() > index + 1 && places.size() > index + 1) { //Need statement that checks if element after is not null
+            for(int i = 0; i < places.size() - 1; i++){
+                if(places.get(i).getName().toString().equals(placeNames.get(index))){
+                    Collections.swap(places, i, i + 1);
+                }
+            }
+            Collections.swap(placeNames, index, index + 1);
         }
         else
             Toast.makeText(PlanJourneyActivity.this, "Can't Move Down", Toast.LENGTH_SHORT).show();
     }
 
-    /*Move the Item Up In The List*/
+    /*Move the Item Up In The List of PlaceNames and Places*/
     private void moveStringUp(String s) {
-        if(placeNames.size() > 1) {
-            int position = placeNames.indexOf(s);
-            Collections.swap(placeNames, position, position - 1);
+        int index = placeNames.indexOf(s);
+        if(placeNames.size() > 1 && index > 0) {
+            for(int i = 0; i < places.size(); i++){
+                if(places.get(i).getName().toString().equals(placeNames.get(index))){
+                    Collections.swap(places, i, i - 1);
+                }
+            }
+            Collections.swap(placeNames, index, index - 1);
         }
         else
             Toast.makeText(PlanJourneyActivity.this, "Can't Move Up", Toast.LENGTH_SHORT).show();
@@ -217,26 +240,30 @@ public class PlanJourneyActivity extends AppCompatActivity implements DatePicker
         saveJourney.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (places.size() > 0 && dateChosen) {
+                if (places.size() > 1 && dateChosen) {
                     journey = new Journey(date, new WaypointFromPlaceGenerator().convertPlacesToWayPoints(places)); //Pushes a Journey with a date and a list of place names taken from MyPlaces
                     Log.d(TAG, "Fire Journey: " + fireJourneys.toString());
                     Log.d(TAG, "BOOL: " + !journey.isElementOf(fireJourneys));
                     if (!journey.isElementOf(fireJourneys)) {
                         pushJourneyToFirebase(); //new MyPlace().convertPlacesToMyPlace(places) converts the ArrayList<Places> to and ArrayList<String> of the place names
+                        dateChosen = false;
                         Toast.makeText(PlanJourneyActivity.this, "Saved Journey to Planner", Toast.LENGTH_SHORT).show();
                     }
                     else
                         Toast.makeText(PlanJourneyActivity.this, "Already in Planner", Toast.LENGTH_SHORT).show();
                 }
                 else
-                    if(places.size() == 0 && dateChosen)
-                    Toast.makeText(PlanJourneyActivity.this, "Enter a Journey", Toast.LENGTH_SHORT).show();
+                    if(places.size() < 2 && dateChosen)
+                    Toast.makeText(PlanJourneyActivity.this, "Enter at Least Two Waypoints", Toast.LENGTH_SHORT).show();
                 else
-                    if(places.size() > 0 && !dateChosen)
+                    if(places.size() > 1 && !dateChosen)
                     Toast.makeText(PlanJourneyActivity.this, "Pick A Date", Toast.LENGTH_SHORT).show();
                 else
+                    if(places.size() == 1 && !dateChosen)
+                    Toast.makeText(PlanJourneyActivity.this, "Enter Another Journey & Date", Toast.LENGTH_SHORT).show();
+                else
                     if(places.size() == 0 && !dateChosen)
-                    Toast.makeText(PlanJourneyActivity.this, "Enter a Journey & Date", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(PlanJourneyActivity.this, "Enter At Least Two Waypoints & Date", Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -249,6 +276,46 @@ public class PlanJourneyActivity extends AppCompatActivity implements DatePicker
         children.put("JourneyPlanner/" + timeStamp, journey.toMap());
         userRef.updateChildren(children);
         getCurrentJourneys();
+    }
+
+    /*Initialize Button That Adds My Place to List*/
+    private void initAddMyLocation(){
+        Button btn1 = (Button) findViewById(R.id.use_my_location);
+        btn1.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(locationButtonEnabled) {
+                    googleClientBuilder.getClientPlace();
+                    new CountDownTimer(2000, 1000) { //Delay so that getPlace() will return non-null object
+                        @Override
+                        public void onTick(long millisUntilFinished) {
+                            Log.d(TAG, "TICK");
+                        }
+
+                        @Override
+                        public void onFinish() {
+                            tempPlace = googleClientBuilder.getPlace();
+                            if (!places.contains(tempPlace)) {
+                                places.add(tempPlace);
+                                placeNames.add(tempPlace.getName().toString());
+                                adapter.notifyDataSetChanged();
+                            }
+                            else
+                                Toast.makeText(PlanJourneyActivity.this, "Already Picked My Location", Toast.LENGTH_SHORT).show();
+                            printPlacesArray();
+                            //updateUI();
+                            if (null != tempPlace)
+                                Log.d(TAG, "Place IS " + tempPlace.getName().toString());
+                            else
+                                Log.d(TAG, "PLACE IS NULL");
+                        }
+                    }.start();
+                    locationButtonEnabled = false;
+                }
+                else
+                    Toast.makeText(PlanJourneyActivity.this, "Already Using My Location", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     /*Initialize the View Journey Button*/
@@ -264,9 +331,11 @@ public class PlanJourneyActivity extends AppCompatActivity implements DatePicker
                 }
                 Intent intent = new Intent(PlanJourneyActivity.this, ViewJourneyActivity.class);
                 intent.putExtra("LAT/LNG", latLngs);
-                if (latLngs.size() > 0) {
+                if (latLngs.size() > 1) {
                     startActivity(intent);
                 }
+                else
+                    Toast.makeText(PlanJourneyActivity.this, "Enter At Least Two Stops", Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -280,10 +349,10 @@ public class PlanJourneyActivity extends AppCompatActivity implements DatePicker
             public void onPlaceSelected(Place place) {
                 if(places.contains(place))
                     Toast.makeText(PlanJourneyActivity.this, "Already Picked", Toast.LENGTH_SHORT).show();
-                if(places.size() == 4)
-                    Toast.makeText(PlanJourneyActivity.this, "Only Allowed 4 Places", Toast.LENGTH_SHORT).show();
+                if(places.size() == 5)
+                    Toast.makeText(PlanJourneyActivity.this, "Only Allowed 5 Places", Toast.LENGTH_SHORT).show();
                 autocompleteFragment.setText("");
-                if(!places.contains(place) && places.size() < 4) {
+                if(!places.contains(place) && places.size() < 5) {
                     if(place.getLatLng() != null) {
                         places.add(place);
                         Log.d(TAG, "ADDED " + place.getName() + " " + place.getLatLng().toString());
@@ -320,6 +389,7 @@ public class PlanJourneyActivity extends AppCompatActivity implements DatePicker
         }
     }
 
+    /*Initialize the Nav Drawer*/
     private void initDrawer() {
         DrawerLayout drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
@@ -374,6 +444,7 @@ public class PlanJourneyActivity extends AppCompatActivity implements DatePicker
         return actionBarDrawerToggle.onOptionsItemSelected(item) || super.onOptionsItemSelected(item);
     }
 
+    /*Get All of the Currently Selected Journeys so User Can't Repeat Same Journey on Same Date*/
     private void getCurrentJourneys(){
         DatabaseReference journeyRef = FirebaseDatabase.getInstance().getReference("UserProfile").child(user.getUid()).child("JourneyPlanner");
         journeyRef.addListenerForSingleValueEvent(new ValueEventListener() {

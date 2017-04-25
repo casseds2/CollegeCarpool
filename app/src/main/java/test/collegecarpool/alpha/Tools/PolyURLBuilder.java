@@ -5,30 +5,16 @@ import android.util.Log;
 
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
 
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 
-import test.collegecarpool.alpha.UserClasses.UserProfile;
-
 public class PolyURLBuilder {
 
     private Context context;
     private GoogleMap googleMap;
-    private FirebaseAuth auth = FirebaseAuth.getInstance();
-    private DatabaseReference userRef;
     private URL url = null;
-    private String urlString;
-    private String origin = "https://maps.googleapis.com/maps/api/directions/json?origin=";
-    private UserProfile userProfile;
-    private double lat, lon;
     private ArrayList<LatLng> places;
 
 
@@ -38,58 +24,37 @@ public class PolyURLBuilder {
         this.context = context;
         this.googleMap = googleMap;
         this.places = places;
+        Log.d(TAG, "PolyURLBuilder Initialised");
     }
 
     public PolyURLBuilder(ArrayList<LatLng> places){
         this.places = places;
+        Log.d(TAG, "PolyURLBuilder Initialised");
     }
 
-    private void initFirebase(){
-        auth = FirebaseAuth.getInstance();
-        if(auth.getCurrentUser() != null){
-            userRef = FirebaseDatabase.getInstance().getReference("UserProfile");
-        }
-    }
-
+    /*Build A URL for Directions Request*/
     public URL buildPolyURL(){
-        initFirebase();
-        userRef.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                Iterable <DataSnapshot> dataSnapshots = dataSnapshot.getChildren();
-                for(DataSnapshot dataSnapshot1 : dataSnapshots) {
-                    UserProfile temp = dataSnapshot1.getValue(UserProfile.class);
-                    if(auth.getCurrentUser() != null) {
-                        if (temp.getEmail().equals(auth.getCurrentUser().getEmail())) {
-                            userProfile = dataSnapshot1.getValue(UserProfile.class);
-                            lat = userProfile.getLatitude();
-                            lon = userProfile.getLongitude();
+        double lat = places.get(0).latitude;
+        double lon = places.get(0).longitude;
 
-                            urlString = origin + lat + "," + lon + "&waypoints=optimize:true|";
-                            for(int i = 0; i < places.size()-1; i++){
-                                urlString = urlString + places.get(i).latitude + "," + places.get(i).longitude + "|";
-                                Log.d(TAG, urlString);
-                            }
-                            urlString = urlString + "&destination=" + places.get(places.size()-1).latitude + "," + places.get(places.size()-1).longitude;
-                            Log.d(TAG, urlString);
-                            try {
-                                url = new URL(urlString);
-                                if(!Variables.SAT_NAV_ENABLED) //ONLY IF NOT IN SAT_NAV MODE DRAW IT
-                                    new PolyDirections(context, googleMap).execute(url);
-                                Log.d(TAG, "PolyURLBuilt");
-                            }
-                            catch(MalformedURLException e){
-                                Log.d("URLBuilder", "MalformedURL");
-                            }
-                        }
-                    }
-                }
-            }
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
+        String origin = "https://maps.googleapis.com/maps/api/directions/json?origin=";
+        String urlString = origin + lat + "," + lon + "&waypoints=optimize:true|";
+        for(int i = 1; i < places.size()-1; i++){
+            urlString = urlString + places.get(i).latitude + "," + places.get(i).longitude + "|";
+            Log.d(TAG, urlString);
+        }
+        urlString = urlString + "&destination=" + places.get(places.size()-1).latitude + "," + places.get(places.size()-1).longitude;
+        Log.d(TAG, urlString);
+        try {
+            url = new URL(urlString);
+            if(!Variables.SAT_NAV_ENABLED) //ONLY IF NOT IN SAT_NAV MODE DRAW IT
+                new PolyDirections(context, googleMap).execute(url);
+            Log.d(TAG, "PolyURLBuilt");
+        }
+        catch(MalformedURLException e){
+            Log.d("URLBuilder", "MalformedURL");
+        }
 
-            }
-        });
         Log.d(TAG, String.valueOf(url));
         return url;
     }

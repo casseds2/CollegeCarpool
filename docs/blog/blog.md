@@ -89,7 +89,7 @@ layouts. This also decodes my polyline now.
 ## My Ninth Blog
 Refactored more code. Now have object to display any users broadcasting location and a GPS checker object to make sure location services are on. I have gotten rid of the 
 Google Client Interface as it is a bit pointless at this stage. Instead everything goes on it the GoogleClientBuilder object. I hope to have methods in this class that will
-allow me to make different tyes of client, depending on the service it caters for, E.g. Location services / Places service. I have also managed to get rid of the runtime permissions
+allow me to make different types of client, depending on the service it caters for, E.g. Location services / Places service. I have also managed to get rid of the runtime permissions
 bug that has annoyed me for a long time. It was due to where I was synchronizing the map. I believe it is working correctly now. I have started to move variables to a Variables class
 but that is not urgent and I am only doing it as I come across the variables instead of going over the whole project in one go.
 Next up, add a places search bar in PlanJourneyActivity.
@@ -142,5 +142,14 @@ to have to implement the serializable interface in any objects I made that were 
  -Journey Planner Now Organised in Chronological Order, comparator method in date and Journey Objects. Solved Firebase UI problem when
  deleting Journeys by reinitializing the list view and adapter on a change. Not the most elegant solution but its better than the alternative
  of restarting the activity to refresh the layout.
+
+ ## My Fifteenth Blog
+ Updated the PlanJourney to allow the user to select their location as a place to add. The method for this is done in the googleClientBuilder
+ class as I need to use an Google Places Api Client to obtain a list of possible locations I am in. Then I parse these and take out the area
+ that has been assigned the highest probability. I came across a problem with code execution while doing this as the method to return my location
+ as a Place Object was executing after the place object was being assigned. I had to use threading to solve this problem in the form of a countdown timer.
+ This allowed me to wait for the place to be assigned if the timer was held for 1 second and then I could us ethe object without a problem.
+ Having the button for using my location allowed me to remove the Firebase Inner Class from the PolyURLBuilder class so that I cant now
+ return objects as a string. This allows me to use the PolyUrlBuilder in the Nav Service.
 
 

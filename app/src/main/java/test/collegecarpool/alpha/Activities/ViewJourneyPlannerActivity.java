@@ -94,7 +94,7 @@ public class ViewJourneyPlannerActivity extends AppCompatActivity {
                 index = adapterContextMenuInfo.position;
                 Intent intent = new Intent(ViewJourneyPlannerActivity.this, NavigationActivity.class);
                 intent.putExtra("SelectedJourney", getSelectedJourney(index)); //Adds the Journey (Date, ArrayList<Place>) to an extra
-                SAT_NAV_ENABLED = true; //Set the static variable to true
+                SAT_NAV_ENABLED = true; //Set the static variable to true, make sure to disable when leaving navigation activity or can't view journeys
                 startActivity(intent);
                 break;
             default :

@@ -17,7 +17,8 @@ android:id="@+id/drawer_layout">
         tools:layout_editor_absoluteY="8dp"
         tools:layout_editor_absoluteX="8dp"
         android:textAlignment="textStart"
-        android:scrollbarStyle="outsideInset">
+        android:scrollbarStyle="outsideInset"
+        android:scrollbarAlwaysDrawVerticalTrack="true">
     </ListView>
 
 <android.support.design.widget.NavigationView

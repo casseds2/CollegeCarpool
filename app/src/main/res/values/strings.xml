@@ -50,6 +50,7 @@
     <string name="view_journey">View Journey</string>
     <string name="pick_date">Pick A Date</string>
     <string name="save_journey">Save Journey</string>
+    <string name="use_my_location">Use My Location</string>
 
     <string name="addCarName">Add Car Chat</string>
     <string name="title_activity_plan_journey">Map</string>

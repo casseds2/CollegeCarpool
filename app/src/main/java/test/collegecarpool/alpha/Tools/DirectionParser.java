@@ -18,8 +18,14 @@ public class DirectionParser {
     private final static String TAG = "DIRECTION PASRSER";
     private String jsonString = "";
 
+    public DirectionParser(){}
+
     DirectionParser(String jsonString){
         this.jsonString = jsonString;
+    }
+
+    public String toString(){
+        return jsonString;
     }
 
     public ArrayList<LatLng> getDirectionsAsList(){

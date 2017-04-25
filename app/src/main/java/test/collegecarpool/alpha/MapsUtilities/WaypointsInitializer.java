@@ -37,7 +37,7 @@ public class WaypointsInitializer {
 
     public void displayWaypoints(ArrayList<com.google.android.gms.maps.model.LatLng> latLngs){
         for(com.google.android.gms.maps.model.LatLng latLng : latLngs){
-            googleMap.addMarker(new MarkerOptions().position(latLng)).setTitle("Waypoint " + latLngs.indexOf(latLng) + 1);
+            googleMap.addMarker(new MarkerOptions().position(latLng)).setTitle("Waypoint " + (latLngs.indexOf(latLng) + 1));
         }
     }
 }

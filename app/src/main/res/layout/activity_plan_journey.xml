@@ -37,27 +37,39 @@ android:id="@+id/drawer_layout">
 
         <Button
             android:layout_width="match_parent"
+            android:shadowColor="@color/bg_main"
+            android:layout_height="wrap_content"
+            android:id="@+id/use_my_location"
+            android:text="@string/use_my_location"
+            android:drawableStart="@mipmap/ic_gps_fixed_black_24dp"/>
+
+        <Button
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:id="@+id/view_journey"
-            android:text="@string/view_journey"/>
+            android:text="@string/view_journey"
+            android:drawableStart="@mipmap/ic_directions_car_black_24dp"/>
 
         <Button
             android:id="@+id/date_dialog"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/pick_date" />
+            android:text="@string/pick_date"
+            android:drawableStart="@mipmap/ic_date_range_black_24dp"/>
 
         <Button
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/save_journey"
-            android:id="@+id/save_journey"/>
+            android:id="@+id/save_journey"
+            android:drawableStart="@mipmap/ic_get_app_black_24dp"/>
 
         <Button
             android:text="@string/view_journey_planner"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/view_journey_planner"/>
+            android:id="@+id/view_journey_planner"
+            android:drawableStart="@mipmap/ic_access_time_black_24dp"/>
 
     </LinearLayout>
 

@@ -15,6 +15,7 @@ import com.google.android.gms.maps.SupportMapFragment;
 
 import test.collegecarpool.alpha.R;
 import test.collegecarpool.alpha.Services.NavigationService;
+import test.collegecarpool.alpha.Tools.Variables;
 
 import static test.collegecarpool.alpha.Tools.Variables.MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION;
 import static test.collegecarpool.alpha.Tools.Variables.shouldZoom;
@@ -23,6 +24,7 @@ public class NavigationActivity extends FragmentActivity implements OnMapReadyCa
 
     private final String TAG = "NAVIGATION ACTIVITY";
     private Journey journey;
+    private Intent intent;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,15 +35,9 @@ public class NavigationActivity extends FragmentActivity implements OnMapReadyCa
         Log.d(TAG, journey.toString());
 
         /*Start The Navigation Service*/
-        Intent intent = new Intent(NavigationActivity.this, NavigationService.class);
+        intent = new Intent(NavigationActivity.this, NavigationService.class);
         intent.putExtra("SelectedJourney", journey);
         startService(intent);
-
-        /*This Journey Contains the LAT/LNG of each place/waypoint!*/
-        /*Need to Parse these from the String Array from Journey and pass to the Nav Service*/
-        /*Also Add markers to the waypoints on the map once we have locations*/
-        /*Also add option for using my location when building the waypoints for the Journey, don't rely on PolyURLBuilder to get my location and build directions from that*/
-        /*All locations must be entered from PlanJourney Activity*/
 
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
@@ -58,5 +54,12 @@ public class NavigationActivity extends FragmentActivity implements OnMapReadyCa
         //googleMap.setTrafficEnabled(true);
         new WaypointsInitializer(googleMap).displayWaypoints(journey);
         Log.d(TAG, "MAP READY");
+    }
+
+    @Override
+    protected void onStop(){
+        super.onStop();
+        stopService(intent);
+        Variables.SAT_NAV_ENABLED = false; //Re-enable the viewing of Journeys When Out of Navigation mode
     }
 }
