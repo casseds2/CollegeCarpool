@@ -54,7 +54,11 @@ public class HomeScreenActivity extends AppCompatActivity implements OnMapReadyC
         mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         if(auth.getCurrentUser() != null)
             broadcastRef = FirebaseDatabase.getInstance().getReference("UserProfile").child(auth.getCurrentUser().getUid()).child("broadcastLocation");
-        new GoogleClientBuilder(this, googleApiClient).buildLocationClient();
+
+        GoogleClientBuilder googleClientBuilder = new GoogleClientBuilder(this, googleApiClient);
+        googleClientBuilder.buildLocationClient();
+        googleClientBuilder.startLocationUpdates();
+
         checkPermissions();
         shouldZoom = true;
         Button btnBroadcast = (Button) findViewById(R.id.broadcast_location);

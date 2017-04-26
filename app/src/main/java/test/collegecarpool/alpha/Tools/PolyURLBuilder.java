@@ -44,18 +44,16 @@ public class PolyURLBuilder {
             Log.d(TAG, urlString);
         }
         urlString = urlString + "&destination=" + places.get(places.size()-1).latitude + "," + places.get(places.size()-1).longitude;
-        Log.d(TAG, urlString);
         try {
             url = new URL(urlString);
-            if(!Variables.SAT_NAV_ENABLED) //ONLY IF NOT IN SAT_NAV MODE DRAW IT
+            if(!Variables.SAT_NAV_ENABLED) //IF NOT IN SAT_NAV MODE DRAW IT
                 new PolyDirections(context, googleMap).execute(url);
             Log.d(TAG, "PolyURLBuilt");
+            Log.d(TAG, urlString);
         }
         catch(MalformedURLException e){
             Log.d("URLBuilder", "MalformedURL");
         }
-
-        Log.d(TAG, String.valueOf(url));
         return url;
     }
 }

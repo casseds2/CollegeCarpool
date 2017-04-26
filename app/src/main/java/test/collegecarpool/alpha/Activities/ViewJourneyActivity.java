@@ -11,7 +11,6 @@ import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.MenuItem;
 
-import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
@@ -24,13 +23,11 @@ import test.collegecarpool.alpha.LoginAndRegistrationActivities.SigninActivity;
 import test.collegecarpool.alpha.MapsUtilities.WaypointsInitializer;
 import test.collegecarpool.alpha.MessagingActivities.ChatRoomActivity;
 import test.collegecarpool.alpha.R;
-import test.collegecarpool.alpha.Tools.GoogleClientBuilder;
 import test.collegecarpool.alpha.Tools.PolyURLBuilder;
 
 public class ViewJourneyActivity extends AppCompatActivity implements OnMapReadyCallback {
 
     private GoogleMap googleMap;
-    private GoogleApiClient googleApiClient = null;
     private ArrayList<LatLng> latLngs;
     private ActionBarDrawerToggle actionBarDrawerToggle;
     private FirebaseAuth auth;
@@ -41,10 +38,6 @@ public class ViewJourneyActivity extends AppCompatActivity implements OnMapReady
         setContentView(R.layout.activity_view_journey);
         auth = FirebaseAuth.getInstance();
         initDrawer();
-
-        GoogleClientBuilder googleClientBuilder = new GoogleClientBuilder(this, googleApiClient);
-        if(googleClientBuilder.checkGooglePlayServicesAvailable())
-            googleClientBuilder.buildLocationClient();
         latLngs = getIntent().getParcelableArrayListExtra("LAT/LNG");
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);

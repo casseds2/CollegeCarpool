@@ -21,23 +21,24 @@ public class PolyDirections extends AsyncTask<URL, Void, ArrayList<LatLng>> {
     public Context context;
     private GoogleMap googleMap;
     private DirectionParser directionParser;
+    private ArrayList<LatLng> latLngArray;
 
     /*Return the Direction Parser For Use in the Navigation Service*/
     public DirectionParser getDirectionParser(){
         return directionParser;
     }
 
-    public PolyDirections(Context context, GoogleMap googleMap){
+    public PolyDirections(){}
+
+    PolyDirections(Context context, GoogleMap googleMap){
         this.context = context;
         this.googleMap = googleMap;
     }
 
-    public PolyDirections(){}
-
     @Override
     protected ArrayList<LatLng> doInBackground(URL... params) {
         URL url = params[0];
-        ArrayList<LatLng> latLngArray = new ArrayList<>();
+        latLngArray = new ArrayList<>();
         try {
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.connect();
@@ -64,7 +65,7 @@ public class PolyDirections extends AsyncTask<URL, Void, ArrayList<LatLng>> {
     @Override
     protected void onPostExecute(ArrayList<LatLng> latLngArray) {
         super.onPostExecute(latLngArray);
-        if(!Variables.SAT_NAV_ENABLED) { //IF NOT IN SAT NAV MODE, EXECUTE THE DIRECTIONS
+        if(!Variables.SAT_NAV_ENABLED && null != latLngArray && googleMap != null) { //IF NOT IN SAT NAV MODE, EXECUTE THE DIRECTIONS
             PolylineOptions polylineOptions = new PolylineOptions();
             polylineOptions.addAll(latLngArray).width(8).color(Color.BLUE);
             googleMap.addPolyline(polylineOptions);
@@ -72,6 +73,7 @@ public class PolyDirections extends AsyncTask<URL, Void, ArrayList<LatLng>> {
             Log.d(TAG, "POLYLINE DRAWN");
         }
     }
+
     private void zoomPoly(ArrayList<LatLng> latLngArray){
         LatLngBounds.Builder builder = new LatLngBounds.Builder();
         for(LatLng latLng : latLngArray){

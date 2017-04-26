@@ -27,6 +27,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
+            android:screenOrientation="portrait"
             android:name=".Activities.PaymentActivity"
             android:launchMode="singleTask">
             <intent-filter>
@@ -37,7 +38,9 @@
                 <data android:mimeType="text/plain" />
             </intent-filter>
         </activity>
-        <activity android:name=".LoginAndRegistrationActivities.SigninActivity">
+        <activity
+            android:screenOrientation="portrait"
+            android:name=".LoginAndRegistrationActivities.SigninActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -45,24 +48,32 @@
             </intent-filter>
         </activity>
         <activity
+            android:screenOrientation="portrait"
             android:name=".Activities.HomeScreenActivity"
             android:configChanges="keyboardHidden|orientation|screenSize" />
         <activity
+            android:screenOrientation="portrait"
             android:name=".LoginAndRegistrationActivities.SignupActivity"
             android:configChanges="keyboardHidden|orientation|screenSize" />
         <activity
+            android:screenOrientation="portrait"
             android:name=".LoginAndRegistrationActivities.ForgotPasswordActivity"
             android:configChanges="keyboardHidden|orientation|screenSize" />
         <activity
+            android:screenOrientation="portrait"
             android:name=".Activities.ProfileActivity"
             android:configChanges="keyboardHidden|orientation|screenSize" />
         <activity
+            android:screenOrientation="portrait"
             android:name=".MessagingActivities.ChatRoomActivity"
             android:configChanges="keyboardHidden|orientation|screenSize" />
         <activity
+            android:screenOrientation="portrait"
             android:name=".Activities.SettingsActivity"
             android:configChanges="keyboardHidden|orientation|screenSize" />
-        <activity android:name=".MessagingActivities.MessageActivity" />
+        <activity
+            android:screenOrientation="portrait"
+            android:name=".MessagingActivities.MessageActivity" />
 
         <!-- Location Service -->
         <service android:name=".Services.BackgroundLocationIntentService" />
@@ -82,12 +93,18 @@
             android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version" />
 
-        <activity android:name=".Activities.PlanJourneyActivity" />
         <activity
+            android:screenOrientation="portrait"
+            android:name=".Activities.PlanJourneyActivity" />
+        <activity
+            android:screenOrientation="portrait"
             android:name=".Activities.ViewJourneyActivity"
             android:label="@string/title_activity_view_journey" />
-        <activity android:name=".Activities.ViewJourneyPlannerActivity" />
         <activity
+            android:screenOrientation="portrait"
+            android:name=".Activities.ViewJourneyPlannerActivity" />
+        <activity
+            android:screenOrientation="portrait"
             android:name=".MapsUtilities.NavigationActivity"
             android:label="@string/title_activity_navigation" />
 

@@ -9,8 +9,10 @@ import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+
 
 class LocationSettings implements LocationListener {
 
@@ -18,6 +20,7 @@ class LocationSettings implements LocationListener {
     private LocationRequest locationRequest;
     private static String TAG = "LOCATION SETTINGS";
     private FirebaseAuth auth = FirebaseAuth.getInstance();
+    private FirebaseUser user = auth.getCurrentUser();
     private DatabaseReference userRef = FirebaseDatabase.getInstance().getReference("UserProfile");
 
     LocationSettings(Context context) {
@@ -27,9 +30,9 @@ class LocationSettings implements LocationListener {
 
     private void setLocationRequestParams() {
         locationRequest = new LocationRequest();
-        locationRequest.setInterval(2 * 1000); //Once every 2 seconds
+        locationRequest.setInterval(2000); //Once every 1/2 second
         locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-        locationRequest.setFastestInterval(2 * 1000); //Once every 15 Seconds
+        locationRequest.setFastestInterval(2000); //Once every 1/4 Second
         Log.d(TAG, "LOCATION PARAMS SET");
     }
 
@@ -43,12 +46,12 @@ class LocationSettings implements LocationListener {
 
     private void pushLocationToFirebase(double latitude, double longitude) {
         if (auth.getCurrentUser() != null) {
-            userRef.child(auth.getCurrentUser().getUid()).child("longitude").setValue(longitude);
-            userRef.child(auth.getCurrentUser().getUid()).child("latitude").setValue(latitude);
+            userRef.child(user.getUid()).child("longitude").setValue(longitude);
+            userRef.child(user.getUid()).child("latitude").setValue(latitude);
         }
     }
 
-    void requestLocationUpdates(GoogleApiClient googleApiClient) {
+    void requestLocationUpdates(GoogleApiClient googleApiClient) throws SecurityException{
         LocationServices.FusedLocationApi.requestLocationUpdates(googleApiClient, locationRequest, this);
     }
 }

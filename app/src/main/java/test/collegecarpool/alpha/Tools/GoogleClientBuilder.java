@@ -24,7 +24,7 @@ public class GoogleClientBuilder extends Activity implements GoogleApiClient.Con
     private Context context;
     private GoogleApiClient googleApiClient;
     private static String TAG = "GOOGLE CLIENT BUILDER";
-    private LocationSettings locationSettings = new LocationSettings(context);
+    private LocationSettings locationSettings;
     private Place place;
 
     public GoogleClientBuilder(Context context, GoogleApiClient googleApiClient){
@@ -36,6 +36,11 @@ public class GoogleClientBuilder extends Activity implements GoogleApiClient.Con
         this.context = context;
         this.googleApiClient = googleApiClient;
         this.place = place;
+    }
+
+    /*Initiate Location Updates*/
+    public void startLocationUpdates(){
+        locationSettings = new LocationSettings(context);
     }
 
     /*Google Client Builder For Location*/
@@ -105,7 +110,7 @@ public class GoogleClientBuilder extends Activity implements GoogleApiClient.Con
 
     @Override
     public void onConnected(@Nullable Bundle bundle) {
-            locationSettings.requestLocationUpdates(googleApiClient);
+        locationSettings.requestLocationUpdates(googleApiClient);
     }
 
     @Override

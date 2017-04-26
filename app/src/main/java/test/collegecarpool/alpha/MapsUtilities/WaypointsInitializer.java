@@ -13,14 +13,12 @@ public class WaypointsInitializer {
     private GoogleMap googleMap;
     private final String TAG = "WAYPOINT INITIALIZER";
 
-    public WaypointsInitializer(){}
-
     public WaypointsInitializer(GoogleMap googleMap){
         this.googleMap = googleMap;
         Log.d(TAG, "Waypoint Initialized");
     }
 
-    public void displayWaypoints(Journey journey){
+    void displayWaypoints(Journey journey){
         ArrayList<Waypoint> waypoints = journey.getWaypoints();
         for(Waypoint waypoint : waypoints){
             Log.d(TAG, waypoint.toString());
