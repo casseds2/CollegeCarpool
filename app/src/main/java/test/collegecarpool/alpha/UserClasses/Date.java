@@ -46,8 +46,21 @@ public class Date implements Serializable{ //implements so it can be passed in J
     }
 
     //If date is more present than d, return true if date is in future/present, false otherwise
-    public boolean inThePast(Date d){
-        return this.year <= d.year && this.month <= d.month && this.day <= d.day;
+    public boolean inThePastTo(Date d){
+        //return this.year < d.year && this.month < d.month && this.day < d.day;
+        if(this.year <= d.year){
+            if(this.month <= d.month){
+                if(this.day <= d.day){
+                    return false;
+                }
+                else
+                    return true;
+            }
+            else
+                return true;
+        }
+        else
+            return true;
     }
 
     public String toString(){

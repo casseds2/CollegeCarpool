@@ -23,7 +23,7 @@ import test.collegecarpool.alpha.LoginAndRegistrationActivities.SigninActivity;
 import test.collegecarpool.alpha.MapsUtilities.WaypointsInitializer;
 import test.collegecarpool.alpha.MessagingActivities.ChatRoomActivity;
 import test.collegecarpool.alpha.R;
-import test.collegecarpool.alpha.Tools.PolyURLBuilder;
+import test.collegecarpool.alpha.PolyDirectionsTools.PolyURLBuilder;
 
 public class ViewJourneyActivity extends AppCompatActivity implements OnMapReadyCallback {
 

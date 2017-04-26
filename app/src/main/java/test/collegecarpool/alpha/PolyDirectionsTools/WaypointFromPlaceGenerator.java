@@ -1,8 +1,11 @@
-package test.collegecarpool.alpha.MapsUtilities;
+package test.collegecarpool.alpha.PolyDirectionsTools;
 
 import com.google.android.gms.location.places.Place;
 
 import java.util.ArrayList;
+
+import test.collegecarpool.alpha.MapsUtilities.LatLng;
+import test.collegecarpool.alpha.MapsUtilities.Waypoint;
 
 public class WaypointFromPlaceGenerator {
 
@@ -17,7 +20,7 @@ public class WaypointFromPlaceGenerator {
             String placeName = String.valueOf(place.getName());
             double lat = place.getLatLng().latitude;
             double lon = place.getLatLng().longitude;
-            Waypoint waypoint= new Waypoint(placeName, new LatLng(lat, lon));
+            Waypoint waypoint = new Waypoint(placeName, new LatLng(lat, lon));
             myWaypoints.add(waypoint);
         }
         return myWaypoints;

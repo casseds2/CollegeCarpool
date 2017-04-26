@@ -4,7 +4,6 @@ import android.app.DatePickerDialog;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
-import android.os.CountDownTimer;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
 import android.support.v4.widget.DrawerLayout;
@@ -17,7 +16,6 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.ListView;
@@ -44,10 +42,11 @@ import java.util.Collections;
 import java.util.ConcurrentModificationException;
 import java.util.HashMap;
 
+import test.collegecarpool.alpha.Adapters.PlanJourneyAdapter;
 import test.collegecarpool.alpha.LoginAndRegistrationActivities.SigninActivity;
 import test.collegecarpool.alpha.MapsUtilities.Journey;
 import test.collegecarpool.alpha.MapsUtilities.Waypoint;
-import test.collegecarpool.alpha.MapsUtilities.WaypointFromPlaceGenerator;
+import test.collegecarpool.alpha.PolyDirectionsTools.WaypointFromPlaceGenerator;
 import test.collegecarpool.alpha.MessagingActivities.ChatRoomActivity;
 import test.collegecarpool.alpha.R;
 import test.collegecarpool.alpha.Tools.GoogleClientBuilder;
@@ -67,15 +66,16 @@ public class PlanJourneyActivity extends AppCompatActivity implements DatePicker
     private Journey journey;
     private ActionBarDrawerToggle actionBarDrawerToggle;
     private FirebaseAuth auth = FirebaseAuth.getInstance();
-    private ArrayAdapter<String> adapter;
+    private PlanJourneyAdapter adapter;
     private PlaceAutocompleteFragment autocompleteFragment;
     private Calendar calendar = Calendar.getInstance();
     private ArrayList<Journey> fireJourneys = new ArrayList<>();
     private GoogleApiClient googleApiClient = null;
     private GoogleClientBuilder googleClientBuilder;
-    private Place place = null;
+    private Place currentPlace;
     private Place tempPlace = null;
     private boolean locationButtonEnabled = true;
+    private ListView listView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -84,7 +84,7 @@ public class PlanJourneyActivity extends AppCompatActivity implements DatePicker
 
         datePickerDialog = new DatePickerDialog(PlanJourneyActivity.this, PlanJourneyActivity.this, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH));
 
-        googleClientBuilder = new GoogleClientBuilder(this, googleApiClient, place);
+        googleClientBuilder = new GoogleClientBuilder(this, googleApiClient);
         googleClientBuilder.buildPlacesClient();
 
         initDrawer();
@@ -99,8 +99,9 @@ public class PlanJourneyActivity extends AppCompatActivity implements DatePicker
 
     /*Initialise the List View Adapter*/
     private void initListView() {
-        adapter = new ArrayAdapter<>(this, R.layout.plan_journey_list, placeNames);
-        ListView listView = (ListView) findViewById(R.id.plan_journey_list_view);
+        //adapter = new ArrayAdapter<>(this, R.layout.plan_journey_list, placeNames);
+        adapter = new PlanJourneyAdapter(this, R.layout.plan_journey_list, placeNames);
+        listView = (ListView) findViewById(R.id.plan_journey_list_view);
         listView.setAdapter(adapter);
         registerForContextMenu(listView);
     }
@@ -131,6 +132,8 @@ public class PlanJourneyActivity extends AppCompatActivity implements DatePicker
                             locationButtonEnabled = true; //If removed is my location, re-enable use of button
                         }
                     }
+                    if(places.size() == 0)
+                        locationButtonEnabled = true;
                     placeNames.remove(index);
                     printPlaceNamesArray();
                     adapter.notifyDataSetChanged();
@@ -285,31 +288,15 @@ public class PlanJourneyActivity extends AppCompatActivity implements DatePicker
             @Override
             public void onClick(View v) {
                 if(locationButtonEnabled) {
-                    googleClientBuilder.getClientPlace();
-                    new CountDownTimer(2000, 1000) { //Delay so that getPlace() will return non-null object
-                        @Override
-                        public void onTick(long millisUntilFinished) {
-                            Log.d(TAG, "TICK");
-                        }
-
-                        @Override
-                        public void onFinish() {
-                            tempPlace = googleClientBuilder.getPlace();
-                            if (!places.contains(tempPlace)) {
-                                places.add(tempPlace);
-                                placeNames.add(tempPlace.getName().toString());
-                                adapter.notifyDataSetChanged();
-                            }
-                            else
-                                Toast.makeText(PlanJourneyActivity.this, "Already Picked My Location", Toast.LENGTH_SHORT).show();
-                            printPlacesArray();
-                            //updateUI();
-                            if (null != tempPlace)
-                                Log.d(TAG, "Place IS " + tempPlace.getName().toString());
-                            else
-                                Log.d(TAG, "PLACE IS NULL");
-                        }
-                    }.start();
+                    currentPlace = googleClientBuilder.getCurrentPlace();
+                    if (!places.contains(currentPlace)) {
+                        places.add(currentPlace);
+                        placeNames.add(currentPlace.getName().toString());
+                        adapter.notifyDataSetChanged();
+                    }
+                    else
+                        Toast.makeText(PlanJourneyActivity.this, "Already Picked My Location", Toast.LENGTH_SHORT).show();
+                    printPlacesArray();
                     locationButtonEnabled = false;
                 }
                 else
@@ -331,6 +318,7 @@ public class PlanJourneyActivity extends AppCompatActivity implements DatePicker
                 }
                 Intent intent = new Intent(PlanJourneyActivity.this, ViewJourneyActivity.class);
                 intent.putExtra("LAT/LNG", latLngs);
+                Log.d(TAG, "LAT/LNG Extra: " + latLngs.toString());
                 if (latLngs.size() > 1) {
                     startActivity(intent);
                 }
@@ -381,7 +369,7 @@ public class PlanJourneyActivity extends AppCompatActivity implements DatePicker
     public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
         date = new Date(dayOfMonth, month + 1, year); //+1 to accommodate for the ol' [0-11] array being 12 in size...
         Date today = new Date(calendar.get(Calendar.DAY_OF_MONTH), calendar.get(Calendar.MONTH), calendar.get(Calendar.YEAR));
-        if(today.inThePast(date))
+        if(!today.inThePastTo(date))
             dateChosen = true;
         else {
             dateChosen = false;
@@ -411,7 +399,7 @@ public class PlanJourneyActivity extends AppCompatActivity implements DatePicker
                         return true;
                     case R.id.nav_payment:
                         startActivity(new Intent(PlanJourneyActivity.this, PaymentActivity.class));
-                        onStart();
+                        onStop();
                         return true;
                     case R.id.nav_profile:
                         startActivity(new Intent(PlanJourneyActivity.this, ProfileActivity.class));
@@ -492,5 +480,27 @@ public class PlanJourneyActivity extends AppCompatActivity implements DatePicker
 
             }
         });
+    }
+
+    /*Possibly Bundle Places and Place Names*/
+    @Override
+    public void onSaveInstanceState(Bundle bundle){
+        super.onSaveInstanceState(bundle);
+    }
+
+    /*Possibly Restore Places and Place Names*/
+    @Override
+    public void onRestoreInstanceState(Bundle bundle){
+        super.onRestoreInstanceState(bundle);
+    }
+
+    @Override
+    protected void onStop(){
+        super.onStop();
+        googleClientBuilder.disconnect();
+        //places = new ArrayList<>();
+        //placeNames = new ArrayList<>();
+        //locationButtonEnabled = true;
+        //listView.setAdapter(null);
     }
 }

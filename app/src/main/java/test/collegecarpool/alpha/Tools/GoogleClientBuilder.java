@@ -5,7 +5,6 @@ import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -25,17 +24,16 @@ public class GoogleClientBuilder extends Activity implements GoogleApiClient.Con
     private GoogleApiClient googleApiClient;
     private static String TAG = "GOOGLE CLIENT BUILDER";
     private LocationSettings locationSettings;
-    private Place place;
+    Place currentPlace;
 
     public GoogleClientBuilder(Context context, GoogleApiClient googleApiClient){
         this.context = context;
         this.googleApiClient = googleApiClient;
     }
 
-    public GoogleClientBuilder(Context context, GoogleApiClient googleApiClient, Place place){
-        this.context = context;
-        this.googleApiClient = googleApiClient;
-        this.place = place;
+    /*Disconnect the Client*/
+    public void disconnect(){
+        this.googleApiClient.disconnect();
     }
 
     /*Initiate Location Updates*/
@@ -59,46 +57,48 @@ public class GoogleClientBuilder extends Activity implements GoogleApiClient.Con
             Log.d(TAG, "ERROR BUILDING CLIENT");
     }
 
-    /*Google Client Builder For Places*/
+    /*Google Client Builder For Places With Its Own Connection Callbacks*/
     public void buildPlacesClient(){
         if(googleApiClient == null && checkGooglePlayServicesAvailable()){
             googleApiClient = new GoogleApiClient.Builder(context)
+                    .addConnectionCallbacks(new GoogleApiClient.ConnectionCallbacks() {
+                        @Override
+                        public void onConnected(@Nullable Bundle bundle) throws SecurityException{
+                            Log.d(TAG, "SEARCHING FOR USER PLACE");
+                            PendingResult<PlaceLikelihoodBuffer> placeResult = Places.PlaceDetectionApi.getCurrentPlace(googleApiClient, null);
+                            placeResult.setResultCallback(new ResultCallback<PlaceLikelihoodBuffer>() {
+                                @Override
+                                public void onResult(@NonNull PlaceLikelihoodBuffer placeLikelihoods) {
+                                    PlaceLikelihood bestMatch = placeLikelihoods.get(0);
+                                    for (PlaceLikelihood placeLikelihood : placeLikelihoods) {
+                                        if (placeLikelihood.getLikelihood() > bestMatch.getLikelihood()) {
+                                            bestMatch = placeLikelihood;
+                                            Log.d(TAG, "BestMatch: " + bestMatch.getPlace().getName().toString());
+                                        }
+                                    }
+                                    currentPlace = bestMatch.getPlace();
+                                    Log.d(TAG, "My Place Is: " + currentPlace.getName().toString() + " & Prob is " + bestMatch.getLikelihood());
+                                }
+                            });
+                        }
+
+                        @Override
+                        public void onConnectionSuspended(int i) {
+
+                        }
+                    })
+                    .addOnConnectionFailedListener(this)
                     .addApi(Places.GEO_DATA_API)
                     .addApi(Places.PLACE_DETECTION_API)
-                    .enableAutoManage((FragmentActivity) context, this)
+                    //.enableAutoManage((FragmentActivity) context, this)
                     .build();
-            googleApiClient.connect();
             Log.d(TAG, "PLACES CLIENT BUILT");
+            googleApiClient.connect();
         }
     }
 
-    /*Gets the Current Place Client Is in*/
-    public void getClientPlace(){
-        if(googleApiClient != null && checkGooglePlayServicesAvailable()){
-            try {
-                PendingResult<PlaceLikelihoodBuffer> placeResult = Places.PlaceDetectionApi.getCurrentPlace(googleApiClient, null);
-                placeResult.setResultCallback(new ResultCallback<PlaceLikelihoodBuffer>() {
-                    @Override
-                    public void onResult(@NonNull PlaceLikelihoodBuffer placeLikelihoods) {
-                        PlaceLikelihood bestMatch = placeLikelihoods.get(0);
-                        for(PlaceLikelihood placeLikelihood : placeLikelihoods){
-                            if(placeLikelihood.getLikelihood() > bestMatch.getLikelihood()){
-                                bestMatch = placeLikelihood;
-                            }
-                        }
-                        place = bestMatch.getPlace();
-                        Log.d(TAG, "My Place Is: " + place.getName().toString() + " & Prob is " + bestMatch.getLikelihood());
-                    }
-                });
-            }
-            catch(SecurityException e){
-                Log.d(TAG, "ISSUE WITH SECURITY IN GETTING CURRENT LOCATION");
-            }
-        }
-    }
-
-    public Place getPlace(){
-        return this.place;
+    public Place getCurrentPlace(){
+        return this.currentPlace;
     }
 
     public boolean checkGooglePlayServicesAvailable() {
@@ -109,9 +109,11 @@ public class GoogleClientBuilder extends Activity implements GoogleApiClient.Con
     }
 
     @Override
-    public void onConnected(@Nullable Bundle bundle) {
-        locationSettings.requestLocationUpdates(googleApiClient);
+    public void onConnected(@Nullable Bundle bundle){
+        /*If A Location Client Is In Use*/
+            locationSettings.requestLocationUpdates(googleApiClient);
     }
+
 
     @Override
     public void onConnectionSuspended(int i) {

@@ -1,4 +1,4 @@
-package test.collegecarpool.alpha.Tools;
+package test.collegecarpool.alpha.PolyDirectionsTools;
 
 import android.content.Context;
 import android.util.Log;
@@ -9,6 +9,9 @@ import com.google.android.gms.maps.model.LatLng;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+
+import test.collegecarpool.alpha.PolyDirectionsTools.PolyDirections;
+import test.collegecarpool.alpha.Tools.Variables;
 
 public class PolyURLBuilder {
 
@@ -44,6 +47,8 @@ public class PolyURLBuilder {
             Log.d(TAG, urlString);
         }
         urlString = urlString + "&destination=" + places.get(places.size()-1).latitude + "," + places.get(places.size()-1).longitude;
+        String GOOGLE_API_KEY = "AIzaSyD7LLJg_QOR-VzqRPYaXazOnbJHBgiQd3k";
+        urlString = urlString + "&key=" + GOOGLE_API_KEY;
         try {
             url = new URL(urlString);
             if(!Variables.SAT_NAV_ENABLED) //IF NOT IN SAT_NAV MODE DRAW IT

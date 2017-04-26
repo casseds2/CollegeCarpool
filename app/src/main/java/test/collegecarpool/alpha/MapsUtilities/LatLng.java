@@ -13,7 +13,7 @@ public class LatLng implements Serializable{
         this.lng = lng;
     }
 
-    public double getLat() {
+    double getLat() {
         return lat;
     }
 
@@ -21,7 +21,7 @@ public class LatLng implements Serializable{
         this.lat = lat;
     }
 
-    public double getLng() {
+    double getLng() {
         return lng;
     }
 
@@ -29,8 +29,12 @@ public class LatLng implements Serializable{
         this.lng = lng;
     }
 
-    public boolean equals(LatLng latLng){
+    boolean equals(LatLng latLng){
         return this.lat == latLng.getLat() && this.lng == latLng.getLng();
+    }
+
+    com.google.android.gms.maps.model.LatLng toGoogleLatLng(){
+        return new com.google.android.gms.maps.model.LatLng(this.getLat(), this.getLng());
     }
 
     @Override

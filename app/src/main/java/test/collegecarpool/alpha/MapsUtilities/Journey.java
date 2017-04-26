@@ -2,7 +2,6 @@ package test.collegecarpool.alpha.MapsUtilities;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 
@@ -56,13 +55,13 @@ public class Journey implements Serializable { //Implements Serializable So That
         return false;
     }
 
-    /*Sort A List of Journeys Based On Their Date*/
+    /*Sort A List of Journeys Based On Their Date in A Bubble Sort Fashion*/
     public ArrayList<Journey> sortJourneys(ArrayList<Journey> journeys){
         if(journeys.size() > 1) {
             for (int i = 0; i < journeys.size() - 1; i++) {
                 Date dateFirst = journeys.get(i).getDate();
                 Date dateSecond = journeys.get(i+1).getDate();
-                if(!dateFirst.inThePast(dateSecond)) {
+                if(!dateFirst.inThePastTo(dateSecond)) {
                     Collections.swap(journeys, i, i + 1);
                     i = 0;
                 }
@@ -73,6 +72,10 @@ public class Journey implements Serializable { //Implements Serializable So That
 
     /*Compares One Journey To Another*/
     public boolean compareTo(Journey journey) {
+        if(journey == null)
+            return false;
+        if(this.getDate() == null || this.getWaypoints() == null || journey.getDate() == null || journey.getWaypoints() == null)
+            return false;
         if (this.date.compareTo(journey.getDate())) {
             ArrayList<Waypoint> tempList = journey.getWaypoints();
             if (this.waypoints.size() == tempList.size()) {

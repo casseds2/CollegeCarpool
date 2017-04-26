@@ -14,11 +14,15 @@ public class Waypoint implements Serializable{
         this.latLng = latLng;
     }
 
+   com.google.android.gms.maps.model.LatLng toGoogleLatLng(){
+        return new com.google.android.gms.maps.model.LatLng(this.latLng.getLat(), this.latLng.getLng());
+    }
+
     public String getName(){
         return this.name;
     }
 
-    public LatLng getLatLng(){
+    LatLng getLatLng(){
         return this.latLng;
     }
 

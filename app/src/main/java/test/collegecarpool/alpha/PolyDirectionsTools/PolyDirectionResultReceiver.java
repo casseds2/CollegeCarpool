@@ -1,4 +1,4 @@
-package test.collegecarpool.alpha.Tools;
+package test.collegecarpool.alpha.PolyDirectionsTools;
 
 import android.os.Bundle;
 import android.os.Handler;
@@ -22,6 +22,6 @@ public class PolyDirectionResultReceiver extends ResultReceiver{
     @Override
     protected void onReceiveResult(int resultCode, Bundle resultData) {
         super.onReceiveResult(resultCode, resultData);
-        navigationActivity.updateUI((ArrayList<LatLng>) resultData.getSerializable("JourneyLatLngs"), (ArrayList<LatLng>) resultData.getSerializable("PolyLatLngs"));
+        navigationActivity.updateUI((ArrayList<LatLng>) resultData.getSerializable("JourneyLatLngs"), (ArrayList<LatLng>) resultData.getSerializable("PolyLatLngs"), resultData.getBoolean("JourneyFinished"), resultData.getBoolean("RouteChanged"));
     }
 }

@@ -4,6 +4,7 @@ import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.os.Handler;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
@@ -16,6 +17,7 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 
 import java.util.ArrayList;
@@ -23,13 +25,12 @@ import java.util.concurrent.ExecutionException;
 
 import test.collegecarpool.alpha.R;
 import test.collegecarpool.alpha.Services.NavigationService;
-import test.collegecarpool.alpha.Tools.PolyDirectionResultReceiver;
-import test.collegecarpool.alpha.Tools.PolyDirections;
-import test.collegecarpool.alpha.Tools.PolyURLBuilder;
+import test.collegecarpool.alpha.PolyDirectionsTools.PolyDirectionResultReceiver;
+import test.collegecarpool.alpha.PolyDirectionsTools.PolyDirections;
+import test.collegecarpool.alpha.PolyDirectionsTools.PolyURLBuilder;
 import test.collegecarpool.alpha.Tools.Variables;
 
 import static test.collegecarpool.alpha.Tools.Variables.MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION;
-import static test.collegecarpool.alpha.Tools.Variables.shouldZoom;
 
 public class NavigationActivity extends FragmentActivity implements OnMapReadyCallback {
 
@@ -39,6 +40,8 @@ public class NavigationActivity extends FragmentActivity implements OnMapReadyCa
     private ArrayList<LatLng> journeyLatLngs;
     private Journey journey;
     private GoogleMap googleMap;
+    private Polyline polyline;
+    protected PolyDirectionResultReceiver polyDirectionResultReceiver;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,13 +66,15 @@ public class NavigationActivity extends FragmentActivity implements OnMapReadyCa
         }
 
         /*Initialize the PolyDirectionResultReceiver*/
-        PolyDirectionResultReceiver polyDirectionsResultReceiver = new PolyDirectionResultReceiver(null, this);
+        polyDirectionResultReceiver = new PolyDirectionResultReceiver(new Handler(), this);
+
         /*Start The Navigation Service And Pass the PolyPoints To It*/
         intent = new Intent(NavigationActivity.this, NavigationService.class);
-        intent.putExtra("ResultReceiver", polyDirectionsResultReceiver);
+        intent.putExtra("ResultReceiver", polyDirectionResultReceiver);
         intent.putExtra("PolyLatLngs", polyLatLngs);
         intent.putExtra("JourneyLatLngs", journeyLatLngs);
         startService(intent);
+        Log.d(TAG, "SAT_NAVE SERVICE STARTED");
 
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
@@ -88,17 +93,24 @@ public class NavigationActivity extends FragmentActivity implements OnMapReadyCa
     }
 
     /*Update the Activity Based on the Result Received From The Service*/
-    public void updateUI(ArrayList<LatLng> journeyLatLngs, ArrayList<LatLng> polyLatLngs){
-        if(googleMap != null){
+    public void updateUI(ArrayList<LatLng> journeyLatLngs, ArrayList<LatLng> polyLatLngs, boolean journeyFinished, boolean routeChanged){
+        /*Clear The Map If Journey Is Over*/
+        if(googleMap != null && journeyFinished && polyline != null){
             googleMap.clear();
-            //Also Set Camera To My Location
         }
-        this.journeyLatLngs = journeyLatLngs;
-        this.polyLatLngs = polyLatLngs;
-        PolylineOptions polylineOptions = new PolylineOptions();
-        polylineOptions.addAll(polyLatLngs).width(8).color(Color.BLUE);
-        googleMap.addPolyline(polylineOptions);
-        new WaypointsInitializer(googleMap).displayWaypoints(journey);
+        /*If the Journey Is Finished, Clear the UI*/
+        if(!journeyFinished && googleMap != null) {
+            this.journeyLatLngs = journeyLatLngs;
+            this.polyLatLngs = polyLatLngs;
+            if(routeChanged){
+                googleMap.clear();
+            }
+            new WaypointsInitializer(googleMap).displayWaypoints(journey, this.journeyLatLngs);
+            PolylineOptions polylineOptions = new PolylineOptions();
+            polylineOptions.addAll(polyLatLngs).width(8).color(Color.BLUE);
+            polyline = googleMap.addPolyline(polylineOptions);
+            Log.d(TAG, "MAP JOURNEYS " + journeyLatLngs);
+        }
     }
 
     @Override
@@ -107,19 +119,16 @@ public class NavigationActivity extends FragmentActivity implements OnMapReadyCa
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION}, MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
         }
-        shouldZoom = true; //So that Active User Map Will Zoom On My Location
         googleMap.setMyLocationEnabled(true);
         googleMap.setBuildingsEnabled(true);
-
-        /*Show The Waypoints On The Map*/
-        new WaypointsInitializer(googleMap).displayWaypoints(journey);
 
         /*Draw the PolyLine On The Map, Bigger Journeys Will Not Work Without It*/
         PolylineOptions polylineOptions = new PolylineOptions();
         polylineOptions.addAll(polyLatLngs).width(8).color(Color.BLUE);
-        googleMap.addPolyline(polylineOptions);
         zoomPoly(googleMap, polyLatLngs);
-
+        /*Show The Waypoints On The Map*/
+        new WaypointsInitializer(googleMap).displayWaypoints(journey);
+        googleMap.addPolyline(polylineOptions);
         Log.d(TAG, "MAP READY");
     }
 

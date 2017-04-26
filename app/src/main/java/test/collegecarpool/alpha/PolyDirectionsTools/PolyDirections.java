@@ -1,4 +1,4 @@
-package test.collegecarpool.alpha.Tools;
+package test.collegecarpool.alpha.PolyDirectionsTools;
 import android.content.Context;
 import android.graphics.Color;
 import android.os.AsyncTask;
@@ -16,12 +16,13 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 
+import test.collegecarpool.alpha.Tools.Variables;
+
 public class PolyDirections extends AsyncTask<URL, Void, ArrayList<LatLng>> {
     private static String TAG = "ROUTE DIRECTIONS";
     public Context context;
     private GoogleMap googleMap;
     private DirectionParser directionParser;
-    private ArrayList<LatLng> latLngArray;
 
     /*Return the Direction Parser For Use in the Navigation Service*/
     public DirectionParser getDirectionParser(){
@@ -35,10 +36,11 @@ public class PolyDirections extends AsyncTask<URL, Void, ArrayList<LatLng>> {
         this.googleMap = googleMap;
     }
 
+    /*Retrieve JSON Directions & Draw if SAT_NAV Disabled*/
     @Override
     protected ArrayList<LatLng> doInBackground(URL... params) {
         URL url = params[0];
-        latLngArray = new ArrayList<>();
+        ArrayList<LatLng> latLngArray = new ArrayList<>();
         try {
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.connect();
@@ -65,7 +67,7 @@ public class PolyDirections extends AsyncTask<URL, Void, ArrayList<LatLng>> {
     @Override
     protected void onPostExecute(ArrayList<LatLng> latLngArray) {
         super.onPostExecute(latLngArray);
-        if(!Variables.SAT_NAV_ENABLED && null != latLngArray && googleMap != null) { //IF NOT IN SAT NAV MODE, EXECUTE THE DIRECTIONS
+        if(!Variables.SAT_NAV_ENABLED) { //IF NOT IN SAT NAV MODE, EXECUTE THE DIRECTIONS
             PolylineOptions polylineOptions = new PolylineOptions();
             polylineOptions.addAll(latLngArray).width(8).color(Color.BLUE);
             googleMap.addPolyline(polylineOptions);
@@ -74,6 +76,7 @@ public class PolyDirections extends AsyncTask<URL, Void, ArrayList<LatLng>> {
         }
     }
 
+    /*Zoom Around the Area The Polyline Encapsulates*/
     private void zoomPoly(ArrayList<LatLng> latLngArray){
         LatLngBounds.Builder builder = new LatLngBounds.Builder();
         for(LatLng latLng : latLngArray){

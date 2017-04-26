@@ -28,6 +28,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 
 import test.collegecarpool.alpha.LoginAndRegistrationActivities.SigninActivity;
 import test.collegecarpool.alpha.MapsUtilities.Journey;
@@ -43,22 +44,32 @@ import static test.collegecarpool.alpha.Tools.Variables.SAT_NAV_ENABLED;
 public class ViewJourneyPlannerActivity extends AppCompatActivity {
 
     private DatabaseReference journeyRef;
-    private ArrayList<Journey> journeys = new ArrayList<>(); //SEND THIS TO NAVIGATION - PICK CORRESPONDING JOURNEY TO CLICKED JOURNEY OUT OF IT AND SEND TO NAVIGATION
+    ArrayList<Journey> journeys = new ArrayList<>(); //SEND THIS TO NAVIGATION - PICK CORRESPONDING JOURNEY TO CLICKED JOURNEY OUT OF IT AND SEND TO NAVIGATION
+    private ArrayList<String> stringJourneys;
     private final String TAG = "JOURNEY PLANNER";
     private ActionBarDrawerToggle actionBarDrawerToggle;
     private FirebaseAuth auth;
     private ArrayAdapter<String> adapter;
-    private ListView listView;
+    ListView listView;
+    Date todayDate;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_view_journey_planner);
 
+        Calendar calendar = Calendar.getInstance();
+        todayDate = new Date(calendar.get(Calendar.DAY_OF_MONTH), calendar.get(Calendar.MONTH), calendar.get(Calendar.YEAR));
+
+
         initDrawer();
         initFirebase();
         getPlannedJourneys();
+        stringJourneys = stringifyJourneys();
         initListView();
+        /*Remove Any Old Journeys*/
+        //removeJourney(new Journey(null, null));
+        //getPlannedJourneys();
     }
 
     /*Initialise Firebase Components*/
@@ -77,6 +88,7 @@ public class ViewJourneyPlannerActivity extends AppCompatActivity {
         menuInflater.inflate(R.menu.journey_planner_popup_menu, menu);
     }
 
+    /*Manages Clicked Item In the Context Menu*/
     @Override
     public boolean onContextItemSelected(MenuItem item) {
         AdapterView.AdapterContextMenuInfo adapterContextMenuInfo = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
@@ -123,24 +135,29 @@ public class ViewJourneyPlannerActivity extends AppCompatActivity {
                     journeyString = journeyString + wayName;
             }
             stops.add(journeyString);
+            Log.d(TAG, "JOURNEY STRING IS: " + journeyString);
         }
         return stops;
     }
 
+    /*Initialise the ListView*/
     private void initListView() {
-        adapter = new ArrayAdapter<>(this, R.layout.journey_planner_list, stringifyJourneys());
+        Log.d(TAG, "JOURNEY OBJECT: " + journeys.toString());
+        adapter = new ArrayAdapter<>(this, R.layout.journey_planner_list, stringJourneys);
         listView = (ListView) findViewById(R.id.journey_planner_list_view);
         listView.setAdapter(adapter);
         registerForContextMenu(listView);
     }
 
+    /*Update UI on Data Change*/
     private void updateUI(){
-        adapter = new ArrayAdapter<>(this, R.layout.journey_planner_list, stringifyJourneys());
+        adapter = new ArrayAdapter<>(this, R.layout.journey_planner_list, stringJourneys);
         listView = (ListView) findViewById(R.id.journey_planner_list_view);
         listView.setAdapter(adapter);
         registerForContextMenu(listView);
     }
 
+    /*Removes A Journey From Firebase -- Also Clear Database of Old Journeys*/
     private void removeJourney(final Journey journey){
         journeyRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -194,6 +211,7 @@ public class ViewJourneyPlannerActivity extends AppCompatActivity {
         });
     }
 
+    /*Get a List Of All Of The Planned Journeys That Are Valid*/
     private void getPlannedJourneys() {
         journeyRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -202,10 +220,12 @@ public class ViewJourneyPlannerActivity extends AppCompatActivity {
                 for(DataSnapshot data1 : dataSnapshots){ //FOR EACH TIMESTAMP
                     Iterable<DataSnapshot> dataSnapshots1 = data1.getChildren();
                     Journey journey = new Journey();
+                    String journeyString = "";
                     for(DataSnapshot data2 : dataSnapshots1){ //FOR EACH DATE / PLACES LIST
                         if(data2.getKey().equals("date")){
                             Date date = data2.getValue(Date.class);
                             journey.setDate(date);
+                            journeyString = journeyString + date.toString() + ": ";
                         }
                         if(data2.getKey().equals("journeyWaypoints")){
                             Iterable<DataSnapshot> dataSnapshots2 = data2.getChildren();
@@ -216,13 +236,12 @@ public class ViewJourneyPlannerActivity extends AppCompatActivity {
                                 for(DataSnapshot data4 : dataSnapshots3) { //FOR EACH WAYPOINT
                                     if (data4.getKey().equals("latLng")) {
                                         LatLng latLng = data4.getValue(LatLng.class);
-                                        Log.d(TAG, "LAT/LNG IS " + latLng.toString());
                                         waypoint.setLatLng(latLng);
                                     }
                                     if (data4.getKey().equals("name")) {
                                         String name = data4.getValue(String.class);
-                                        Log.d(TAG, "NAME IS " + name);
                                         waypoint.setName(name);
+                                        journeyString = journeyString + " / " + name;
                                     }
                                 }
                                 waypoints.add(waypoint);
@@ -230,9 +249,16 @@ public class ViewJourneyPlannerActivity extends AppCompatActivity {
                             journey.setWaypoints(waypoints);
                         }
                     }
+                    stringJourneys.add(journeyString);
                     journeys.add(journey);
+                    //Log.d(TAG, "ADDED JOURNEY: " + journey);
+                    if(todayDate.inThePastTo(journey.getDate())){
+                        Log.d(TAG, "Removing Past Journey " + journey.toString());
+                        data1.getRef().setValue(null);
+                        adapter.notifyDataSetChanged();
+                    }
                 }
-                initListView(); //When Journeys Are Down, Initialize ListView
+                adapter.notifyDataSetChanged();
             }
 
             @Override
