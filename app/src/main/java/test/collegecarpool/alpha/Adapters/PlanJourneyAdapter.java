@@ -31,7 +31,6 @@ public class PlanJourneyAdapter extends ArrayAdapter<String>{
         TextView rowInfo = (TextView) row.findViewById(R.id.plan_journey_text);
         int rowPosition = position + 1; //Index starts at 0
         rowInfo.setText("Stop " + rowPosition + ")  " + list.get(position));
-        //rowPosition = rowPosition + 1;
         return row;
     }
 }
