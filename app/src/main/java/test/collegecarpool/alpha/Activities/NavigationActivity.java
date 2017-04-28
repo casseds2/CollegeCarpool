@@ -19,7 +19,6 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
-import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 
@@ -38,7 +37,7 @@ import test.collegecarpool.alpha.Tools.Variables;
 
 import static test.collegecarpool.alpha.Tools.Variables.MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION;
 
-public class NavigationActivity extends FragmentActivity implements OnMapReadyCallback, GoogleMap.OnMarkerClickListener {
+public class NavigationActivity extends FragmentActivity implements OnMapReadyCallback {
 
     private final String TAG = "NAVIGATION ACTIVITY";
     private Intent intent;
@@ -62,7 +61,6 @@ public class NavigationActivity extends FragmentActivity implements OnMapReadyCa
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED
                 | WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD
                 | WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
-                //| WindowManager.LayoutParams.FLAG_ALLOW_LOCK_WHILE_SCREEN_ON
                 | WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON);
 
         /*Retrieve The Journey LatLngs*/
@@ -117,7 +115,10 @@ public class NavigationActivity extends FragmentActivity implements OnMapReadyCa
             this.journeyLatLngs = journeyLatLngs;
             this.polyLatLngs = polyLatLngs;
             googleMap.clear();
-            //googleMap.animateCamera(CameraUpdateFactory.newCameraPosition(setCamera(journeyLatLngs.get(0))));
+
+            /*Lat Set to Zero to Trigger onDataChanged So If its 0, Don't Zoom On It*/
+            if(journeyLatLngs.get(0).latitude != 0)
+                googleMap.animateCamera(CameraUpdateFactory.newCameraPosition(setCamera(journeyLatLngs.get(0))));
 
             /*Handle If A Waypoint Was Removed Manually*/
             if(waypointsInitializer.waypointRemoved() && journeyLatLngs.size() > 1){
@@ -142,16 +143,10 @@ public class NavigationActivity extends FragmentActivity implements OnMapReadyCa
             PolylineOptions polylineOptions = new PolylineOptions();
             polylineOptions.addAll(polyLatLngs).width(8).color(Color.BLUE);
             polyline = googleMap.addPolyline(polylineOptions);
-            //Log.d(TAG, "MAP JOURNEYS " + journeyLatLngs);
         }
     }
 
-    @Override
-    public boolean onMarkerClick(Marker marker) {
-
-        return false;
-    }
-
+    /*Sets Camera To Follow User Around*/
     private CameraPosition setCamera(LatLng userLatLng){
         return new CameraPosition.Builder()
                 .target(userLatLng)// Sets the center of the map to location user
@@ -173,14 +168,16 @@ public class NavigationActivity extends FragmentActivity implements OnMapReadyCa
         PolylineOptions polylineOptions = new PolylineOptions();
         polylineOptions.addAll(polyLatLngs).width(8).color(Color.BLUE);
         zoomPoly(googleMap, polyLatLngs);
+
         /*Initialize The Waypoint Initializer*/
         waypointsInitializer = new WaypointsInitializer(this, googleMap);
+
         /*Show The Waypoints On The Map*/
         waypointsInitializer.displayWaypoints(journey);
         googleMap.addPolyline(polylineOptions);
-        //Log.d(TAG, "MAP READY");
     }
 
+    /*Zoom Map Around Entire Journey Before Zooming in on User*/
     private void zoomPoly(GoogleMap googleMap, ArrayList<LatLng> latLngArray){
         LatLngBounds.Builder builder = new LatLngBounds.Builder();
         for(LatLng latLng : latLngArray){
@@ -194,6 +191,7 @@ public class NavigationActivity extends FragmentActivity implements OnMapReadyCa
         googleMap.moveCamera(CameraUpdateFactory.newLatLngBounds(builder.build(), screenWidth, screenHeight, padding));
     }
 
+    /*When the Actviity is Stopped, Kill the Service*/
     @Override
     protected void onStop(){
         super.onStop();

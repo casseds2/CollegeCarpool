@@ -21,13 +21,13 @@ public class PolyLinePusher {
         databaseReference = FirebaseDatabase.getInstance().getReference();
         HashMap<String, Object> polyMap = new HashMap<>();
         HashMap<String, Object> markerMap = new HashMap<>();
-        polyMap.put("/ActiveJourney/Polyline/", encodedPoly);
-        markerMap.put("/ActiveJourney/Markers", markers);
+        polyMap.put("/ActiveJourneys/" + user.getUid() + "/Polyline/", encodedPoly);
+        markerMap.put("/ActiveJourneys/" + user.getUid() + "/Markers", markers);
         databaseReference.updateChildren(polyMap);
         databaseReference.updateChildren(markerMap);
     }
 
     public void nullify(){
-        databaseReference.child("/ActiveJourney/").setValue(null);
+        databaseReference.child("/ActiveJourneys/" + user.getUid()).setValue(null);
     }
 }

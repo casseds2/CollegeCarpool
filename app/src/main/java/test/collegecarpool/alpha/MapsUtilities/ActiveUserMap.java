@@ -8,6 +8,7 @@ import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -22,11 +23,30 @@ public class ActiveUserMap {
 
     private GoogleMap googleMap;
     private DatabaseReference userRef = FirebaseDatabase.getInstance().getReference("UserProfile");
-    private FirebaseAuth auth = FirebaseAuth.getInstance();
+    private FirebaseAuth auth;
+    private FirebaseUser user;
     private static String TAG = "ACTIVE USER MAP";
 
     public ActiveUserMap(GoogleMap googleMap){
         this.googleMap = googleMap;
+        auth = FirebaseAuth.getInstance();
+        user = auth.getCurrentUser();
+    }
+
+    /*Listen For Any Users Who Are Travelling*/
+    public void displayActiveJourneys(){
+        DatabaseReference activeJourneys = FirebaseDatabase.getInstance().getReference("ActiveJourneys").child(user.getUid());
+        activeJourneys.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                Iterable<DataSnapshot> dataSnapshots = dataSnapshot.getChildren();
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
     }
 
     public void displayUserLocations(){

@@ -116,8 +116,7 @@ public class NavigationService extends Service{
                         polyDirections = new PolyDirections();
                         polyLatLngs = polyDirections.execute(new PolyURLBuilder(journeyLatLngs).buildPolyURL()).get();
                         encodePolyLine = PolyUtil.encode(polyLatLngs);
-                        //Log.d(TAG, "EncodedPolyline is " + encodePolyLine);
-                        polyLinePusher.pushPolyLine(encodePolyLine, journeyLatLngs);
+                        polyLinePusher.pushPolyLine(encodePolyLine, journeyLatLngs.subList(1, journeyLatLngs.size()));
                    }
                    catch (InterruptedException | ExecutionException e) {
                         e.printStackTrace();
@@ -143,6 +142,14 @@ public class NavigationService extends Service{
                         else {
                             Log.d(TAG, "JOURNEY FINISHED IS " + journeyFinished);
                         }
+                    }
+
+                    /*Check if the Journey is Over (Only Consists of my Location) - Could Arise Through Deletion Of Waypoints*/
+                    if(journeyLatLngs.size() < 2 && myPositionAlreadyAdded) {
+                        Log.d(TAG, "ALL WAYPOINTS GONE, SERVICE STOPPED");
+                        userRef.removeEventListener(this);
+                        Log.d(TAG, "Value Event Listener Removed");
+                        stopMyService();
                     }
 
                     /*Only Want To Call Send Bundle Once Unless Called When Service Stopped*/
