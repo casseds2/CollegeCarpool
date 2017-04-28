@@ -67,7 +67,7 @@ public class PolyDirections extends AsyncTask<URL, Void, ArrayList<LatLng>> {
     @Override
     protected void onPostExecute(ArrayList<LatLng> latLngArray) {
         super.onPostExecute(latLngArray);
-        if(!Variables.SAT_NAV_ENABLED) { //IF NOT IN SAT NAV MODE, EXECUTE THE DIRECTIONS
+        if(!Variables.SAT_NAV_ENABLED && googleMap != null) { //IF NOT IN SAT NAV MODE, EXECUTE THE DIRECTIONS
             PolylineOptions polylineOptions = new PolylineOptions();
             polylineOptions.addAll(latLngArray).width(8).color(Color.BLUE);
             googleMap.addPolyline(polylineOptions);

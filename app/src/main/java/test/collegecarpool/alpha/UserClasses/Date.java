@@ -46,24 +46,15 @@ public class Date implements Serializable{ //implements so it can be passed in J
     }
 
     //If date is more present than d, return true if date is in future/present, false otherwise
-    public boolean inThePastTo(Date d){
-        //return this.year < d.year && this.month < d.month && this.day < d.day;
-        if(this.year <= d.year){
-            if(this.month <= d.month){
-                if(this.day <= d.day){
-                    return false;
-                }
-                else
-                    return true;
-            }
-            else
-                return true;
-        }
-        else
-            return true;
+    //Return True if Today is in the Before Date d
+    public boolean isBefore(Date d){
+        java.util.Date dateLocal = new java.util.Date(this.day, this.month, this.year);
+        java.util.Date dateParam = new java.util.Date(d.day, d.month, d.year);
+        return dateLocal.before(dateParam);
     }
 
     public String toString(){
         return day + "/" + month + "/" + year;
     }
+
 }

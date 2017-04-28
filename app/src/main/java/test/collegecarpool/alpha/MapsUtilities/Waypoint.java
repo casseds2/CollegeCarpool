@@ -18,11 +18,15 @@ public class Waypoint implements Serializable{
         return new com.google.android.gms.maps.model.LatLng(this.latLng.getLat(), this.latLng.getLng());
     }
 
+    boolean isTheSameAs(Waypoint waypoint){
+        return this.name.equals(waypoint.getName()) && this.latLng.equals(waypoint.getLatLng());
+    }
+
     public String getName(){
         return this.name;
     }
 
-    LatLng getLatLng(){
+    public LatLng getLatLng(){
         return this.latLng;
     }
 

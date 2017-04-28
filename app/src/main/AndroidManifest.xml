@@ -98,14 +98,15 @@
             android:name=".Activities.PlanJourneyActivity" />
         <activity
             android:screenOrientation="portrait"
-            android:name=".Activities.ViewJourneyActivity"
+            android:name=".MapsUtilities.ViewJourneyActivity"
             android:label="@string/title_activity_view_journey" />
         <activity
             android:screenOrientation="portrait"
             android:name=".Activities.ViewJourneyPlannerActivity" />
         <activity
             android:screenOrientation="portrait"
-            android:name=".MapsUtilities.NavigationActivity"
+            android:showOnLockScreen="true"
+            android:name=".Activities.NavigationActivity"
             android:label="@string/title_activity_navigation" />
 
         <service

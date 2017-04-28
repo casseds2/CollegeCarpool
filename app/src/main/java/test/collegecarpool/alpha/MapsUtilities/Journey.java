@@ -1,8 +1,9 @@
 package test.collegecarpool.alpha.MapsUtilities;
 
+import android.util.Log;
+
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 
 import test.collegecarpool.alpha.UserClasses.Date;
@@ -35,6 +36,17 @@ public class Journey implements Serializable { //Implements Serializable So That
         return info;
     }
 
+    /*Used To Remove Markers*/
+    void removeWaypoint(Waypoint waypoint){
+        for(Waypoint marker : waypoints){
+            if(waypoint.isTheSameAs(marker)) {
+                Log.d("JOURNEY", waypoint.toString() + "WAS MATCHING");
+                waypoints.remove(waypoint);
+                return;
+            }
+        }
+    }
+
     public ArrayList<Waypoint> getWaypoints() {
         return waypoints;
     }
@@ -49,29 +61,14 @@ public class Journey implements Serializable { //Implements Serializable So That
 
     public boolean isElementOf(ArrayList<Journey> journeys){
         for(Journey journey : journeys){
-            if(journey.compareTo(this))
+            if(journey.myCompareTo(this))
                 return true;
         }
         return false;
     }
 
-    /*Sort A List of Journeys Based On Their Date in A Bubble Sort Fashion*/
-    public ArrayList<Journey> sortJourneys(ArrayList<Journey> journeys){
-        if(journeys.size() > 1) {
-            for (int i = 0; i < journeys.size() - 1; i++) {
-                Date dateFirst = journeys.get(i).getDate();
-                Date dateSecond = journeys.get(i+1).getDate();
-                if(!dateFirst.inThePastTo(dateSecond)) {
-                    Collections.swap(journeys, i, i + 1);
-                    i = 0;
-                }
-            }
-        }
-        return journeys;
-    }
-
     /*Compares One Journey To Another*/
-    public boolean compareTo(Journey journey) {
+    public boolean myCompareTo(Journey journey) {
         if(journey == null)
             return false;
         if(this.getDate() == null || this.getWaypoints() == null || journey.getDate() == null || journey.getWaypoints() == null)
@@ -90,4 +87,6 @@ public class Journey implements Serializable { //Implements Serializable So That
         }
         return false;
     }
+
+
 }

@@ -8,7 +8,7 @@ import com.google.android.gms.maps.model.LatLng;
 
 import java.util.ArrayList;
 
-import test.collegecarpool.alpha.MapsUtilities.NavigationActivity;
+import test.collegecarpool.alpha.Activities.NavigationActivity;
 
 public class PolyDirectionResultReceiver extends ResultReceiver{
 
@@ -22,6 +22,6 @@ public class PolyDirectionResultReceiver extends ResultReceiver{
     @Override
     protected void onReceiveResult(int resultCode, Bundle resultData) {
         super.onReceiveResult(resultCode, resultData);
-        navigationActivity.updateUI((ArrayList<LatLng>) resultData.getSerializable("JourneyLatLngs"), (ArrayList<LatLng>) resultData.getSerializable("PolyLatLngs"), resultData.getBoolean("JourneyFinished"), resultData.getBoolean("RouteChanged"));
+        navigationActivity.updateUI((ArrayList<LatLng>) resultData.getSerializable("JourneyLatLngs"), (ArrayList<LatLng>) resultData.getSerializable("PolyLatLngs"), resultData.getBoolean("JourneyFinished"));
     }
 }

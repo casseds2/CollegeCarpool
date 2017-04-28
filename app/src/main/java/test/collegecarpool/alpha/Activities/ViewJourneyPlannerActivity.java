@@ -15,7 +15,6 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
 
@@ -30,10 +29,10 @@ import com.google.firebase.database.ValueEventListener;
 import java.util.ArrayList;
 import java.util.Calendar;
 
+import test.collegecarpool.alpha.Adapters.ViewJourneyPlannerAdapter;
 import test.collegecarpool.alpha.LoginAndRegistrationActivities.SigninActivity;
 import test.collegecarpool.alpha.MapsUtilities.Journey;
 import test.collegecarpool.alpha.MapsUtilities.LatLng;
-import test.collegecarpool.alpha.MapsUtilities.NavigationActivity;
 import test.collegecarpool.alpha.MapsUtilities.Waypoint;
 import test.collegecarpool.alpha.MessagingActivities.ChatRoomActivity;
 import test.collegecarpool.alpha.R;
@@ -44,12 +43,11 @@ import static test.collegecarpool.alpha.Tools.Variables.SAT_NAV_ENABLED;
 public class ViewJourneyPlannerActivity extends AppCompatActivity {
 
     private DatabaseReference journeyRef;
-    ArrayList<Journey> journeys = new ArrayList<>(); //SEND THIS TO NAVIGATION - PICK CORRESPONDING JOURNEY TO CLICKED JOURNEY OUT OF IT AND SEND TO NAVIGATION
-    private ArrayList<String> stringJourneys;
-    private final String TAG = "JOURNEY PLANNER";
+    ArrayList<Journey> journeys; //SEND THIS TO NAVIGATION - PICK CORRESPONDING JOURNEY TO CLICKED JOURNEY OUT OF IT AND SEND TO NAVIGATION
+    private final String TAG = "JOURNEYPLANNER";
     private ActionBarDrawerToggle actionBarDrawerToggle;
     private FirebaseAuth auth;
-    private ArrayAdapter<String> adapter;
+    ViewJourneyPlannerAdapter adapter;
     ListView listView;
     Date todayDate;
 
@@ -58,6 +56,7 @@ public class ViewJourneyPlannerActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_view_journey_planner);
 
+        journeys = new ArrayList<>();
         Calendar calendar = Calendar.getInstance();
         todayDate = new Date(calendar.get(Calendar.DAY_OF_MONTH), calendar.get(Calendar.MONTH), calendar.get(Calendar.YEAR));
 
@@ -65,11 +64,7 @@ public class ViewJourneyPlannerActivity extends AppCompatActivity {
         initDrawer();
         initFirebase();
         getPlannedJourneys();
-        stringJourneys = stringifyJourneys();
         initListView();
-        /*Remove Any Old Journeys*/
-        //removeJourney(new Journey(null, null));
-        //getPlannedJourneys();
     }
 
     /*Initialise Firebase Components*/
@@ -99,7 +94,7 @@ public class ViewJourneyPlannerActivity extends AppCompatActivity {
                 removeJourney(getSelectedJourney(index)); //Remove Journey From Firebase
                 journeys.remove(getSelectedJourney(index)); //Remove the Journey From Local Array
                 Toast.makeText(ViewJourneyPlannerActivity.this, "Removed Journey", Toast.LENGTH_SHORT).show();
-                updateUI();
+                adapter.notifyDataSetChanged();
                 break;
             case R.id.start_journey_planner_item_id :
                 //Start A Navigation Service for This Journey
@@ -120,38 +115,12 @@ public class ViewJourneyPlannerActivity extends AppCompatActivity {
         return journeys.get(index);
     }
 
-    /*Convert an Array of Waypoints into String of Names*/
-    private ArrayList<String> stringifyJourneys(){
-        journeys = new Journey().sortJourneys(journeys);
-        ArrayList<String> stops = new ArrayList<>();
-        for(Journey j : journeys) {
-            ArrayList<Waypoint> waypoints = j.getWaypoints();
-            String journeyString = j.getDate().toString() + ": ";
-            for(Waypoint waypoint : waypoints){
-                String wayName = waypoint.getName();
-                if(waypoint != waypoints.get(waypoints.size()-1))
-                    journeyString = journeyString + wayName + " -> ";
-                else
-                    journeyString = journeyString + wayName;
-            }
-            stops.add(journeyString);
-            Log.d(TAG, "JOURNEY STRING IS: " + journeyString);
-        }
-        return stops;
-    }
-
     /*Initialise the ListView*/
     private void initListView() {
         Log.d(TAG, "JOURNEY OBJECT: " + journeys.toString());
-        adapter = new ArrayAdapter<>(this, R.layout.journey_planner_list, stringJourneys);
-        listView = (ListView) findViewById(R.id.journey_planner_list_view);
-        listView.setAdapter(adapter);
-        registerForContextMenu(listView);
-    }
-
-    /*Update UI on Data Change*/
-    private void updateUI(){
-        adapter = new ArrayAdapter<>(this, R.layout.journey_planner_list, stringJourneys);
+        adapter = new ViewJourneyPlannerAdapter(this, R.layout.journey_planner_list, journeys);
+        if(journeys != null)
+            //adapter.sortJourneys(); //WILL CRASH OF OVER TWO IN SIZE???
         listView = (ListView) findViewById(R.id.journey_planner_list_view);
         listView.setAdapter(adapter);
         registerForContextMenu(listView);
@@ -197,11 +166,12 @@ public class ViewJourneyPlannerActivity extends AppCompatActivity {
                     //Log.d(TAG, "BOOLEAN JOURNEY: " + journey.compareTo(tempJourney));
                     //Log.d(TAG, "BOOLEAN DATE: " + journey.getDate().compareTo(tempJourney.getDate()));
                     //Log.d(TAG, "BOOLEAN WAYPOINTS: " + journey.getWaypoints().equals(tempJourney.getWaypoints()));
-                    if(journey.compareTo(tempJourney)){
+                    if(journey.myCompareTo(tempJourney)){
                         data1.getRef().setValue(null);
                         Log.d(TAG, "JOURNEYS FIRE " + journeys.toString());
                     }
                 }
+                initListView();
             }
 
             @Override
@@ -249,16 +219,14 @@ public class ViewJourneyPlannerActivity extends AppCompatActivity {
                             journey.setWaypoints(waypoints);
                         }
                     }
-                    stringJourneys.add(journeyString);
                     journeys.add(journey);
-                    //Log.d(TAG, "ADDED JOURNEY: " + journey);
-                    if(todayDate.inThePastTo(journey.getDate())){
+                    Log.d(TAG, "ADDED JOURNEY: " + journey);
+                    if (!todayDate.isBefore(journey.getDate())) {
                         Log.d(TAG, "Removing Past Journey " + journey.toString());
                         data1.getRef().setValue(null);
-                        adapter.notifyDataSetChanged();
                     }
                 }
-                adapter.notifyDataSetChanged();
+                initListView();
             }
 
             @Override

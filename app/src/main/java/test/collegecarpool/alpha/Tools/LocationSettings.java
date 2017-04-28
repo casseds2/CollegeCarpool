@@ -30,9 +30,9 @@ class LocationSettings implements LocationListener {
 
     private void setLocationRequestParams() {
         locationRequest = new LocationRequest();
-        locationRequest.setInterval(2000); //Once every 1/2 second
+        locationRequest.setInterval(4000); //Once every 1/2 second
         locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-        locationRequest.setFastestInterval(2000); //Once every 1/4 Second
+        locationRequest.setFastestInterval(4000); //Once every 1/4 Second
         Log.d(TAG, "LOCATION PARAMS SET");
     }
 

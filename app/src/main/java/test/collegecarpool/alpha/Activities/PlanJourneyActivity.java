@@ -45,6 +45,7 @@ import java.util.HashMap;
 import test.collegecarpool.alpha.Adapters.PlanJourneyAdapter;
 import test.collegecarpool.alpha.LoginAndRegistrationActivities.SigninActivity;
 import test.collegecarpool.alpha.MapsUtilities.Journey;
+import test.collegecarpool.alpha.MapsUtilities.ViewJourneyActivity;
 import test.collegecarpool.alpha.MapsUtilities.Waypoint;
 import test.collegecarpool.alpha.PolyDirectionsTools.WaypointFromPlaceGenerator;
 import test.collegecarpool.alpha.MessagingActivities.ChatRoomActivity;
@@ -75,7 +76,6 @@ public class PlanJourneyActivity extends AppCompatActivity implements DatePicker
     private Place currentPlace;
     private Place tempPlace = null;
     private boolean locationButtonEnabled = true;
-    private ListView listView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -101,7 +101,7 @@ public class PlanJourneyActivity extends AppCompatActivity implements DatePicker
     private void initListView() {
         //adapter = new ArrayAdapter<>(this, R.layout.plan_journey_list, placeNames);
         adapter = new PlanJourneyAdapter(this, R.layout.plan_journey_list, placeNames);
-        listView = (ListView) findViewById(R.id.plan_journey_list_view);
+        ListView listView = (ListView) findViewById(R.id.plan_journey_list_view);
         listView.setAdapter(adapter);
         registerForContextMenu(listView);
     }
@@ -369,7 +369,7 @@ public class PlanJourneyActivity extends AppCompatActivity implements DatePicker
     public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
         date = new Date(dayOfMonth, month + 1, year); //+1 to accommodate for the ol' [0-11] array being 12 in size...
         Date today = new Date(calendar.get(Calendar.DAY_OF_MONTH), calendar.get(Calendar.MONTH), calendar.get(Calendar.YEAR));
-        if(!today.inThePastTo(date))
+        if(today.isBefore(date))
             dateChosen = true;
         else {
             dateChosen = false;
@@ -456,12 +456,12 @@ public class PlanJourneyActivity extends AppCompatActivity implements DatePicker
                                 for(DataSnapshot data4 : dataSnapshots3) {
                                     if (data4.getKey().equals("latLng")) {
                                         test.collegecarpool.alpha.MapsUtilities.LatLng latLng = data4.getValue(test.collegecarpool.alpha.MapsUtilities.LatLng.class);
-                                        Log.d(TAG, "LAT/LNG IS " + latLng.toString());
+                                        //Log.d(TAG, "LAT/LNG IS " + latLng.toString());
                                         waypoint.setLatLng(latLng);
                                     }
                                     if (data4.getKey().equals("name")) {
                                         String name = data4.getValue(String.class);
-                                        Log.d(TAG, "NAME IS " + name);
+                                        //Log.d(TAG, "NAME IS " + name);
                                         waypoint.setName(name);
                                     }
                                 }
@@ -472,6 +472,7 @@ public class PlanJourneyActivity extends AppCompatActivity implements DatePicker
                     }
                     //TEMP JOURNEY IS EQUAL DON'T UPLOAD IT
                     fireJourneys.add(tempJourney);
+                    Log.d(TAG, "Exists Journey: " + tempJourney.toString());
                 }
             }
 
@@ -498,9 +499,5 @@ public class PlanJourneyActivity extends AppCompatActivity implements DatePicker
     protected void onStop(){
         super.onStop();
         googleClientBuilder.disconnect();
-        //places = new ArrayList<>();
-        //placeNames = new ArrayList<>();
-        //locationButtonEnabled = true;
-        //listView.setAdapter(null);
     }
 }

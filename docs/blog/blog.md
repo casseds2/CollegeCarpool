@@ -153,5 +153,10 @@ to have to implement the serializable interface in any objects I made that were 
  return objects as a string. This allows me to use the PolyUrlBuilder in the Nav Service.
 
 ## My Sixteenth Blog
-
+As I tested the navigation service, I realised some irregularities with the calls, i.e. it continued requesting directions from teh API after the service
+was stopped with stopSelf(). After a long time of testing, I realised that the value event listener had continued to run even after service was stopped.
+Even though it may seems simple, I had not thought about it and it was severely damaging CPU usage. I quickly sorted the problem by removing the listener
+on Service Stop. I am now moving on to setting click listeners to the waypoints so user can manually remove them. Also set up a node in the Firebase
+to store active user journeys. By this I mean it stores the userID, an encoded polyline(their journey line if SAT_Nav enabled) and a list of their waypoints.
+All of this information is removed when the user is finished travelling or exits the nav screen.
 

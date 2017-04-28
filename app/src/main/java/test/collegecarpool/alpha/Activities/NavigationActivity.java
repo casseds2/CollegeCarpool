@@ -1,4 +1,4 @@
-package test.collegecarpool.alpha.MapsUtilities;
+package test.collegecarpool.alpha.Activities;
 
 import android.Manifest;
 import android.content.Intent;
@@ -9,20 +9,26 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.WindowManager;
 
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 
 import java.util.ArrayList;
 import java.util.concurrent.ExecutionException;
 
+import test.collegecarpool.alpha.MapsUtilities.Journey;
+import test.collegecarpool.alpha.MapsUtilities.Waypoint;
+import test.collegecarpool.alpha.MapsUtilities.WaypointsInitializer;
 import test.collegecarpool.alpha.R;
 import test.collegecarpool.alpha.Services.NavigationService;
 import test.collegecarpool.alpha.PolyDirectionsTools.PolyDirectionResultReceiver;
@@ -32,7 +38,7 @@ import test.collegecarpool.alpha.Tools.Variables;
 
 import static test.collegecarpool.alpha.Tools.Variables.MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION;
 
-public class NavigationActivity extends FragmentActivity implements OnMapReadyCallback {
+public class NavigationActivity extends FragmentActivity implements OnMapReadyCallback, GoogleMap.OnMarkerClickListener {
 
     private final String TAG = "NAVIGATION ACTIVITY";
     private Intent intent;
@@ -42,6 +48,7 @@ public class NavigationActivity extends FragmentActivity implements OnMapReadyCa
     private GoogleMap googleMap;
     private Polyline polyline;
     protected PolyDirectionResultReceiver polyDirectionResultReceiver;
+    private WaypointsInitializer waypointsInitializer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,9 +58,16 @@ public class NavigationActivity extends FragmentActivity implements OnMapReadyCa
         /*Start The SAT_NAV Service*/
         Variables.SAT_NAV_ENABLED = true;
 
+        /*Keep Screen From Locking When Activity Is On Display*/
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED
+                | WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD
+                | WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
+                //| WindowManager.LayoutParams.FLAG_ALLOW_LOCK_WHILE_SCREEN_ON
+                | WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON);
+
         /*Retrieve The Journey LatLngs*/
         journey = (Journey) getIntent().getSerializableExtra("SelectedJourney");
-        Log.d(TAG, journey.toString());
+
         journeyLatLngs = getLatLngsFromWaypoint(journey.getWaypoints());
 
         /*Get the ArrayList of LatLngs From The PolyLine By Calling the Async Method, the .get() will wait for it to complete--does block UI*/
@@ -93,24 +107,56 @@ public class NavigationActivity extends FragmentActivity implements OnMapReadyCa
     }
 
     /*Update the Activity Based on the Result Received From The Service*/
-    public void updateUI(ArrayList<LatLng> journeyLatLngs, ArrayList<LatLng> polyLatLngs, boolean journeyFinished, boolean routeChanged){
+    public void updateUI(ArrayList<LatLng> journeyLatLngs, ArrayList<LatLng> polyLatLngs, boolean journeyFinished){
         /*Clear The Map If Journey Is Over*/
         if(googleMap != null && journeyFinished && polyline != null){
             googleMap.clear();
         }
-        /*If the Journey Is Finished, Clear the UI*/
+        /*If the Journey Is Not Finished*/
         if(!journeyFinished && googleMap != null) {
             this.journeyLatLngs = journeyLatLngs;
             this.polyLatLngs = polyLatLngs;
-            if(routeChanged){
+            googleMap.clear();
+            //googleMap.animateCamera(CameraUpdateFactory.newCameraPosition(setCamera(journeyLatLngs.get(0))));
+
+            /*Handle If A Waypoint Was Removed Manually*/
+            if(waypointsInitializer.waypointRemoved() && journeyLatLngs.size() > 1){
+                Log.d(TAG, "A WAYPOINT WAS REMOVED MANUALLY");
+                waypointsInitializer.resetWaypointRemoved();
+
+                /*If Waypoints Have Changed, Update Service With New Info*/
+                journeyLatLngs = getLatLngsFromWaypoint(journey.getWaypoints());
+
+                //Clear the Map of Old Waypoints
                 googleMap.clear();
+
+                /*Inject The New Extras Into A Service*/
+                intent.putExtra("PolyLatLngs", polyLatLngs);
+                intent.putExtra("JourneyLatLngs", journeyLatLngs);
+                intent.putExtra("ResultReceiver", polyDirectionResultReceiver);
+                startService(intent);
+                Log.d(TAG, "SAT_NAVE SERVICE STARTED AGAIN AFTER DELETED WAYPOINTS");
             }
-            new WaypointsInitializer(googleMap).displayWaypoints(journey, this.journeyLatLngs);
+            /*Refreshes the User UI*/
+            waypointsInitializer.displayWaypoints(journey, this.journeyLatLngs);//Will Remove All WayPoints if not used
             PolylineOptions polylineOptions = new PolylineOptions();
             polylineOptions.addAll(polyLatLngs).width(8).color(Color.BLUE);
             polyline = googleMap.addPolyline(polylineOptions);
-            Log.d(TAG, "MAP JOURNEYS " + journeyLatLngs);
+            //Log.d(TAG, "MAP JOURNEYS " + journeyLatLngs);
         }
+    }
+
+    @Override
+    public boolean onMarkerClick(Marker marker) {
+
+        return false;
+    }
+
+    private CameraPosition setCamera(LatLng userLatLng){
+        return new CameraPosition.Builder()
+                .target(userLatLng)// Sets the center of the map to location user
+                .zoom(16) // Sets the zoom
+                .build();
     }
 
     @Override
@@ -121,15 +167,18 @@ public class NavigationActivity extends FragmentActivity implements OnMapReadyCa
         }
         googleMap.setMyLocationEnabled(true);
         googleMap.setBuildingsEnabled(true);
+        googleMap.getUiSettings().setMapToolbarEnabled(false);
 
         /*Draw the PolyLine On The Map, Bigger Journeys Will Not Work Without It*/
         PolylineOptions polylineOptions = new PolylineOptions();
         polylineOptions.addAll(polyLatLngs).width(8).color(Color.BLUE);
         zoomPoly(googleMap, polyLatLngs);
+        /*Initialize The Waypoint Initializer*/
+        waypointsInitializer = new WaypointsInitializer(this, googleMap);
         /*Show The Waypoints On The Map*/
-        new WaypointsInitializer(googleMap).displayWaypoints(journey);
+        waypointsInitializer.displayWaypoints(journey);
         googleMap.addPolyline(polylineOptions);
-        Log.d(TAG, "MAP READY");
+        //Log.d(TAG, "MAP READY");
     }
 
     private void zoomPoly(GoogleMap googleMap, ArrayList<LatLng> latLngArray){
@@ -149,13 +198,13 @@ public class NavigationActivity extends FragmentActivity implements OnMapReadyCa
     protected void onStop(){
         super.onStop();
         stopService(intent);
+        Log.d(TAG, "NAV_SERVICE STOPPED");
         Variables.SAT_NAV_ENABLED = false; //Re-enable the viewing of Journeys When Out of Navigation mode
     }
 
     @Override
-    protected void onPause(){
-        super.onPause();
-        stopService(intent);
-        Variables.SAT_NAV_ENABLED = false;
+    protected void onResume(){
+        super.onResume();
+        startService(intent);
     }
 }

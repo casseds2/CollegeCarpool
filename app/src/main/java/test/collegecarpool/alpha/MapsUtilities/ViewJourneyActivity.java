@@ -1,4 +1,4 @@
-package test.collegecarpool.alpha.Activities;
+package test.collegecarpool.alpha.MapsUtilities;
 
 import android.content.Intent;
 import android.graphics.Color;
@@ -19,8 +19,11 @@ import com.google.firebase.auth.FirebaseAuth;
 
 import java.util.ArrayList;
 
+import test.collegecarpool.alpha.Activities.HomeScreenActivity;
+import test.collegecarpool.alpha.Activities.PlanJourneyActivity;
+import test.collegecarpool.alpha.Activities.ProfileActivity;
+import test.collegecarpool.alpha.Activities.SettingsActivity;
 import test.collegecarpool.alpha.LoginAndRegistrationActivities.SigninActivity;
-import test.collegecarpool.alpha.MapsUtilities.WaypointsInitializer;
 import test.collegecarpool.alpha.MessagingActivities.ChatRoomActivity;
 import test.collegecarpool.alpha.R;
 import test.collegecarpool.alpha.PolyDirectionsTools.PolyURLBuilder;
@@ -51,8 +54,11 @@ public class ViewJourneyActivity extends AppCompatActivity implements OnMapReady
     @Override
     public void onMapReady(GoogleMap googleMap) {
         this.googleMap = googleMap;
+
+        googleMap.getUiSettings().setMapToolbarEnabled(false);
+
         new PolyURLBuilder(this, googleMap, latLngs).buildPolyURL();
-        new WaypointsInitializer(googleMap).displayWaypoints(latLngs);
+        new WaypointsInitializer(this, googleMap).displayWaypoints(latLngs);
     }
 
     public void initDrawer() {

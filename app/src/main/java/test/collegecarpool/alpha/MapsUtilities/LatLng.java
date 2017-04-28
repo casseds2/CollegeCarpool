@@ -13,7 +13,7 @@ public class LatLng implements Serializable{
         this.lng = lng;
     }
 
-    double getLat() {
+    public double getLat() {
         return lat;
     }
 
@@ -21,7 +21,7 @@ public class LatLng implements Serializable{
         this.lat = lat;
     }
 
-    double getLng() {
+    public double getLng() {
         return lng;
     }
 
