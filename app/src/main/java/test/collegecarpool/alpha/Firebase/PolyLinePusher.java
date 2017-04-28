@@ -5,8 +5,11 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+
+import test.collegecarpool.alpha.MapsUtilities.Journey;
 
 public class PolyLinePusher {
 
@@ -18,11 +21,17 @@ public class PolyLinePusher {
     }
 
     public void pushPolyLine(String encodedPoly, List<LatLng> markers){
+        HashMap<String, test.collegecarpool.alpha.MapsUtilities.LatLng> ways = new HashMap<>();
+        ArrayList<test.collegecarpool.alpha.MapsUtilities.LatLng> myLatLngs = new Journey().convertToMyLatLngs(markers);
         databaseReference = FirebaseDatabase.getInstance().getReference();
         HashMap<String, Object> polyMap = new HashMap<>();
         HashMap<String, Object> markerMap = new HashMap<>();
         polyMap.put("/ActiveJourneys/" + user.getUid() + "/Polyline/", encodedPoly);
-        markerMap.put("/ActiveJourneys/" + user.getUid() + "/Markers", markers);
+        //markerMap.put("/ActiveJourneys/" + user.getUid() + "/Markers", markers);
+        for(test.collegecarpool.alpha.MapsUtilities.LatLng latLng : myLatLngs){
+            ways.put(String.valueOf(myLatLngs.indexOf(latLng)), latLng);
+        }
+        markerMap.put("/ActiveJourneys/" + user.getUid() + "/Markers", ways);
         databaseReference.updateChildren(polyMap);
         databaseReference.updateChildren(markerMap);
     }

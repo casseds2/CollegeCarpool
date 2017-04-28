@@ -191,7 +191,7 @@ public class NavigationActivity extends FragmentActivity implements OnMapReadyCa
         googleMap.moveCamera(CameraUpdateFactory.newLatLngBounds(builder.build(), screenWidth, screenHeight, padding));
     }
 
-    /*When the Actviity is Stopped, Kill the Service*/
+    /*When the Actvity is Stopped, Kill the Service*/
     @Override
     protected void onStop(){
         super.onStop();

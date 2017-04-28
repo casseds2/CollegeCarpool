@@ -23,17 +23,17 @@ public class WaypointsInitializer extends Activity implements GoogleMap.OnMarker
     private final String TAG = "WAYPOINT INITIALIZER";
     private Journey journey;
     boolean removedWaypoint = false;
-    private FirebaseAuth auth;
-    private FirebaseUser user;
     private DatabaseReference data;
 
     public WaypointsInitializer(Context context, GoogleMap googleMap){
         this.context = context;
         this.googleMap = googleMap;
-        auth = FirebaseAuth.getInstance();
-        user = auth.getCurrentUser();
-        data = FirebaseDatabase.getInstance().getReference("UserProfile").child(user.getUid()).child("latitude");
-        Log.d(TAG, "Waypoint Initialized");
+        FirebaseAuth auth = FirebaseAuth.getInstance();
+        if(auth != null) {
+            FirebaseUser user = auth.getCurrentUser();
+            data = FirebaseDatabase.getInstance().getReference("UserProfile").child(user.getUid()).child("latitude");
+            Log.d(TAG, "Waypoint Initialized");
+        }
     }
 
     /*Display Waypoints From an Ongoing Journey*/
@@ -122,7 +122,7 @@ public class WaypointsInitializer extends Activity implements GoogleMap.OnMarker
 
                     }
                 });
-        builder.show();
+        builder.create().show();
         return false;
     }
 

@@ -158,7 +158,7 @@ public class NavigationService extends Service{
                     /*Stops the CallBack That Will Continue Running And Nullifies the Active Journey*/
                     if(!Variables.SAT_NAV_ENABLED){
                         userRef.removeEventListener(this);
-                        polyLinePusher.nullify();
+                        //polyLinePusher.nullify();
                         Log.d(TAG, "VALUE EVENT LISTENER REMOVED && ACTIVE JOURNEY NULLIFIED");
                     }
                 }
@@ -236,7 +236,6 @@ public class NavigationService extends Service{
 
     @Override
     public IBinder onBind(Intent intent) {
-        // TODO: Return the communication channel to the service.
         throw new UnsupportedOperationException("Not yet implemented");
     }
 
@@ -256,7 +255,7 @@ public class NavigationService extends Service{
             polyDirections = null;
             Log.d(TAG, "ASYNC KILLED");
         }
-        polyLinePusher.nullify();
+        //polyLinePusher.nullify();
         Log.d(TAG, "SAT_NAV_SERVICE STOPPED");
         Variables.SAT_NAV_ENABLED = false;
         this.stopSelf();

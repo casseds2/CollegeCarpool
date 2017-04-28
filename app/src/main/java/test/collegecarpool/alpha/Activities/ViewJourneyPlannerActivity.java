@@ -191,39 +191,43 @@ public class ViewJourneyPlannerActivity extends AppCompatActivity {
                     Iterable<DataSnapshot> dataSnapshots1 = data1.getChildren();
                     Journey journey = new Journey();
                     String journeyString = "";
-                    for(DataSnapshot data2 : dataSnapshots1){ //FOR EACH DATE / PLACES LIST
-                        if(data2.getKey().equals("date")){
-                            Date date = data2.getValue(Date.class);
-                            journey.setDate(date);
-                            journeyString = journeyString + date.toString() + ": ";
-                        }
-                        if(data2.getKey().equals("journeyWaypoints")){
-                            Iterable<DataSnapshot> dataSnapshots2 = data2.getChildren();
-                            ArrayList<Waypoint> waypoints = new ArrayList<>();
-                            for(DataSnapshot data3 :  dataSnapshots2){ //FOR EACH LIST ITEM, ERROR CAUSED CAUSE IM NOT AT RIGHT LEVEL YET
-                                Iterable<DataSnapshot> dataSnapshots3 = data3.getChildren();
-                                Waypoint waypoint = new Waypoint();
-                                for(DataSnapshot data4 : dataSnapshots3) { //FOR EACH WAYPOINT
-                                    if (data4.getKey().equals("latLng")) {
-                                        LatLng latLng = data4.getValue(LatLng.class);
-                                        waypoint.setLatLng(latLng);
-                                    }
-                                    if (data4.getKey().equals("name")) {
-                                        String name = data4.getValue(String.class);
-                                        waypoint.setName(name);
-                                        journeyString = journeyString + " / " + name;
-                                    }
-                                }
-                                waypoints.add(waypoint);
+                    if(!data1.getKey().equals("History")) {
+                        for (DataSnapshot data2 : dataSnapshots1) { //FOR EACH DATE / PLACES LIST
+                            if (data2.getKey().equals("date")) {
+                                Date date = data2.getValue(Date.class);
+                                journey.setDate(date);
+                                journeyString = journeyString + date.toString() + ": ";
                             }
-                            journey.setWaypoints(waypoints);
+                            if (data2.getKey().equals("journeyWaypoints")) {
+                                Iterable<DataSnapshot> dataSnapshots2 = data2.getChildren();
+                                ArrayList<Waypoint> waypoints = new ArrayList<>();
+                                for (DataSnapshot data3 : dataSnapshots2) { //FOR EACH LIST ITEM, ERROR CAUSED CAUSE IM NOT AT RIGHT LEVEL YET
+                                    Iterable<DataSnapshot> dataSnapshots3 = data3.getChildren();
+                                    Waypoint waypoint = new Waypoint();
+                                    for (DataSnapshot data4 : dataSnapshots3) { //FOR EACH WAYPOINT
+                                        if (data4.getKey().equals("latLng")) {
+                                            LatLng latLng = data4.getValue(LatLng.class);
+                                            waypoint.setLatLng(latLng);
+                                        }
+                                        if (data4.getKey().equals("name")) {
+                                            String name = data4.getValue(String.class);
+                                            waypoint.setName(name);
+                                            journeyString = journeyString + " / " + name;
+                                        }
+                                    }
+                                    waypoints.add(waypoint);
+                                }
+                                journey.setWaypoints(waypoints);
+                            }
                         }
                     }
-                    journeys.add(journey);
-                    Log.d(TAG, "ADDED JOURNEY: " + journey);
-                    if (!todayDate.isBefore(journey.getDate())) {
-                        Log.d(TAG, "Removing Past Journey " + journey.toString());
-                        data1.getRef().setValue(null);
+                    if(journey.getDate() != null || journey.getWaypoints() != null) {
+                        journeys.add(journey);
+                        Log.d(TAG, "ADDED JOURNEY: " + journey);
+                        if (!todayDate.isBefore(journey.getDate())) {
+                            Log.d(TAG, "Removing Past Journey " + journey.toString());
+                            data1.getRef().setValue(null);
+                        }
                     }
                 }
                 initListView();

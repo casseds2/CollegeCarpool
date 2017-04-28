@@ -5,6 +5,7 @@ import android.util.Log;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import test.collegecarpool.alpha.UserClasses.Date;
 
@@ -39,12 +40,21 @@ public class Journey implements Serializable { //Implements Serializable So That
     /*Used To Remove Markers*/
     void removeWaypoint(Waypoint waypoint){
         for(Waypoint marker : waypoints){
-            if(waypoint.isTheSameAs(marker)) {
+            if(null != marker && waypoint != null && waypoint.isTheSameAs(marker)) {
                 Log.d("JOURNEY", waypoint.toString() + "WAS MATCHING");
                 waypoints.remove(waypoint);
                 return;
             }
         }
+    }
+
+    /*So the User Can Push S Serializable LatLngs to Firebase From Service Active Journey*/
+    public ArrayList<LatLng> convertToMyLatLngs(List<com.google.android.gms.maps.model.LatLng> toBeConverted){
+        ArrayList<LatLng> myLatLngs = new ArrayList<>();
+        for(com.google.android.gms.maps.model.LatLng latLng : toBeConverted){
+            myLatLngs.add(new LatLng(latLng.latitude, latLng.longitude));
+        }
+        return myLatLngs;
     }
 
     public ArrayList<Waypoint> getWaypoints() {

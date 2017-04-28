@@ -22,11 +22,16 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
+import java.util.ArrayList;
+
 import test.collegecarpool.alpha.LoginAndRegistrationActivities.SigninActivity;
+import test.collegecarpool.alpha.MapsUtilities.LatLng;
 import test.collegecarpool.alpha.MessagingActivities.ChatRoomActivity;
 import test.collegecarpool.alpha.R;
 import test.collegecarpool.alpha.Services.BackgroundLocationIntentService;
@@ -46,6 +51,7 @@ public class HomeScreenActivity extends AppCompatActivity implements OnMapReadyC
     private FirebaseAuth auth = FirebaseAuth.getInstance();
     private DatabaseReference broadcastRef;
     private SupportMapFragment mapFragment;
+    private ActiveUserMap activeUserMap;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -145,8 +151,11 @@ public class HomeScreenActivity extends AppCompatActivity implements OnMapReadyC
         }
         googleMap.setMyLocationEnabled(true);
         googleMap.setBuildingsEnabled(true);
-        googleMap.setTrafficEnabled(true);
-        new ActiveUserMap(googleMap).displayUserLocations();
+        //googleMap.setTrafficEnabled(true);
+        /*Display Users Broadcasting Location and Polylines of People Travelling*/
+        activeUserMap = new ActiveUserMap(this, googleMap);
+        activeUserMap.displayUserLocations();
+        activeUserMap.displayActiveJourneys();
     }
 
     private void checkPermissions() {

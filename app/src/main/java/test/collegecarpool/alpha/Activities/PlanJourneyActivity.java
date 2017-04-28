@@ -43,6 +43,7 @@ import java.util.ConcurrentModificationException;
 import java.util.HashMap;
 
 import test.collegecarpool.alpha.Adapters.PlanJourneyAdapter;
+import test.collegecarpool.alpha.Firebase.ManageJourneyHistory;
 import test.collegecarpool.alpha.LoginAndRegistrationActivities.SigninActivity;
 import test.collegecarpool.alpha.MapsUtilities.Journey;
 import test.collegecarpool.alpha.MapsUtilities.ViewJourneyActivity;
@@ -65,6 +66,7 @@ public class PlanJourneyActivity extends AppCompatActivity implements DatePicker
     private FirebaseUser user;
     private DatabaseReference userRef;
     private Journey journey;
+    private ManageJourneyHistory manageJourneyHistory;
     private ActionBarDrawerToggle actionBarDrawerToggle;
     private FirebaseAuth auth = FirebaseAuth.getInstance();
     private PlanJourneyAdapter adapter;
@@ -91,7 +93,11 @@ public class PlanJourneyActivity extends AppCompatActivity implements DatePicker
         initSearchBar();
         initButtons();
         initViewJourney();
+
         initFirebase();
+        manageJourneyHistory = new ManageJourneyHistory(user);
+
+
         initListView();
         initAddMyLocation();
         getCurrentJourneys();
@@ -248,6 +254,8 @@ public class PlanJourneyActivity extends AppCompatActivity implements DatePicker
                     Log.d(TAG, "Fire Journey: " + fireJourneys.toString());
                     Log.d(TAG, "BOOL: " + !journey.isElementOf(fireJourneys));
                     if (!journey.isElementOf(fireJourneys)) {
+                        /*Push the Journey to The History Book*/
+                        manageJourneyHistory.pushJourneyToHistory(journey);
                         pushJourneyToFirebase(); //new MyPlace().convertPlacesToMyPlace(places) converts the ArrayList<Places> to and ArrayList<String> of the place names
                         dateChosen = false;
                         Toast.makeText(PlanJourneyActivity.this, "Saved Journey to Planner", Toast.LENGTH_SHORT).show();
@@ -339,7 +347,7 @@ public class PlanJourneyActivity extends AppCompatActivity implements DatePicker
                     Toast.makeText(PlanJourneyActivity.this, "Already Picked", Toast.LENGTH_SHORT).show();
                 if(places.size() == 5)
                     Toast.makeText(PlanJourneyActivity.this, "Only Allowed 5 Places", Toast.LENGTH_SHORT).show();
-                autocompleteFragment.setText("");
+                autocompleteFragment.setHint("Enter Address");
                 if(!places.contains(place) && places.size() < 5) {
                     if(place.getLatLng() != null) {
                         places.add(place);
@@ -471,8 +479,11 @@ public class PlanJourneyActivity extends AppCompatActivity implements DatePicker
                         }
                     }
                     //TEMP JOURNEY IS EQUAL DON'T UPLOAD IT
-                    fireJourneys.add(tempJourney);
-                    Log.d(TAG, "Exists Journey: " + tempJourney.toString());
+                    /*Have To Check If Not null Because Of Addition of History Feature*/
+                    if(tempJourney.getDate() != null) {
+                        fireJourneys.add(tempJourney);
+                        Log.d(TAG, "Exists Journey: " + tempJourney.toString());
+                    }
                 }
             }
 
