@@ -20,6 +20,7 @@ public class PolyLinePusher {
         this.user = user;
     }
 
+    /*Push A Polyline To Firebase*/
     public void pushPolyLine(String encodedPoly, List<LatLng> markers){
         HashMap<String, test.collegecarpool.alpha.MapsUtilities.LatLng> ways = new HashMap<>();
         ArrayList<test.collegecarpool.alpha.MapsUtilities.LatLng> myLatLngs = new Journey().convertToMyLatLngs(markers);
@@ -27,7 +28,6 @@ public class PolyLinePusher {
         HashMap<String, Object> polyMap = new HashMap<>();
         HashMap<String, Object> markerMap = new HashMap<>();
         polyMap.put("/ActiveJourneys/" + user.getUid() + "/Polyline/", encodedPoly);
-        //markerMap.put("/ActiveJourneys/" + user.getUid() + "/Markers", markers);
         for(test.collegecarpool.alpha.MapsUtilities.LatLng latLng : myLatLngs){
             ways.put(String.valueOf(myLatLngs.indexOf(latLng)), latLng);
         }

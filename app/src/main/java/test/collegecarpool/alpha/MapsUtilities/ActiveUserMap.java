@@ -5,15 +5,14 @@ import android.graphics.Color;
 import android.util.Log;
 import android.widget.Toast;
 
-import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.model.CameraPosition;
+import com.google.android.gms.maps.model.JointType;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
+import com.google.android.gms.maps.model.RoundCap;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -25,83 +24,83 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-import test.collegecarpool.alpha.UserClasses.UserProfile;
-
-import static test.collegecarpool.alpha.Tools.Variables.shouldZoom;
-
 public class ActiveUserMap{
 
     private GoogleMap googleMap;
-    private Context context;
-    private DatabaseReference userRef = FirebaseDatabase.getInstance().getReference("UserProfile");
-    private FirebaseAuth auth;
-    private FirebaseUser user;
     private static String TAG = "ACTIVE USER MAP";
     private PolylineOptions polylineOptions;
-    private HashMap<Polyline, ArrayList<LatLng>> polyLines;
-    ArrayList<LatLng> tempPoly;
-    ArrayList <LatLng> waypoints;
+    private ArrayList<LatLng> polyLatLngs;
+    private ArrayList <LatLng> polyWaypoints;
+    private ArrayList<Marker> markers;
+    private HashMap<String, ArrayList<LatLng>> userAndMarkers;
+    private DatabaseReference activeJourneysRef;
+    private ValueEventListener activeListener;
+    private String userID;
 
     public ActiveUserMap(final Context context, final GoogleMap googleMap){
-        this.context = context;
         this.googleMap = googleMap;
-        polyLines = new HashMap<>();
-        auth = FirebaseAuth.getInstance();
-        user = auth.getCurrentUser();
-        tempPoly = new ArrayList<>();
-        waypoints = new ArrayList<>();
+        polyLatLngs = new ArrayList<>();
+        polyWaypoints = new ArrayList<>();
         googleMap.setOnPolylineClickListener(new GoogleMap.OnPolylineClickListener() {
             @Override
             public void onPolylineClick(Polyline polyline) {
                 Log.d(TAG, "Polyline Clicked");
-                showPolyLineWaypoints(polyline);
+                polyWaypoints = new ArrayList<>();
+                markers = new ArrayList<>();
+                userAndMarkers = (HashMap<String, ArrayList<LatLng>>) polyline.getTag();
+                drawPolyWaypoints();
                 Toast.makeText(context, "Polyline Clicked", Toast.LENGTH_SHORT).show();
             }
         });
+
         googleMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
             @Override
             public void onMapClick(LatLng latLng) {
-                googleMap.clear();
-                Log.d(TAG, "Map Cleared");
-                refreshActiveJourneys();
+                if(markers != null){
+                    for(Marker marker : markers){
+                        marker.remove();
+                    }
+                    Toast.makeText(context, "Removed Markers", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+
+        googleMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+            @Override
+            public boolean onMarkerClick(Marker marker) {
+                Toast.makeText(context, (String) marker.getTag(), Toast.LENGTH_SHORT).show();
+                return false;
             }
         });
     }
 
-    /*Triggers A Data Change to Redisplay The Map*/
-    private void refreshActiveJourneys() {
-        DatabaseReference activeJourneys = FirebaseDatabase.getInstance().getReference();
-        HashMap<String, Object> flagMap = new HashMap<>();
-        flagMap.put("/ActiveJourneys/Flag/", 1);
-        activeJourneys.updateChildren(flagMap);
-        flagMap = new HashMap<>();
-        flagMap.put("/ActiveJourneys/Flag/", 0);
-        activeJourneys.updateChildren(flagMap);
+    private void drawPolyWaypoints() {
+        for(Map.Entry entry : userAndMarkers.entrySet()){
+            for(LatLng latLng : (ArrayList<LatLng>) entry.getValue()){
+                Marker marker = googleMap.addMarker(new MarkerOptions().position(latLng));
+                marker.setTag(entry.getKey());
+                markers.add(marker);
+            }
+        }
     }
 
-    /*Display Waypoints Associated With A Polyline*/
-    private void showPolyLineWaypoints(Polyline polyline) {
-        for(Map.Entry<Polyline, ArrayList<LatLng>> polyMarker : polyLines.entrySet()){
-            Polyline poly = polyMarker.getKey();
-            if(poly.equals(polyline)){
-                ArrayList<LatLng> markers = polyMarker.getValue();
-                for(LatLng latlng : markers){
-                    googleMap.addMarker(new MarkerOptions().position(latlng));
-                }
-            }
-            else
-                poly.remove();
-        }
+    public void stopListeningForJourneys(){
+        activeJourneysRef.removeEventListener(activeListener);
+        Log.d(TAG, "STOPPED VALUE EVENT LISTENER");
     }
 
     /*Listen For Any Users Who Are Travelling*/
     public void displayActiveJourneys(){
-        DatabaseReference activeJourneys = FirebaseDatabase.getInstance().getReference("ActiveJourneys");
-        activeJourneys.addValueEventListener(new ValueEventListener() {
+        activeJourneysRef = FirebaseDatabase.getInstance().getReference("ActiveJourneys");
+        activeListener = new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 Iterable<DataSnapshot> dataSnapshots = dataSnapshot.getChildren();
                 for(DataSnapshot dataSnapshot1 : dataSnapshots){ //Cycle Through User IDs
+                    userID = dataSnapshot1.getKey();
+                    polyLatLngs = new ArrayList<>();
+                    polyWaypoints = new ArrayList<>();
+                    userAndMarkers = new HashMap<>();
                     Iterable<DataSnapshot> dataSnapshots1 = dataSnapshot1.getChildren();
                     for(DataSnapshot dataSnapshot2 : dataSnapshots1){ //Cycle Through Markers and Poly Lines
                         if(dataSnapshot2.getKey().equals("Markers")){
@@ -110,28 +109,34 @@ public class ActiveUserMap{
                                 test.collegecarpool.alpha.MapsUtilities.LatLng myLatLng = dataSnapshot3.getValue(test.collegecarpool.alpha.MapsUtilities.LatLng.class);
                                 Log.d(TAG, "Lat id: " + myLatLng.toString());
                                 LatLng latLng = myLatLng.toGoogleLatLng();
-                                waypoints.add(latLng);
+                                polyWaypoints.add(latLng);
                                 Log.d(TAG, "Waypoint is: " + latLng.toString());
                             }
                         }
                         if(dataSnapshot2.getKey().equals("Polyline")){
                             String encodedPoly = dataSnapshot2.getValue(String.class);
                             Log.d(TAG, "Encoded Poly Is " + encodedPoly);
-                            tempPoly = (ArrayList<LatLng>) PolyUtil.decode(encodedPoly);
-                            Log.d(TAG, "Decoded Poly Is: " + tempPoly.toString());
+                            polyLatLngs = (ArrayList<LatLng>) PolyUtil.decode(encodedPoly);
+                            Log.d(TAG, "Decoded Poly Is: " + polyLatLngs.toString());
                         }
                     }
-                    Log.d(TAG, "Decoded Poly Is: " + tempPoly.toString());
-                    Log.d(TAG, "Waypoints Is: " + waypoints.toString());
+                    /*Set Up How Polyline Looks*/
                     polylineOptions = new PolylineOptions();
-                    polylineOptions.addAll(tempPoly);
+                    polylineOptions.addAll(polyLatLngs);
                     polylineOptions.width(10);
                     polylineOptions.color(Color.BLUE);
                     polylineOptions.clickable(true);
                     polylineOptions.isClickable();
+                    polylineOptions.geodesic(true);
                     Polyline polyline = googleMap.addPolyline(polylineOptions);
+                    /*Set PolyLien Styles - New Update*/
+                    polyline.setEndCap(new RoundCap());
+                    polyline.setJointType(JointType.ROUND);
+                    userAndMarkers.put(userID, polyWaypoints);
+                    /*Associate A User ID and Waypoints List With A PolyLine*/
+                    polyline.setTag(userAndMarkers);
                     Log.d(TAG, "Polyline is: " + polyline.toString());
-                    polyLines.put(polyline, waypoints);
+
                 }
             }
 
@@ -139,38 +144,7 @@ public class ActiveUserMap{
             public void onCancelled(DatabaseError databaseError) {
 
             }
-        });
-    }
-
-    public void displayUserLocations(){
-        userRef.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                Iterable <DataSnapshot> dataSnapshots = dataSnapshot.getChildren();
-                for(DataSnapshot dataSnapshot1 : dataSnapshots){
-                    UserProfile userProfile = dataSnapshot1.getValue(UserProfile.class);
-                    if(auth.getCurrentUser() != null && auth.getCurrentUser() == user && shouldZoom){
-                        CameraPosition cameraPosition = new CameraPosition.Builder()
-                                .target(new LatLng(userProfile.getLatitude(), userProfile.getLongitude()))// Sets the center of the map to location user
-                                .zoom(15)
-                                .build();
-                        Log.d(TAG, "Marker Added For User at " + userProfile.getLatitude() + "/" + userProfile.getLongitude() + ", Zoom: " + shouldZoom);
-                        googleMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
-                        shouldZoom = false;
-                    }
-                    else {
-                        if(userProfile.getBroadcastLocation()) {
-                            googleMap.addMarker(new MarkerOptions().position(new LatLng(userProfile.getLatitude(), userProfile.getLongitude())).title(userProfile.getFirstName()));
-                        }
-                    }
-                }
-                /*Redraw Poly lines*/
-                displayActiveJourneys();
-            }
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-        });
+        };
+        activeJourneysRef.addValueEventListener(activeListener);
     }
 }

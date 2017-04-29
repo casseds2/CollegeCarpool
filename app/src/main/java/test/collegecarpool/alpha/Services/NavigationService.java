@@ -97,6 +97,7 @@ public class NavigationService extends Service{
                     try {
                         /*If User Isn't on Route, Update PolyLatLngs and Add User Location To The Start*/
                         polyDirections = new PolyDirections();
+                        Log.d(TAG, "GOOGLE DIRECTIONS REQUEST");
                         polyLatLngs = polyDirections.execute(new PolyURLBuilder(journeyLatLngs).buildPolyURL()).get();
                         encodePolyLine = PolyUtil.encode(polyLatLngs);
                         polyLinePusher.pushPolyLine(encodePolyLine, journeyLatLngs.subList(1, journeyLatLngs.size()));
@@ -105,27 +106,29 @@ public class NavigationService extends Service{
                         e.printStackTrace();
                     }
                     routeChanged = true;
-                    //Log.d(TAG, "PolyLatLng Changed Route :" + polyLatLngs.toString());
+                    directionParser = polyDirections.getDirectionParser();
+                    Log.d(TAG, "JSON IS " + directionParser.toString());
+                    Log.d(TAG, "Parser is " + directionParser.toString());
                     sendBundle();
                 }
                 else{ //User Was on Correct Route
                     routeChanged = false;
                     Log.d(TAG, "USER ON ROUTE");
-                   try {
-                        /*If User Is on Route, Update PolyLatLngs and Add User Location To The Start*/
-                        polyDirections = new PolyDirections();
-                        polyLatLngs = polyDirections.execute(new PolyURLBuilder(journeyLatLngs).buildPolyURL()).get();
-                        encodePolyLine = PolyUtil.encode(polyLatLngs);
+//                   try {
+//                        /*If User Is on Route, Update PolyLatLngs and Add User Location To The Start*/
+//                        polyDirections = new PolyDirections();
+//                        polyLatLngs = polyDirections.execute(new PolyURLBuilder(journeyLatLngs).buildPolyURL()).get();
+//                        encodePolyLine = PolyUtil.encode(polyLatLngs);
                         polyLinePusher.pushPolyLine(encodePolyLine, journeyLatLngs.subList(1, journeyLatLngs.size()));
-                   }
-                   catch (InterruptedException | ExecutionException e) {
-                        e.printStackTrace();
-                   }
-                   Log.d(TAG, "PolyLatLng Changed Route: " + polyLatLngs.toString());
-
-                    /*Direction Parser Contains the JSON String*/
-                    directionParser = polyDirections.getDirectionParser();
-                    Log.d(TAG, "Parser is " + directionParser.toString());
+//                   }
+//                   catch (InterruptedException | ExecutionException e) {
+//                        e.printStackTrace();
+//                   }
+//                   Log.d(TAG, "PolyLatLng Changed Route: " + polyLatLngs.toString());
+//
+//                    /*Direction Parser Contains the JSON String*/
+//                    directionParser = polyDirections.getDirectionParser();
+//                    Log.d(TAG, "Parser is " + directionParser.toString());
 
                     //PERFORM ANY OTHER CALCULATIONS WITH THE JSON HERE
 

@@ -90,7 +90,6 @@ public class GoogleClientBuilder extends Activity implements GoogleApiClient.Con
                     .addOnConnectionFailedListener(this)
                     .addApi(Places.GEO_DATA_API)
                     .addApi(Places.PLACE_DETECTION_API)
-                    //.enableAutoManage((FragmentActivity) context, this)
                     .build();
             Log.d(TAG, "PLACES CLIENT BUILT");
             googleApiClient.connect();

@@ -298,14 +298,18 @@ public class PlanJourneyActivity extends AppCompatActivity implements DatePicker
                 if(locationButtonEnabled) {
                     currentPlace = googleClientBuilder.getCurrentPlace();
                     if (!places.contains(currentPlace)) {
-                        places.add(currentPlace);
-                        placeNames.add(currentPlace.getName().toString());
-                        adapter.notifyDataSetChanged();
+                        if(null != currentPlace) {
+                            places.add(currentPlace);
+                            placeNames.add(currentPlace.getName().toString());
+                            adapter.notifyDataSetChanged();
+                            locationButtonEnabled = false;
+                        }
+                        else
+                            Toast.makeText(PlanJourneyActivity.this, "Wait to Obtain Location", Toast.LENGTH_SHORT).show();
                     }
                     else
-                        Toast.makeText(PlanJourneyActivity.this, "Already Picked My Location", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(PlanJourneyActivity.this, "Location Already In List", Toast.LENGTH_SHORT).show();
                     printPlacesArray();
-                    locationButtonEnabled = false;
                 }
                 else
                     Toast.makeText(PlanJourneyActivity.this, "Already Using My Location", Toast.LENGTH_SHORT).show();

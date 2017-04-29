@@ -22,65 +22,42 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.Polyline;
-import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
 
-import java.util.ArrayList;
-
+import test.collegecarpool.alpha.Firebase.FireLocationMapZoom;
 import test.collegecarpool.alpha.LoginAndRegistrationActivities.SigninActivity;
-import test.collegecarpool.alpha.MapsUtilities.LatLng;
 import test.collegecarpool.alpha.MessagingActivities.ChatRoomActivity;
 import test.collegecarpool.alpha.R;
-import test.collegecarpool.alpha.Services.BackgroundLocationIntentService;
 import test.collegecarpool.alpha.Services.BackgroundLocationService;
 import test.collegecarpool.alpha.MapsUtilities.ActiveUserMap;
 import test.collegecarpool.alpha.Tools.GoogleClientBuilder;
 
 import static test.collegecarpool.alpha.Tools.Variables.MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION;
-import static test.collegecarpool.alpha.Tools.Variables.shouldZoom;
 
 public class HomeScreenActivity extends AppCompatActivity implements OnMapReadyCallback{
 
     private GoogleApiClient googleApiClient = null;
     private static String TAG = "HomeScreenActivity";
-    private boolean broadcastIsClicked = false;
     private ActionBarDrawerToggle actionBarDrawerToggle;
-    private FirebaseAuth auth = FirebaseAuth.getInstance();
-    private DatabaseReference broadcastRef;
+    private FirebaseAuth auth;
     private SupportMapFragment mapFragment;
+    private GoogleClientBuilder googleClientBuilder;
     private ActiveUserMap activeUserMap;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home_screen);
-        mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
-        if(auth.getCurrentUser() != null)
-            broadcastRef = FirebaseDatabase.getInstance().getReference("UserProfile").child(auth.getCurrentUser().getUid()).child("broadcastLocation");
 
-        GoogleClientBuilder googleClientBuilder = new GoogleClientBuilder(this, googleApiClient);
-        googleClientBuilder.buildLocationClient();
-        googleClientBuilder.startLocationUpdates();
+        mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
 
         checkPermissions();
-        shouldZoom = true;
-        Button btnBroadcast = (Button) findViewById(R.id.broadcast_location);
-        Button btnPlanJourney = (Button) findViewById(R.id.plan_journey);
+
+        auth = FirebaseAuth.getInstance();
+
         initDrawer();
 
-        btnBroadcast.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Log.d(TAG, "BROADCASTING LOCATION");
-                broadcastRef.setValue(true);
-                broadcastIsClicked = true;
-            }
-        });
-
-
+        Button btnPlanJourney = (Button) findViewById(R.id.plan_journey);
         btnPlanJourney.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -89,6 +66,65 @@ public class HomeScreenActivity extends AppCompatActivity implements OnMapReadyC
             }
         });
 
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        return actionBarDrawerToggle.onOptionsItemSelected(item) || super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onMapReady(GoogleMap googleMap) {
+        startService(new Intent(this, BackgroundLocationService.class));
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION}, MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
+        }
+        googleMap.setMyLocationEnabled(true);
+        googleMap.setBuildingsEnabled(true);
+        //googleMap.setTrafficEnabled(true);
+
+        /*Display Users Broadcasting Location and PolyLines of People Travelling*/
+        activeUserMap = new ActiveUserMap(this, googleMap);
+        activeUserMap.displayActiveJourneys();
+
+        /*Zoom On My Firebase Location*/
+        new FireLocationMapZoom(googleMap).zoomMyLocation();
+    }
+
+    /*Checks If The User Has Given Fine Location Permissions*/
+    private void checkPermissions() {
+        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            Log.d(TAG, "NO PERMISSIONS ALREADY GRANTED");
+            ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION}, MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
+        }
+        else {
+            Log.d(TAG, "PERMISSIONS ALREADY GRANTED");
+            googleClientBuilder = new GoogleClientBuilder(this, googleApiClient);
+            googleClientBuilder.buildLocationClient();
+            googleClientBuilder.startLocationUpdates();
+            mapFragment.getMapAsync(this);
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        switch (requestCode) {
+            case MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION: {
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    mapFragment.getMapAsync(this);
+                    Log.d(TAG, "ACCESS TO FINE LOCATION GRANTED");
+                    googleClientBuilder = new GoogleClientBuilder(this, googleApiClient);
+                    googleClientBuilder.buildLocationClient();
+                    googleClientBuilder.startLocationUpdates();
+                }
+                else {
+                    Log.d(TAG, "NEED LOCATION PERMISSIONS TO BE GRANTED");
+                }
+            }
+            // other 'case' lines to check for other
+            // permissions this app might request
+        }
     }
 
     private void initDrawer() {
@@ -139,74 +175,14 @@ public class HomeScreenActivity extends AppCompatActivity implements OnMapReadyC
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        return actionBarDrawerToggle.onOptionsItemSelected(item) || super.onOptionsItemSelected(item);
-    }
-
-    @Override
-    public void onMapReady(GoogleMap googleMap) {
-        startService(new Intent(this, BackgroundLocationService.class));
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION}, MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
-        }
-        googleMap.setMyLocationEnabled(true);
-        googleMap.setBuildingsEnabled(true);
-        //googleMap.setTrafficEnabled(true);
-        /*Display Users Broadcasting Location and Polylines of People Travelling*/
-        activeUserMap = new ActiveUserMap(this, googleMap);
-        activeUserMap.displayUserLocations();
-        activeUserMap.displayActiveJourneys();
-    }
-
-    private void checkPermissions() {
-        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION}, MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
-        }
-        else{
-            mapFragment.getMapAsync(this);
-        }
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        switch (requestCode) {
-            case MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION: {
-                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    mapFragment.getMapAsync(this);
-                    Log.d(TAG, "ACCESS TO FINE LOCATION GRANTED");
-                }
-                else {
-                    Log.d(TAG, "NEED LOCATION PERMISSIONS TO BE GRANTED");
-                }
-            }
-            // other 'case' lines to check for other
-            // permissions this app might request
-        }
-    }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-        if(broadcastIsClicked && auth.getCurrentUser() != null)
-           broadcastRef.setValue(true);
-    }
-
-    @Override
     protected void onStop() {
         super.onStop();
-        if(auth.getCurrentUser() != null)
-            broadcastRef.setValue(false);
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
+        activeUserMap.stopListeningForJourneys();
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        broadcastRef.setValue(false);
+        activeUserMap.stopListeningForJourneys();
     }
 }

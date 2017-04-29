@@ -160,3 +160,7 @@ on Service Stop. I am now moving on to setting click listeners to the waypoints 
 to store active user journeys. By this I mean it stores the userID, an encoded polyline(their journey line if SAT_Nav enabled) and a list of their waypoints.
 All of this information is removed when the user is finished travelling or exits the nav screen.
 
+# Found out that the setTag() method for the polyline I'm looking for is only in the newest version of Map, attempting to update. -One hour later, update is
+nto ideal! Have made a temporary Hashmap to store polyline info but rough workaround until patch finished for setTag() which allows me associate
+objects with lines.
+
