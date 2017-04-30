@@ -44,7 +44,6 @@ public class PolyURLBuilder {
         String urlString = origin + lat + "," + lon + "&waypoints=optimize:true|";
         for(int i = 1; i < places.size()-1; i++){
             urlString = urlString + places.get(i).latitude + "," + places.get(i).longitude + "|";
-            Log.d(TAG, urlString);
         }
         urlString = urlString + "&destination=" + places.get(places.size()-1).latitude + "," + places.get(places.size()-1).longitude;
         String GOOGLE_API_KEY = "AIzaSyD7LLJg_QOR-VzqRPYaXazOnbJHBgiQd3k";
@@ -53,7 +52,6 @@ public class PolyURLBuilder {
             url = new URL(urlString);
             if(!Variables.SAT_NAV_ENABLED) //IF NOT IN SAT_NAV MODE DRAW IT
                 new PolyDirections(context, googleMap).execute(url);
-            Log.d(TAG, "PolyURLBuilt");
             Log.d(TAG, urlString);
         }
         catch(MalformedURLException e){

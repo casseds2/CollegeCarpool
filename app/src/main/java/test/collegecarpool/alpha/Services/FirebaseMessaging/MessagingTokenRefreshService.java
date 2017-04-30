@@ -15,5 +15,6 @@ public class MessagingTokenRefreshService extends FirebaseInstanceIdService{
         Log.d(TAG, "Token is: " + token);
     }
 
-
+    /*Possibly Push This Token to the Firebase User Profile*/
+    /*Could be Glaring Security Risk*/
 }

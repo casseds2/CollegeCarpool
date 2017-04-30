@@ -46,7 +46,7 @@ public class NavigationActivity extends FragmentActivity implements OnMapReadyCa
     private Journey journey;
     private GoogleMap googleMap;
     private Polyline polyline;
-    protected PolyDirectionResultReceiver polyDirectionResultReceiver;
+    private PolyDirectionResultReceiver polyDirectionResultReceiver;
     private WaypointsInitializer waypointsInitializer;
 
     @Override
@@ -85,6 +85,7 @@ public class NavigationActivity extends FragmentActivity implements OnMapReadyCa
         intent.putExtra("ResultReceiver", polyDirectionResultReceiver);
         intent.putExtra("PolyLatLngs", polyLatLngs);
         intent.putExtra("JourneyLatLngs", journeyLatLngs);
+
         startService(intent);
         Log.d(TAG, "SAT_NAVE SERVICE STARTED");
 
@@ -106,6 +107,8 @@ public class NavigationActivity extends FragmentActivity implements OnMapReadyCa
 
     /*Update the Activity Based on the Result Received From The Service*/
     public void updateUI(ArrayList<LatLng> journeyLatLngs, ArrayList<LatLng> polyLatLngs, boolean journeyFinished){
+        Log.d(TAG, "updateUI CALLED");
+
         /*Clear The Map If Journey Is Over*/
         if(googleMap != null && journeyFinished && polyline != null){
             googleMap.clear();
@@ -114,32 +117,34 @@ public class NavigationActivity extends FragmentActivity implements OnMapReadyCa
         if(!journeyFinished && googleMap != null) {
             this.journeyLatLngs = journeyLatLngs;
             this.polyLatLngs = polyLatLngs;
-            googleMap.clear();
 
-            /*Lat Set to Zero to Trigger onDataChanged So If its 0, Don't Zoom On It*/
-            if(journeyLatLngs.get(0).latitude != 0)
-                googleMap.animateCamera(CameraUpdateFactory.newCameraPosition(setCamera(journeyLatLngs.get(0))));
+            /*On Data Change, Follow the User*/
+            googleMap.animateCamera(CameraUpdateFactory.newCameraPosition(setCamera(journeyLatLngs.get(0))));
 
             /*Handle If A Waypoint Was Removed Manually*/
             if(waypointsInitializer.waypointRemoved() && journeyLatLngs.size() > 1){
+
                 Log.d(TAG, "A WAYPOINT WAS REMOVED MANUALLY");
-                waypointsInitializer.resetWaypointRemoved();
+
+                /*Clear the Map of Old Waypoints*/
+                googleMap.clear();
 
                 /*If Waypoints Have Changed, Update Service With New Info*/
                 journeyLatLngs = getLatLngsFromWaypoint(journey.getWaypoints());
-
-                //Clear the Map of Old Waypoints
-                googleMap.clear();
 
                 /*Inject The New Extras Into A Service*/
                 intent.putExtra("PolyLatLngs", polyLatLngs);
                 intent.putExtra("JourneyLatLngs", journeyLatLngs);
                 intent.putExtra("ResultReceiver", polyDirectionResultReceiver);
+
                 startService(intent);
                 Log.d(TAG, "SAT_NAVE SERVICE STARTED AGAIN AFTER DELETED WAYPOINTS");
+
+                /*Reset Boolean For If A Waypoint Was Removed*/
+                waypointsInitializer.resetWaypointRemoved();
             }
             /*Refreshes the User UI*/
-            waypointsInitializer.displayWaypoints(journey, this.journeyLatLngs);//Will Remove All WayPoints if not used
+            waypointsInitializer.displayWaypoints(journey, this.journeyLatLngs);
             PolylineOptions polylineOptions = new PolylineOptions();
             polylineOptions.addAll(polyLatLngs).width(8).color(Color.BLUE);
             polyline = googleMap.addPolyline(polylineOptions);
@@ -175,6 +180,7 @@ public class NavigationActivity extends FragmentActivity implements OnMapReadyCa
         /*Show The Waypoints On The Map*/
         waypointsInitializer.displayWaypoints(journey);
         googleMap.addPolyline(polylineOptions);
+
     }
 
     /*Zoom Map Around Entire Journey Before Zooming in on User*/

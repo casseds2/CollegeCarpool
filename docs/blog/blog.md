@@ -160,7 +160,15 @@ on Service Stop. I am now moving on to setting click listeners to the waypoints 
 to store active user journeys. By this I mean it stores the userID, an encoded polyline(their journey line if SAT_Nav enabled) and a list of their waypoints.
 All of this information is removed when the user is finished travelling or exits the nav screen.
 
-# Found out that the setTag() method for the polyline I'm looking for is only in the newest version of Map, attempting to update. -One hour later, update is
-nto ideal! Have made a temporary Hashmap to store polyline info but rough workaround until patch finished for setTag() which allows me associate
-objects with lines.
+## My Seventeenth Blog
+Found out that the setTag() method for the polyline I'm looking for is only in the newest version of Map, attempting to update. -One hour later, update is
+nto ideal! Have made a temporary Hash map to store polyline info but rough workaround until patch finished for setTag() which allows me associate
+objects with lines. I finally got the setTag() working and the gradle files synced. This lead me to be able to story a polyline's waypoints and the owners
+user ID with it. From here I could write directly into his messages. Looking into how to get him notified of an incoming message. Tinkered with
+Firebase Cloud Notifications and Functions. Looked promising but I'll look again tomorrow. Completely refactored the GPS service. Upon inspection, it was
+doing far too much work for a UI thread because of poor programming. Some functions were being called six times when they only needed to be called once!
+This has lead the UI to perform a lot better and be completely more responsive then it was before. It also hasn't crashed in a while. Now the system doesn't
+make continuous calls to Google Directions API, it will only call if off route, a waypoint has been reached or a waypoint was manually removed. Less ASYNC tasks
+meant performance is sped up severely. Might also look into parsing the JSON for more info tomorrow if I can get the messaging and possible custom
+notifications working.
 

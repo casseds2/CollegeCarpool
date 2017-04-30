@@ -41,8 +41,8 @@ public class Journey implements Serializable { //Implements Serializable So That
     void removeWaypoint(Waypoint waypoint){
         for(Waypoint marker : waypoints){
             if(null != marker && waypoint != null && waypoint.isTheSameAs(marker)) {
-                Log.d("JOURNEY", waypoint.toString() + "WAS MATCHING");
                 waypoints.remove(waypoint);
+                Log.d("JOURNEY", waypoint.toString() + " WAS REMOVED");
                 return;
             }
         }

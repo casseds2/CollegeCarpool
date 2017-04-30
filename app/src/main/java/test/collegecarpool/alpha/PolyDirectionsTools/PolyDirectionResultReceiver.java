@@ -22,6 +22,8 @@ public class PolyDirectionResultReceiver extends ResultReceiver{
     @Override
     protected void onReceiveResult(int resultCode, Bundle resultData) {
         super.onReceiveResult(resultCode, resultData);
-        navigationActivity.updateUI((ArrayList<LatLng>) resultData.getSerializable("JourneyLatLngs"), (ArrayList<LatLng>) resultData.getSerializable("PolyLatLngs"), resultData.getBoolean("JourneyFinished"));
+        navigationActivity.updateUI((ArrayList<LatLng>) resultData.getSerializable("JourneyLatLngs"),
+                (ArrayList<LatLng>) resultData.getSerializable("PolyLatLngs"),
+                resultData.getBoolean("JourneyFinished"));
     }
 }
