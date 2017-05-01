@@ -1,7 +1,10 @@
 package test.collegecarpool.alpha.MapsUtilities;
 
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.graphics.Color;
+import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -23,6 +26,10 @@ import com.google.maps.android.PolyUtil;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+
+import test.collegecarpool.alpha.MessagingActivities.ChatRoomActivity;
+import test.collegecarpool.alpha.MessagingActivities.MessageActivity;
+import test.collegecarpool.alpha.R;
 
 public class ActiveUserMap{
 
@@ -67,8 +74,26 @@ public class ActiveUserMap{
 
         googleMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
             @Override
-            public boolean onMarkerClick(Marker marker) {
-                Toast.makeText(context, (String) marker.getTag(), Toast.LENGTH_SHORT).show();
+            public boolean onMarkerClick(final Marker marker) {
+                //Toast.makeText(context, (String) marker.getTag(), Toast.LENGTH_SHORT).show();
+                AlertDialog.Builder builder = new AlertDialog.Builder(context)
+                        .setTitle("What Would You Like To Do?")
+                        .setPositiveButton("Message user", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                Intent intent = new Intent(context, MessageActivity.class);
+                                intent.putExtra("ReceiverID", (String) marker.getTag());
+                                context.startActivity(intent);
+                            }
+                        })
+                        .setNegativeButton("Request Ride", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+
+                            }
+                        });
+                builder.create().show();
+
                 return false;
             }
         });

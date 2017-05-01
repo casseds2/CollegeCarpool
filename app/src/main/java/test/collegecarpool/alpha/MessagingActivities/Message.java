@@ -1,25 +1,38 @@
 package test.collegecarpool.alpha.MessagingActivities;
 
-/**
- * Created by casseds95 for 4TH YEAR Project 07/02/2017.
- */
-
 public class Message {
 
-    private String message, messageSender;
+    private String message;
+    private String timeStamp;
+    private String sender;
 
     public Message(){}
 
-    public Message(String message, String messageSender){
+    Message(String sender, String message){
+        this.sender = sender;
         this.message = message;
-        this.messageSender = messageSender;
+        timeStamp = Long.toString(System.currentTimeMillis());
     }
 
-    public String getMessage(){
+    public void setMessage(String message) {
+        this.message = message;
+    }
+
+    public void setTimeStamp(String timeStamp) {
+        this.timeStamp = timeStamp;
+    }
+
+    String getSender(){
+        return sender;
+    }
+
+    String getTimeStamp(){
+        return timeStamp;
+
+    }
+
+    String getMessage(){
         return message;
     }
 
-    public String getMessageSender(){
-        return messageSender;
-    }
 }

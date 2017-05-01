@@ -5,6 +5,8 @@ import android.util.Log;
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.firebase.iid.FirebaseInstanceIdService;
 
+import test.collegecarpool.alpha.Firebase.FCMTokenPusher;
+
 public class MessagingTokenRefreshService extends FirebaseInstanceIdService{
 
     private final String TAG = "TOKEN REFRESH SERVICE";
@@ -13,8 +15,6 @@ public class MessagingTokenRefreshService extends FirebaseInstanceIdService{
     public void onTokenRefresh() {
         String token = FirebaseInstanceId.getInstance().getToken();
         Log.d(TAG, "Token is: " + token);
+        new FCMTokenPusher().pushFCMToken(token);
     }
-
-    /*Possibly Push This Token to the Firebase User Profile*/
-    /*Could be Glaring Security Risk*/
 }

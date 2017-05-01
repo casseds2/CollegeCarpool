@@ -17,12 +17,15 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.database.ChildEventListener;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+
+import java.util.ArrayList;
+import java.util.HashMap;
 
 import test.collegecarpool.alpha.Activities.HomeScreenActivity;
 import test.collegecarpool.alpha.Activities.ProfileActivity;
@@ -34,85 +37,100 @@ import test.collegecarpool.alpha.UserClasses.UserProfile;
 public class MessageActivity extends AppCompatActivity {
 
     private EditText message;
-    private TextView chatMessageList;
     private ActionBarDrawerToggle actionBarDrawerToggle;
-
-    private String carChatName;
-
-    private String user;
 
     final static String TAG = "MessageActivity";
 
-    private DatabaseReference carChatNameRef;
+    private DatabaseReference senderChatRef;
+    private DatabaseReference receiverChatRef;
+
     private FirebaseAuth auth;
+    private FirebaseUser user;
+
+    private String receiverID;
+    private TextView messageList;
+
+    String myUserName;
+
+    ArrayList<String> allMessages;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_message);
 
+        /*Initialise Firebase Components*/
+        auth = FirebaseAuth.getInstance();
+        if(auth != null)
+            user = auth.getCurrentUser();
+
+        /*The ID of the Person We Are Sending A Message To*/
+        receiverID = getIntent().getStringExtra("ReceiverID");
+        Log.d(TAG, "Receiver ID is: " + receiverID);
+
+        /*Initialise the References Required*/
+        senderChatRef = FirebaseDatabase.getInstance().getReference("UserProfile").child(user.getUid());
+        receiverChatRef = FirebaseDatabase.getInstance().getReference("UserProfile").child(receiverID);
+
+        /*Set The Activity Name To The User You Are Sending To*/
+        getUserNames();
+
+        message = (EditText) findViewById(R.id.message);
+        messageList = (TextView) findViewById(R.id.chatMessageList);
+
+        /*Populate the Page With Any Previous Messages*/
+        populateMessages();
+
         initDrawer();
 
         Button btnSendMessage = (Button) findViewById(R.id.btnSendMessage);
-        message = (EditText) findViewById(R.id.message);
-        chatMessageList = (TextView) findViewById(R.id.chatMessageList);
-
-        carChatName = (String) getIntent().getExtras().get("carChatName");
-        Log.d(TAG, carChatName);
-
-        carChatNameRef = FirebaseDatabase.getInstance().getReference("CarChatGroups");
-        DatabaseReference userRef = FirebaseDatabase.getInstance().getReference("UserProfile");
-        auth = FirebaseAuth.getInstance();
-        user = String.valueOf(userRef.getKey());
-
-        setTitle(carChatName);
-
         btnSendMessage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 String messageText = message.getText().toString();
-                Message myMessage = new Message(messageText, user);
-                carChatNameRef.child(carChatName).push().setValue(myMessage);
+                Message myMessage = new Message(myUserName, messageText);
+                sendMessage(myMessage);
                 message.setText("");
             }
         });
+    }
 
-        carChatNameRef.addChildEventListener(new ChildEventListener() {
-            @Override
-            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                addMessage(dataSnapshot);
-            }
+    /*Send A Message*/
+    private void sendMessage(Message m){
+        HashMap<String, Object> senderMap = new HashMap<>();
+        HashMap<String, Object> receiverMap = new HashMap<>();
+        senderMap.put("/Messaging/" + receiverID + "/" + m.getTimeStamp() + "/", m);
+        receiverMap.put("/Messaging/" + user.getUid() + "/" + m.getTimeStamp() + "/", m);
+        senderChatRef.updateChildren(senderMap);
+        receiverChatRef.updateChildren(receiverMap);
+        Log.d(TAG, "MESSAGE SENT");
+    }
 
-            @Override
-            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-                addMessage(dataSnapshot);
-            }
-
-            @Override
-            public void onChildRemoved(DataSnapshot dataSnapshot) {
-
-            }
-
-            @Override
-            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
-
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-        });
-
-        userRef.addListenerForSingleValueEvent(new ValueEventListener() {
+    /*Pull Messages Down And Show Them in Text View*/
+    private void populateMessages() {
+        Log.d(TAG, "POPULATING MESSAGES");
+        receiverChatRef.child("Messaging").addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                Iterable <DataSnapshot> dataSnapshots = dataSnapshot.getChildren();
-                for(DataSnapshot dataSnapshot1 : dataSnapshots) {
-                    UserProfile userProfile = dataSnapshot1.getValue(UserProfile.class);
-                    if(auth.getCurrentUser() != null && userProfile.getEmail().equals(auth.getCurrentUser().getEmail())){
-                        user = userProfile.getFirstName() + " " + userProfile.getSecondName();
+                /*List Of All Messages (To Be Sent To Message Adapter)*/
+                allMessages = new ArrayList<>();
+                messageList.setText("");
+                Iterable<DataSnapshot> data = dataSnapshot.getChildren();
+                for(DataSnapshot dataSnap : data){ //Cycle Through Users
+                    Log.d(TAG, "KEY IS: " + dataSnap.getKey());
+                    if(dataSnap.getKey().equals(user.getUid())) {
+                        Log.d(TAG, "RECEIVER ID MATCHED");
+                        Iterable<DataSnapshot> data1 = dataSnap.getChildren();
+                        for (DataSnapshot dataSnap1 : data1) {
+                            Message storedMessage = dataSnap1.getValue(Message.class);
+                            Log.d(TAG, "Message: " + storedMessage.getMessage());
+                            allMessages.add(storedMessage.getSender() + ": " + storedMessage.getMessage());
+                            Log.d(TAG, "STORED MESSAGE IS: " + storedMessage.getMessage());
+                        }
                     }
+                }
+                for(String s : allMessages){
+                    messageList.append(s + "\n");
                 }
             }
 
@@ -123,15 +141,34 @@ public class MessageActivity extends AppCompatActivity {
         });
     }
 
-    public void addMessage(DataSnapshot dataSnapshot){
-        chatMessageList.setText("");
-        Iterable <DataSnapshot> dataSnapshots = dataSnapshot.getChildren();
-        for(DataSnapshot data : dataSnapshots){
-            Message temp = data.getValue(Message.class);
-            String firebaseMessage = temp.getMessage();
-            String firebaseUserName = temp.getMessageSender();
-            chatMessageList.append(firebaseUserName + ": " + firebaseMessage + "\n");
-        }
+    /*Sets the Chat To The Name of The Person I'm Sending To*/
+    private void getUserNames(){
+        DatabaseReference userRef = FirebaseDatabase.getInstance().getReference("UserProfile");
+        userRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                Iterable<DataSnapshot> data = dataSnapshot.getChildren();
+                for(DataSnapshot dataSnap : data){
+                    String userID = dataSnap.getKey();
+                    if(userID.equals(user.getUid())){
+                        UserProfile userProfile = dataSnap.getValue(UserProfile.class);
+                        myUserName = userProfile.getFirstName() + " " + userProfile.getSecondName();
+                    }
+                    if(userID.equals(receiverID)){
+                        UserProfile receiverUserProfile = dataSnap.getValue(UserProfile.class);
+                        String chatName = receiverUserProfile.getFirstName() + " " + receiverUserProfile.getSecondName();
+                        if(getSupportActionBar() != null){
+                            getSupportActionBar().setTitle(chatName);
+                        }
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
     }
 
     public void initDrawer() {

@@ -25,6 +25,7 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.iid.FirebaseInstanceId;
 
+import test.collegecarpool.alpha.Firebase.FCMTokenPusher;
 import test.collegecarpool.alpha.Firebase.FireLocationMapZoom;
 import test.collegecarpool.alpha.LoginAndRegistrationActivities.SigninActivity;
 import test.collegecarpool.alpha.MessagingActivities.ChatRoomActivity;
@@ -50,7 +51,9 @@ public class HomeScreenActivity extends AppCompatActivity implements OnMapReadyC
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home_screen);
 
-        Log.d(TAG,"FCM Token is: " + FirebaseInstanceId.getInstance().getToken());
+        String fcmToken = FirebaseInstanceId.getInstance().getToken();
+        Log.d(TAG,"FCM Token is: " + fcmToken);
+        new FCMTokenPusher().pushFCMToken(fcmToken);
 
         mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
 
@@ -188,6 +191,5 @@ public class HomeScreenActivity extends AppCompatActivity implements OnMapReadyC
     protected void onPause() {
         super.onPause();
         Log.d(TAG, "onPause");
-        activeUserMap.stopListeningForJourneys();
     }
 }

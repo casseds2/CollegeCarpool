@@ -1,9 +1,12 @@
 package test.collegecarpool.alpha.Services.FirebaseMessaging;
 
-import android.util.Log;
+import android.app.NotificationManager;
+import android.support.v4.app.NotificationCompat;
 
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
+
+import test.collegecarpool.alpha.R;
 
 public class MessagingService extends FirebaseMessagingService {
 
@@ -11,15 +14,15 @@ public class MessagingService extends FirebaseMessagingService {
 
     @Override
     public void onMessageReceived(RemoteMessage remoteMessage) {
-        String image = remoteMessage.getNotification().getIcon();
-        String text = remoteMessage.getNotification().getBody();
-        String title = remoteMessage.getNotification().getTitle();
-        Log.d(TAG, "Message Received");
-        this.sendNotification(new Notification(title, image, text));
-    }
-
-    /*Send Custom Notification To Device On Message Received*/
-    private void sendNotification(Notification notification){
-
+        super.onMessageReceived(remoteMessage);
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
+                .setSmallIcon(R.mipmap.ic_launcher)
+                .setContentTitle(remoteMessage.getNotification().getTitle())
+                .setContentText(remoteMessage.getNotification().getBody());
+        //Map<String, String> data = remoteMessage.getData();
+        //String senderID = data.get("senderID");
+        //Log.d(TAG, "SENDER IS: " + senderID);
+        NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+        notificationManager.notify(0, builder.build());
     }
 }

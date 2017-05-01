@@ -106,7 +106,7 @@ public class NavigationService extends Service{
                         if(journeyLatLngs.size() < 2 && myPositionAlreadyAdded) {
                             Log.d(TAG, "ALL WAYPOINTS REACHED, SERVICE STOPPED");
                             userRef.removeEventListener(this);
-                            //polyLinePusher.nullify();
+                            polyLinePusher.nullify();
                             Log.d(TAG, "Value Event Listener Removed");
                             stopMyService();
                         }
@@ -127,7 +127,7 @@ public class NavigationService extends Service{
                     /*Stops the CallBack That Will Continue Running And Nullifies the Active Journey*/
                     if(!Variables.SAT_NAV_ENABLED){
                         userRef.removeEventListener(this);
-                        //polyLinePusher.nullify();
+                        polyLinePusher.nullify();
                         Log.d(TAG, "VALUE EVENT LISTENER REMOVED && ACTIVE JOURNEY NULLIFIED");
                         stopSelf();
                     }
@@ -211,7 +211,6 @@ public class NavigationService extends Service{
             polyDirections = null;
             Log.d(TAG, "ASYNC KILLED");
         }
-        //sendBundle();
         this.stopSelf();
     }
 
@@ -246,7 +245,7 @@ public class NavigationService extends Service{
             polyDirections = null;
             Log.d(TAG, "ASYNC KILLED");
         }
-        //polyLinePusher.nullify();
+        polyLinePusher.nullify();
         Log.d(TAG, "SAT_NAV_SERVICE STOPPED");
         Variables.SAT_NAV_ENABLED = false;
         this.stopSelf();

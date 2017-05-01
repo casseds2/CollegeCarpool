@@ -124,8 +124,6 @@ public class WaypointsInitializer extends Activity implements GoogleMap.OnMarker
                 .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        HashMap<String, Object> trigger = new HashMap<>();
-                        trigger.put("/RefreshFlag/", 1);
                         Log.d(TAG, "REMOVED A WAYPOINT MANUALLY");
                         Waypoint waypoint = (Waypoint) marker.getTag();
                         Log.d(TAG, "JOURNEY WAS: " + journey.toString());
@@ -133,6 +131,9 @@ public class WaypointsInitializer extends Activity implements GoogleMap.OnMarker
                         Log.d(TAG, "JOURNEY IS: " + journey.toString());
                         googleMap.clear(); //Removes Waypoint and Current Polyline
                         removedWaypoint = true;
+                        /*Trigger A Location Changed*/
+                        HashMap<String, Object> trigger = new HashMap<>();
+                        trigger.put("/RefreshFlag/", 1);
                         data.updateChildren(trigger); //Triggers onDataChanged in Nav_Service
                         trigger = new HashMap<>();
                         trigger.put("/RefreshFlag/", 0);
@@ -147,6 +148,10 @@ public class WaypointsInitializer extends Activity implements GoogleMap.OnMarker
                 });
         builder.create().show();
         return false;
+    }
+
+    public Journey getJourney(){
+        return journey;
     }
 
     public boolean waypointRemoved(){
