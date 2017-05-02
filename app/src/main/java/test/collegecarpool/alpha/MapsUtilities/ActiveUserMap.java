@@ -27,9 +27,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-import test.collegecarpool.alpha.MessagingActivities.ChatRoomActivity;
+import test.collegecarpool.alpha.Firebase.RideRequest;
 import test.collegecarpool.alpha.MessagingActivities.MessageActivity;
-import test.collegecarpool.alpha.R;
 
 public class ActiveUserMap{
 
@@ -43,11 +42,13 @@ public class ActiveUserMap{
     private DatabaseReference activeJourneysRef;
     private ValueEventListener activeListener;
     private String userID;
+    private RideRequest rideRequest;
 
     public ActiveUserMap(final Context context, final GoogleMap googleMap){
         this.googleMap = googleMap;
         polyLatLngs = new ArrayList<>();
         polyWaypoints = new ArrayList<>();
+        rideRequest = new RideRequest();
         googleMap.setOnPolylineClickListener(new GoogleMap.OnPolylineClickListener() {
             @Override
             public void onPolylineClick(Polyline polyline) {
@@ -75,7 +76,6 @@ public class ActiveUserMap{
         googleMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
             @Override
             public boolean onMarkerClick(final Marker marker) {
-                //Toast.makeText(context, (String) marker.getTag(), Toast.LENGTH_SHORT).show();
                 AlertDialog.Builder builder = new AlertDialog.Builder(context)
                         .setTitle("What Would You Like To Do?")
                         .setPositiveButton("Message user", new DialogInterface.OnClickListener() {
@@ -89,7 +89,8 @@ public class ActiveUserMap{
                         .setNegativeButton("Request Ride", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
-
+                                rideRequest.requestRide((String) marker.getTag());
+                                Toast.makeText(context, "Ride Request Sent", Toast.LENGTH_SHORT).show();
                             }
                         });
                 builder.create().show();
@@ -120,6 +121,7 @@ public class ActiveUserMap{
         activeListener = new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
+                googleMap.clear();
                 Iterable<DataSnapshot> dataSnapshots = dataSnapshot.getChildren();
                 for(DataSnapshot dataSnapshot1 : dataSnapshots){ //Cycle Through User IDs
                     userID = dataSnapshot1.getKey();

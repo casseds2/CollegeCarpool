@@ -27,7 +27,7 @@ import com.google.android.gms.location.places.AutocompleteFilter;
 import com.google.android.gms.location.places.Place;
 import com.google.android.gms.location.places.ui.PlaceAutocompleteFragment;
 import com.google.android.gms.location.places.ui.PlaceSelectionListener;
-import com.google.android.gms.maps.model.LatLng;
+//import com.google.android.gms.maps.model.LatLng;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -46,7 +46,6 @@ import test.collegecarpool.alpha.Adapters.PlanJourneyAdapter;
 import test.collegecarpool.alpha.Firebase.ManageJourneyHistory;
 import test.collegecarpool.alpha.LoginAndRegistrationActivities.SigninActivity;
 import test.collegecarpool.alpha.MapsUtilities.Journey;
-import test.collegecarpool.alpha.MapsUtilities.ViewJourneyActivity;
 import test.collegecarpool.alpha.MapsUtilities.Waypoint;
 import test.collegecarpool.alpha.PolyDirectionsTools.WaypointFromPlaceGenerator;
 import test.collegecarpool.alpha.MessagingActivities.ChatRoomActivity;
@@ -62,7 +61,7 @@ public class PlanJourneyActivity extends AppCompatActivity implements DatePicker
     private DatePickerDialog datePickerDialog;
     private Date date;
     private boolean dateChosen = false;
-    private ArrayList<LatLng> latLngs;
+    //private ArrayList<LatLng> latLngs;
     private FirebaseUser user;
     private DatabaseReference userRef;
     private Journey journey;
@@ -105,7 +104,6 @@ public class PlanJourneyActivity extends AppCompatActivity implements DatePicker
 
     /*Initialise the List View Adapter*/
     private void initListView() {
-        //adapter = new ArrayAdapter<>(this, R.layout.plan_journey_list, placeNames);
         adapter = new PlanJourneyAdapter(this, R.layout.plan_journey_list, placeNames);
         ListView listView = (ListView) findViewById(R.id.plan_journey_list_view);
         listView.setAdapter(adapter);
@@ -323,15 +321,24 @@ public class PlanJourneyActivity extends AppCompatActivity implements DatePicker
         btn2.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                latLngs = new ArrayList<>();
-                for (int i = 0; i < places.size(); i++) {
-                    LatLng latLng = places.get(i).getLatLng();
-                    latLngs.add(latLng);
-                }
-                Intent intent = new Intent(PlanJourneyActivity.this, ViewJourneyActivity.class);
-                intent.putExtra("LAT/LNG", latLngs);
-                Log.d(TAG, "LAT/LNG Extra: " + latLngs.toString());
-                if (latLngs.size() > 1) {
+//                latLngs = new ArrayList<>();
+//                for (int i = 0; i < places.size(); i++) {
+//                    LatLng latLng = places.get(i).getLatLng();
+//                    latLngs.add(latLng);
+//                }
+//                Intent intent = new Intent(PlanJourneyActivity.this, ViewJourneyActivity.class);
+//                intent.putExtra("LAT/LNG", latLngs);
+//                Log.d(TAG, "LAT/LNG Extra: " + latLngs.toString());
+//                if (latLngs.size() > 1) {
+//                    startActivity(intent);
+//                }
+//                else
+//                    Toast.makeText(PlanJourneyActivity.this, "Enter At Least Two Stops", Toast.LENGTH_SHORT).show();
+                if(places.size() > 1) {
+                    date = new Date(calendar.get(Calendar.DAY_OF_MONTH), calendar.get(Calendar.MONTH), calendar.get(Calendar.YEAR));
+                    journey = new Journey(date, new WaypointFromPlaceGenerator().convertPlacesToWayPoints(places));
+                    Intent intent = new Intent(PlanJourneyActivity.this, NavigationActivity.class);
+                    intent.putExtra("SelectedJourney", journey);
                     startActivity(intent);
                 }
                 else
@@ -511,8 +518,17 @@ public class PlanJourneyActivity extends AppCompatActivity implements DatePicker
     }
 
     @Override
+    protected void onPause(){
+        super.onPause();
+        date = null;
+        dateChosen = false;
+    }
+
+    @Override
     protected void onStop(){
         super.onStop();
+        date  = null;
+        dateChosen = false;
         googleClientBuilder.disconnect();
     }
 }

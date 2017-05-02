@@ -41,7 +41,6 @@ public class MessageActivity extends AppCompatActivity {
 
     final static String TAG = "MessageActivity";
 
-    private DatabaseReference senderChatRef;
     private DatabaseReference receiverChatRef;
 
     private FirebaseAuth auth;
@@ -69,7 +68,6 @@ public class MessageActivity extends AppCompatActivity {
         Log.d(TAG, "Receiver ID is: " + receiverID);
 
         /*Initialise the References Required*/
-        senderChatRef = FirebaseDatabase.getInstance().getReference("UserProfile").child(user.getUid());
         receiverChatRef = FirebaseDatabase.getInstance().getReference("UserProfile").child(receiverID);
 
         /*Set The Activity Name To The User You Are Sending To*/
@@ -97,11 +95,8 @@ public class MessageActivity extends AppCompatActivity {
 
     /*Send A Message*/
     private void sendMessage(Message m){
-        HashMap<String, Object> senderMap = new HashMap<>();
         HashMap<String, Object> receiverMap = new HashMap<>();
-        senderMap.put("/Messaging/" + receiverID + "/" + m.getTimeStamp() + "/", m);
-        receiverMap.put("/Messaging/" + user.getUid() + "/" + m.getTimeStamp() + "/", m);
-        senderChatRef.updateChildren(senderMap);
+        receiverMap.put("/Messaging/" + user.getUid() + "/" + m.getTimeStamp() + "/", m.toMap());
         receiverChatRef.updateChildren(receiverMap);
         Log.d(TAG, "MESSAGE SENT");
     }

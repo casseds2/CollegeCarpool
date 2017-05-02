@@ -22,7 +22,7 @@ exports.sendNotification = functions.database.ref("/UserProfile/{receiverID}/Mes
         const senderID = event.params.senderID;
         storeMessageForSender(senderID, receiverID, message);
         var senderName = message.sender;
-        sendMessageNotification(receiverID, senderName);
+        sendMessageNotification(receiverID, senderID, senderName, message);
         return event.data.ref.set(message);
     });
 
@@ -39,8 +39,9 @@ exports.sendNotification = functions.database.ref("/UserProfile/{receiverID}/Mes
         console.log("Message Stored For Sender");
     }
 
+    /*Possibly Send senderID as Part of Data so that when Notification is Clicked, message with user pops up through intents*/
     /*Send the Token to A Receiver*/
-    function sendMessageNotification(receiverID, senderName){
+    function sendMessageNotification(receiverID, senderID, senderName, message){
         var database = admin.database();
         var ref = database.ref("UserProfile/" + receiverID);
         var fcmToken;
@@ -50,7 +51,12 @@ exports.sendNotification = functions.database.ref("/UserProfile/{receiverID}/Mes
             const payload = {
                 notification : {
                     title: "You have a new Message!",
-                    body: senderName + " Messaged You!",
+                    body: senderName + " Messaged You! \n",
+                },
+                data : {
+                    "type" : "message",
+                    "message" : message.message,
+                    "senderID" : senderID
                 }
             };
             sendNotification(fcmToken, payload);
@@ -68,3 +74,43 @@ exports.sendNotification = functions.database.ref("/UserProfile/{receiverID}/Mes
           });
     }
 
+
+exports.rideRequest = functions.database.ref("/UserProfile/{driverID}/RideRequests/{requestID}")
+    .onWrite(event => {
+
+        const request = event.data.val();
+        console.log("Request: " + request);
+
+        const driverID = event.params.driverID;
+        const requestID = event.params.requestID;
+
+        var senderName = request.username;
+        console.log("SenderName: " + senderName);
+
+        sendRequestNotification(driverID, requestID, senderName, request);
+    });
+
+    function sendRequestNotification(driverID, requestID, senderName, request){
+        var database = admin.database();
+        var ref = database.ref("UserProfile/" + driverID);
+        var fcmToken;
+        ref.once("value", function(snapshot){
+            fcmToken = snapshot.val().fcmToken;
+            console.log("FCM Token: " + fcmToken);
+            const payload = {
+                notification : {
+                    title: "You have a Ride Request!",
+                    body: senderName + " Says Please Get Me! \n",
+                },
+                data : {
+                    "type" : "rideRequest",
+                    "lat" : request.lat,
+                    "lng" : request.lng,
+                    "time" : request.time,
+                    "user" : request.user,
+                    "username" : request.username
+                }
+            };
+            sendNotification(fcmToken, payload);
+        });
+    }
