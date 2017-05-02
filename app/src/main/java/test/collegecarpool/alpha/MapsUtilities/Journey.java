@@ -22,6 +22,10 @@ public class Journey implements Serializable { //Implements Serializable So That
         this.waypoints = waypoints;
     }
 
+    public void addWaypoint(Waypoint waypoint){
+        waypoints.add(waypoints.size(), waypoint);
+    }
+
     public Date getDate() {
         return date;
     }

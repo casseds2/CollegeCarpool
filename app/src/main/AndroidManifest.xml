@@ -36,6 +36,26 @@
             android:name="com.google.firebase.messaging.default_notification_color"
             android:resource="@color/colorAccent" />
 
+
+        <receiver android:name=".BroadcastReceivers.RideBroadcastAcceptReceiver">
+            <intent-filter>
+                <action  android:name="android.intent.action.BOOT_COMPLETED"/>
+            </intent-filter>
+        </receiver>
+
+
+        <receiver android:name=".BroadcastReceivers.RideBroadcastRejectReceiver">
+            <intent-filter>
+                <action  android:name="android.intent.action.BOOT_COMPLETED"/>
+            </intent-filter>
+        </receiver>
+
+        <receiver android:name=".BroadcastReceivers.MessageReceiver">
+            <intent-filter>
+                <action  android:name="android.intent.action.BOOT_COMPLETED"/>
+            </intent-filter>
+        </receiver>
+
         <activity
             android:screenOrientation="portrait"
             android:name=".Activities.PaymentActivity"

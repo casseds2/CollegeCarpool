@@ -5,7 +5,7 @@ const functions = require("firebase-functions");
 const admin = require("firebase-admin");
 admin.initializeApp(functions.config().firebase);
 
-exports.sendNotification = functions.database.ref("/UserProfile/{receiverID}/Messaging/{senderID}/{timeStamp}")
+exports.messageNotification = functions.database.ref("/UserProfile/{receiverID}/Messaging/{senderID}/{timeStamp}")
     .onWrite(event => {
         const message = event.data.val();
         if(message.copied){
@@ -74,8 +74,8 @@ exports.sendNotification = functions.database.ref("/UserProfile/{receiverID}/Mes
           });
     }
 
-
-exports.rideRequest = functions.database.ref("/UserProfile/{driverID}/RideRequests/{requestID}")
+/*Listens for A Ride Request*/
+exports.rideRequest = functions.database.ref("/UserProfile/{driverID}/RideRequests/{requestID}/Request")
     .onWrite(event => {
 
         const request = event.data.val();
@@ -86,29 +86,67 @@ exports.rideRequest = functions.database.ref("/UserProfile/{driverID}/RideReques
 
         var senderName = request.username;
         console.log("SenderName: " + senderName);
-
         sendRequestNotification(driverID, requestID, senderName, request);
     });
 
     function sendRequestNotification(driverID, requestID, senderName, request){
+            var database = admin.database();
+            var ref = database.ref("UserProfile/" + driverID);
+            var fcmToken;
+            ref.once("value", function(snapshot){
+                fcmToken = snapshot.val().fcmToken;
+                console.log("FCM Token: " + fcmToken);
+                const payload = {
+                    notification : {
+                        title: "You have a Ride Request!",
+                        body: senderName + " Says Please Get Me! \n",
+                    },
+                    data : {
+                        "type" : "rideRequest",
+                        "lat" : request.lat,
+                        "lng" : request.lng,
+                        "time" : request.time,
+                        "user" : request.user,
+                        "username" : request.username
+                    }
+                };
+                sendNotification(fcmToken, payload);
+            });
+        }
+
+
+/*Listen For A Response Status To A Ride Request*/
+exports.requestResponse = functions.database.ref("/UserProfile/{driverID}/RideRequests/{requestID}/Response")
+    .onWrite(event => {
+
+        const response = event.data.val();
+        console.log("Response: " + response);
+
+        const status = response.Status;
+        console.log("Status: " + status);
+
+        const requestID = event.params.requestID;
+        const driverID = event.params.driverID;
+
+        sendStatusUpdateToRequester(requestID, driverID, status);
+    });
+
+    /*Send the Status Update To The Person Who Requested A Lift*/
+    function sendStatusUpdateToRequester(requestID, driverID, status){
         var database = admin.database();
-        var ref = database.ref("UserProfile/" + driverID);
+        var ref = database.ref("UserProfile/" + requestID);
         var fcmToken;
         ref.once("value", function(snapshot){
             fcmToken = snapshot.val().fcmToken;
             console.log("FCM Token: " + fcmToken);
             const payload = {
                 notification : {
-                    title: "You have a Ride Request!",
-                    body: senderName + " Says Please Get Me! \n",
+                    title: "Request Was " + status
                 },
                 data : {
-                    "type" : "rideRequest",
-                    "lat" : request.lat,
-                    "lng" : request.lng,
-                    "time" : request.time,
-                    "user" : request.user,
-                    "username" : request.username
+                    "type" : "requestResponse",
+                    "status" : status,
+                    "driverID" : driverID
                 }
             };
             sendNotification(fcmToken, payload);

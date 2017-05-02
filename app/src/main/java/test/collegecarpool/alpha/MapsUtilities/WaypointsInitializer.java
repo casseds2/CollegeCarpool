@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.support.v7.app.AlertDialog;
+import android.support.v7.view.ContextThemeWrapper;
 import android.util.Log;
 
 import com.google.android.gms.maps.GoogleMap;
@@ -17,6 +18,8 @@ import com.google.firebase.database.FirebaseDatabase;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
+
+import test.collegecarpool.alpha.R;
 
 public class WaypointsInitializer extends Activity implements GoogleMap.OnMarkerClickListener, Serializable{
 
@@ -119,7 +122,7 @@ public class WaypointsInitializer extends Activity implements GoogleMap.OnMarker
 
     @Override
     public boolean onMarkerClick(final Marker marker) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(context)
+        AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(context, R.style.Theme_AppCompat_DayNight))
                 .setTitle("Remove Waypoint?")
                 .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                     @Override

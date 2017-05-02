@@ -12,6 +12,7 @@ import android.os.Bundle;
 import android.view.MenuItem;
 
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
 import test.collegecarpool.alpha.Activities.HomeScreenActivity;
 import test.collegecarpool.alpha.Activities.ProfileActivity;
@@ -23,6 +24,7 @@ public class ChatRoomActivity extends AppCompatActivity {
 
     private final static String TAG = "MessageActivity";
     private FirebaseAuth auth;
+    private FirebaseUser user;
 
 
     private ActionBarDrawerToggle actionBarDrawerToggle;
@@ -35,6 +37,10 @@ public class ChatRoomActivity extends AppCompatActivity {
         auth = FirebaseAuth.getInstance();
 
         initDrawer();
+    }
+
+    private void getMyChats(){
+
     }
 
     public void initDrawer() {

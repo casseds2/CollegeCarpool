@@ -33,11 +33,9 @@ public class LatLng implements Serializable{
         return this.lat == latLng.getLat() && this.lng == latLng.getLng();
     }
 
-    com.google.android.gms.maps.model.LatLng toGoogleLatLng(){
+    public com.google.android.gms.maps.model.LatLng toGoogleLatLng(){
         return new com.google.android.gms.maps.model.LatLng(this.getLat(), this.getLng());
     }
-
-
 
     @Override
     public String toString() {

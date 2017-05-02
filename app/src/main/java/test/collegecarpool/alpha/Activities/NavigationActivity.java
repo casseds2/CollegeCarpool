@@ -1,15 +1,21 @@
 package test.collegecarpool.alpha.Activities;
 
 import android.Manifest;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.location.Location;
 import android.os.Handler;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.WindowManager;
+import android.widget.Toast;
 
 
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -52,8 +58,9 @@ public class NavigationActivity extends FragmentActivity implements OnMapReadyCa
     private Polyline polyline;
     private PolyDirectionResultReceiver polyDirectionResultReceiver;
     private WaypointsInitializer waypointsInitializer;
-    private FirebaseUser user;
     private PolyLinePusher polyLinePusher;
+    private LatLng requestLatLng;
+    private boolean acceptedRequest;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,11 +70,13 @@ public class NavigationActivity extends FragmentActivity implements OnMapReadyCa
         /*Start The SAT_NAV Service*/
         Variables.SAT_NAV_ENABLED = true;
 
+        acceptedRequest = false;
+
         FirebaseAuth auth = FirebaseAuth.getInstance();
-        user = auth.getCurrentUser();
+        FirebaseUser user = auth.getCurrentUser();
 
         /*So we Can Nullify Journey From Here*/
-        polyLinePusher = new PolyLinePusher(user);
+        polyLinePusher = new PolyLinePusher();
 
         /*Keep Screen From Locking When Activity Is On Display*/
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED
@@ -100,9 +109,29 @@ public class NavigationActivity extends FragmentActivity implements OnMapReadyCa
 
         startService(intent);
 
+        /*Set Up The Broadcast Receiver*/
+        LocalBroadcastManager.getInstance(this).registerReceiver(rideRequestReceiver, new IntentFilter("ride_request_latLng"));
+
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
     }
+
+    /*On Receive Of A Broadcast*/
+    private BroadcastReceiver rideRequestReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if(intent.getSerializableExtra("request_latLng") != null) {
+                test.collegecarpool.alpha.MapsUtilities.LatLng rideRequestLatLng = (test.collegecarpool.alpha.MapsUtilities.LatLng) intent.getSerializableExtra("request_latLng");
+                Log.d(TAG, "BROADCAST RECEIVED: " + rideRequestLatLng.toString());
+                //Toast.makeText(NavigationActivity.this, "Broadcast: " + rideRequestLatLng, Toast.LENGTH_SHORT).show();
+                requestLatLng = rideRequestLatLng.toGoogleLatLng();
+                acceptedRequest = true;
+                updateUI(journeyLatLngs, polyLatLngs, false);
+            }
+            else
+                Toast.makeText(NavigationActivity.this, "Could Not Read Request LatLng", Toast.LENGTH_SHORT).show();
+        }
+    };
 
     /*Obtain the Waypoints' LatLngs from the Journey Object*/
     private ArrayList<LatLng> getLatLngsFromWaypoint(ArrayList<Waypoint> waypoints){
@@ -114,6 +143,23 @@ public class NavigationActivity extends FragmentActivity implements OnMapReadyCa
             latLngs.add(latLng);
         }
         return latLngs;
+    }
+
+    /*Where Abouts in the Journey to Put the */
+    private void insertRequestIntoJourney(LatLng latLng){
+        Log.d(TAG, "NEW REQUEST FOUND");
+        float [] distance = new float[1];
+        double minDistance = 100000;
+        int minIndex = 1;
+        for(LatLng latLng1 : journeyLatLngs.subList(1, journeyLatLngs.size())){
+            Location.distanceBetween(latLng.latitude, latLng.longitude, latLng1.latitude, latLng1.longitude, distance);
+            if(distance[0] < minDistance){
+                minIndex = journeyLatLngs.indexOf(latLng1);
+                minDistance = distance[0];
+                Log.d(TAG, "MinDistance is: " + String.valueOf(minDistance) + "\n MinIndex is: " + minIndex);
+            }
+        }
+        journeyLatLngs.add(minIndex, latLng);
     }
 
     /*Update the Activity Based on the Result Received From The Service*/
@@ -132,10 +178,37 @@ public class NavigationActivity extends FragmentActivity implements OnMapReadyCa
             /*On Data Change, Follow the User*/
             googleMap.animateCamera(CameraUpdateFactory.newCameraPosition(setCamera(journeyLatLngs.get(0))));
 
+            /*If A Driver Accepted A Request, then Add the LatLng*/
+            if(acceptedRequest) {
+                Log.d(TAG, "A REQUEST WAS ACCEPTED");
+                insertRequestIntoJourney(requestLatLng);
+                journey.addWaypoint(new Waypoint("Pickup", new test.collegecarpool.alpha.MapsUtilities.LatLng(requestLatLng.latitude, requestLatLng.longitude)));
+                acceptedRequest = false;
+                if(journeyLatLngs.size() > 0) {
+                    try {
+                        polyLatLngs = new PolyDirections().execute(new PolyURLBuilder(journeyLatLngs).buildPolyURL()).get();
+                        String encodePolyLine = PolyUtil.encode(polyLatLngs);
+                        polyLinePusher.pushPolyLine(encodePolyLine, journeyLatLngs.subList(1, journeyLatLngs.size()));
+                        Log.d(TAG, "NEW POLYLATLNGS CALCULATED AFTER REMOVING WAYPOINT");
+
+                    } catch (InterruptedException | ExecutionException e) {
+                        e.printStackTrace();
+                    }
+                    /*Inject The New Extras Into A Service*/
+                    intent.putExtra("PolyLatLngs", polyLatLngs);
+                    intent.putExtra("JourneyLatLngs", journeyLatLngs);
+                    intent.putExtra("ResultReceiver", polyDirectionResultReceiver);
+
+                    startService(intent);
+                    Log.d(TAG, "SAT_NAVE SERVICE STARTED AGAIN AFTER ACCEPTING REQUEST");
+                }
+            }
+
             /*Handle If A Waypoint Was Removed Manually*/
             if(waypointsInitializer.waypointRemoved() && journeyLatLngs.size() > 1){
 
-                Log.d(TAG, "A WAYPOINT WAS REMOVED MANUALLY");
+                if(waypointsInitializer.waypointRemoved())
+                    Log.d(TAG, "A WAYPOINT WAS REMOVED MANUALLY");
 
                 /*Clear the Map of Old Waypoints*/
                 googleMap.clear();
@@ -154,7 +227,8 @@ public class NavigationActivity extends FragmentActivity implements OnMapReadyCa
                         polyLinePusher.pushPolyLine(encodePolyLine, journeyLatLngs.subList(1, journeyLatLngs.size()));
                         Log.d(TAG, "NEW POLYLATLNGS CALCULATED AFTER REMOVING WAYPOINT");
 
-                    } catch (InterruptedException | ExecutionException e) {
+                    }
+                    catch (InterruptedException | ExecutionException e) {
                         e.printStackTrace();
                     }
                     /*Inject The New Extras Into A Service*/

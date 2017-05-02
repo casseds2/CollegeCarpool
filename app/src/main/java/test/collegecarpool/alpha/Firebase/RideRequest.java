@@ -36,7 +36,7 @@ public class RideRequest {
         info.put("time", time.toString());
         info.put("user", user.getUid());
         info.put("username", userName);
-        request.put("/RideRequests/" + user.getUid(), info);
+        request.put("/RideRequests/" + user.getUid() + "/Request/", info);
         riderRef.updateChildren(request);
     }
 

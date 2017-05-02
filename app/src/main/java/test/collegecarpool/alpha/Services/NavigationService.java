@@ -69,7 +69,7 @@ public class NavigationService extends Service{
         FirebaseAuth auth = FirebaseAuth.getInstance();
         if(auth != null)
             user = auth.getCurrentUser();
-        polyLinePusher = new PolyLinePusher(user);
+        polyLinePusher = new PolyLinePusher();
         userRef = FirebaseDatabase.getInstance().getReference("UserProfile").child(user.getUid());
         userRef.addValueEventListener(new ValueEventListener() {
             @Override

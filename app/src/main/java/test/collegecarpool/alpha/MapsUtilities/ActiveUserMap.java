@@ -5,6 +5,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
 import android.support.v7.app.AlertDialog;
+import android.support.v7.view.ContextThemeWrapper;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -29,6 +30,7 @@ import java.util.Map;
 
 import test.collegecarpool.alpha.Firebase.RideRequest;
 import test.collegecarpool.alpha.MessagingActivities.MessageActivity;
+import test.collegecarpool.alpha.R;
 
 public class ActiveUserMap{
 
@@ -57,7 +59,7 @@ public class ActiveUserMap{
                 markers = new ArrayList<>();
                 userAndMarkers = (HashMap<String, ArrayList<LatLng>>) polyline.getTag();
                 drawPolyWaypoints();
-                Toast.makeText(context, "Polyline Clicked", Toast.LENGTH_SHORT).show();
+                //Toast.makeText(context, "Polyline Clicked", Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -76,7 +78,7 @@ public class ActiveUserMap{
         googleMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
             @Override
             public boolean onMarkerClick(final Marker marker) {
-                AlertDialog.Builder builder = new AlertDialog.Builder(context)
+                AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(context, R.style.Theme_AppCompat_DayNight))
                         .setTitle("What Would You Like To Do?")
                         .setPositiveButton("Message user", new DialogInterface.OnClickListener() {
                             @Override
@@ -94,7 +96,6 @@ public class ActiveUserMap{
                             }
                         });
                 builder.create().show();
-
                 return false;
             }
         });

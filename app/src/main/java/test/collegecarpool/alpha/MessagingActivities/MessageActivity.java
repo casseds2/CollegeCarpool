@@ -1,10 +1,14 @@
 package test.collegecarpool.alpha.MessagingActivities;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
@@ -15,6 +19,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -28,6 +33,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import test.collegecarpool.alpha.Activities.HomeScreenActivity;
+import test.collegecarpool.alpha.Activities.NavigationActivity;
 import test.collegecarpool.alpha.Activities.ProfileActivity;
 import test.collegecarpool.alpha.Activities.SettingsActivity;
 import test.collegecarpool.alpha.LoginAndRegistrationActivities.SigninActivity;
@@ -91,7 +97,26 @@ public class MessageActivity extends AppCompatActivity {
                 message.setText("");
             }
         });
+
+        /*Set Up The Broadcast Receiver*/
+        LocalBroadcastManager.getInstance(this).registerReceiver(messageReceiver, new IntentFilter("message_received"));
     }
+
+    /*On Receive Of A Broadcast*/
+    private BroadcastReceiver messageReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if(intent.getStringExtra("ReceiverID") != null) {
+                receiverID = intent.getStringExtra("ReceiverID");
+                receiverChatRef = FirebaseDatabase.getInstance().getReference("UserProfile").child(receiverID);
+                getUserNames();
+                populateMessages();
+                Log.d(TAG, "MESSAGE RECEIVED");
+            }
+            else
+                Toast.makeText(MessageActivity.this, "Could Not Read Request LatLng", Toast.LENGTH_SHORT).show();
+        }
+    };
 
     /*Send A Message*/
     private void sendMessage(Message m){
