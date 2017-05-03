@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.concurrent.ExecutionException;
 
 import test.collegecarpool.alpha.Firebase.PolyLinePusher;
+import test.collegecarpool.alpha.MapsUtilities.DirectionStep;
 import test.collegecarpool.alpha.PolyDirectionsTools.DirectionParser;
 import test.collegecarpool.alpha.PolyDirectionsTools.PolyDirections;
 import test.collegecarpool.alpha.PolyDirectionsTools.PolyURLBuilder;
@@ -153,14 +154,15 @@ public class NavigationService extends Service{
             polyLatLngs = polyDirections.execute(new PolyURLBuilder(journeyLatLngs).buildPolyURL()).get();
             String encodePolyLine = PolyUtil.encode(polyLatLngs);
             polyLinePusher.pushPolyLine(encodePolyLine, journeyLatLngs.subList(1, journeyLatLngs.size()));
+            routeChanged = true;
+            directionParser = polyDirections.getDirectionParser();
+            ArrayList<DirectionStep> directionSteps = directionParser.getDirectionSteps();
+            Log.d(TAG, "Directions Steps: " + directionSteps.toString());
+            Log.d(TAG, "Parser is " + directionParser.toString());
         }
         catch (InterruptedException | ExecutionException e) {
             e.printStackTrace();
         }
-        routeChanged = true;
-        directionParser = polyDirections.getDirectionParser();
-        Log.d(TAG, "JSON IS " + directionParser.toString());
-        Log.d(TAG, "Parser is " + directionParser.toString());
     }
 
     /*Check if User is Within 10m of Route*/

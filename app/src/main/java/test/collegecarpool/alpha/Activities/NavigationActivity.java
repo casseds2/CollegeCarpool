@@ -308,6 +308,7 @@ public class NavigationActivity extends FragmentActivity implements OnMapReadyCa
         int screenWidth = getResources().getDisplayMetrics().widthPixels;
         int screenHeight = getResources().getDisplayMetrics().heightPixels;
         int padding = (int) (screenWidth * 0.05);
+
         googleMap.moveCamera(CameraUpdateFactory.newLatLngBounds(builder.build(), screenWidth, screenHeight, padding));
     }
 
