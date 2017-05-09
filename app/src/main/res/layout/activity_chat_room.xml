@@ -8,40 +8,21 @@
     tools:context=".Activities.HomeScreenActivity"
     android:id="@+id/drawer_layout">
 
-    <RelativeLayout
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-    <EditText
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/carName"
-        android:layout_toLeftOf="@+id/btnAddCar"
-        android:layout_toStartOf="@+id/btnAddCar"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:textColor="@color/black"/>
+        <ListView
+            android:paddingTop="10dp"
+            android:layout_width="368dp"
+            android:layout_height="200dp"
+            android:id="@+id/chat_room_list_view"
+            android:longClickable="true"
+            tools:layout_editor_absoluteY="8dp"
+            tools:layout_editor_absoluteX="8dp">
+        </ListView>
 
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/addCarName"
-        android:id="@+id/btnAddCar"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true" />
-
-    <ListView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/listView"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:cacheColorHint="@color/white"/>
-
-    </RelativeLayout>
+    </LinearLayout>
 
 
     <android.support.design.widget.NavigationView

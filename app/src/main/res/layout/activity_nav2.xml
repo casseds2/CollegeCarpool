@@ -1,0 +1,21 @@
+<fragment xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:map="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/map"
+    android:name="com.google.android.gms.maps.SupportMapFragment"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="test.collegecarpool.alpha.Activities.Nav2">
+
+    <TextView
+    android:id="@+id/driving_instructions"
+    android:textColorHint="@color/white"
+    android:textColor="@color/black"
+    android:background="@color/white"
+    android:layout_width="match_parent"
+    android:layout_height="100dp"
+    android:layout_gravity="bottom|end"
+    android:paddingLeft="10dp"
+    android:paddingBottom="20dp" />
+
+</fragment>

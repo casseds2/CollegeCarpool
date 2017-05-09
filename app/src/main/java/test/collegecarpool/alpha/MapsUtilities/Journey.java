@@ -42,7 +42,7 @@ public class Journey implements Serializable { //Implements Serializable So That
     }
 
     /*Used To Remove Markers*/
-    void removeWaypoint(Waypoint waypoint){
+    public void removeWaypoint(Waypoint waypoint){
         for(Waypoint marker : waypoints){
             if(null != marker && waypoint != null && waypoint.isTheSameAs(marker)) {
                 waypoints.remove(waypoint);
@@ -73,34 +73,85 @@ public class Journey implements Serializable { //Implements Serializable So That
         return this.date.toString() + " : " + this.waypoints.toString();
     }
 
+    /*Return True If A Journey is a Part of A Journey List*/
     public boolean isElementOf(ArrayList<Journey> journeys){
+        if(journeys.isEmpty())
+            return false;
         for(Journey journey : journeys){
-            if(journey.myCompareTo(this))
+            if(this.isTheSameAs(journey)) {
                 return true;
+            }
         }
         return false;
     }
 
     /*Compares One Journey To Another*/
-    public boolean myCompareTo(Journey journey) {
+    /*Return false If Journeys Are Not The Same, True if they are the same*/
+    public boolean isTheSameAs(Journey journey) {
         if(journey == null)
             return false;
         if(this.getDate() == null || this.getWaypoints() == null || journey.getDate() == null || journey.getWaypoints() == null)
             return false;
-        if (this.date.compareTo(journey.getDate())) {
+        if (date.isEqualTo(journey.getDate())) { //If dates are the same
             ArrayList<Waypoint> tempList = journey.getWaypoints();
-            if (this.waypoints.size() == tempList.size()) {
-                for (int i = 0; i < this.waypoints.size(); i++) {
-                    if (this.waypoints.get(i).getName().equals(tempList.get(i).getName())) {
-                        return this.waypoints.get(i).getLatLng().equals(tempList.get(i).getLatLng());
+            for(int i = 0; i < waypoints.size()-1; i++){
+                if(!waypoints.get(i).toGoogleLatLng().equals(tempList.get(i).toGoogleLatLng())){
+                   return false;
+                }
+                if(!waypoints.get(i).getName().equals(tempList.get(i).getName())){
+                    return false;
+                }
+            }
+            return true;
+        }
+        else
+            return false;
+    }
+
+    /*Return true if journey exists in list*/
+    public boolean isContainedIn(ArrayList<Journey> journeys){
+        for(Journey journey: journeys){
+            if(this.date.isEqualTo(journey.getDate())){ //First If the Dates Are Equal
+                ArrayList<Waypoint> thisWaypoints = this.getWaypoints();
+                ArrayList<Waypoint> journeyWaypoints = journey.getWaypoints();
+                if(thisWaypoints.size() == journeyWaypoints.size()){
+                    for(int i = 0; i < thisWaypoints.size(); i++){ //Compare this waypoints with journey waypoints
+                        Waypoint thisWaypoint = thisWaypoints.get(i);
+                        Waypoint journeyWaypoint = journeyWaypoints.get(i);
+                        if(thisWaypoint.isTheSameAs(journeyWaypoint)){
+                            if(i == thisWaypoints.size()){
+                                return true;
+                            }
+                        }
+                        else
+                            break;
                     }
                 }
-                return false;
             }
-            return false;
         }
         return false;
     }
-
-
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

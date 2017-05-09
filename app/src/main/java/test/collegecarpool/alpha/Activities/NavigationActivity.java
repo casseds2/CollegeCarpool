@@ -9,12 +9,14 @@ import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Location;
 import android.os.Handler;
+import android.speech.tts.TextToSpeech;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.WindowManager;
+import android.widget.TextView;
 import android.widget.Toast;
 
 
@@ -27,11 +29,13 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.google.maps.android.PolyUtil;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Locale;
 import java.util.concurrent.ExecutionException;
 
 import test.collegecarpool.alpha.Firebase.PolyLinePusher;
@@ -47,7 +51,7 @@ import test.collegecarpool.alpha.Tools.Variables;
 
 import static test.collegecarpool.alpha.Tools.Variables.MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION;
 
-public class NavigationActivity extends FragmentActivity implements OnMapReadyCallback {
+public class NavigationActivity extends FragmentActivity implements OnMapReadyCallback, GoogleMap.OnMapLongClickListener{
 
     private final String TAG = "NAVIGATION ACTIVITY";
     private Intent intent;
@@ -61,6 +65,17 @@ public class NavigationActivity extends FragmentActivity implements OnMapReadyCa
     private PolyLinePusher polyLinePusher;
     private LatLng requestLatLng;
     private boolean acceptedRequest;
+    private TextView drivingInstructions;
+
+    /*For Direction Step*/
+    private String instruction;
+    private boolean atStartStep;
+    private boolean atEndStep;
+    private String maneuver;
+    private int distance;
+    private int duration;
+    private TextToSpeech speaker;
+    private String previousInstruction;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,10 +85,23 @@ public class NavigationActivity extends FragmentActivity implements OnMapReadyCa
         /*Start The SAT_NAV Service*/
         Variables.SAT_NAV_ENABLED = true;
 
-        acceptedRequest = false;
+        drivingInstructions = (TextView) findViewById(R.id.driving_instructions);
 
-        FirebaseAuth auth = FirebaseAuth.getInstance();
-        FirebaseUser user = auth.getCurrentUser();
+        /*Initialise Text To Speech As English*/
+        speaker = new TextToSpeech(this, new TextToSpeech.OnInitListener() {
+            @Override
+            public void onInit(int status) {
+                if(status != TextToSpeech.ERROR) {
+                    speaker.setLanguage(Locale.UK);
+                    Log.d(TAG, "SPEAKER INITIALIZED");
+                }
+                else{
+                    Log.d(TAG, "SPEAKER HAD AN ERROR");
+                }
+            }
+        });
+
+        acceptedRequest = false;
 
         /*So we Can Nullify Journey From Here*/
         polyLinePusher = new PolyLinePusher();
@@ -123,10 +151,9 @@ public class NavigationActivity extends FragmentActivity implements OnMapReadyCa
             if(intent.getSerializableExtra("request_latLng") != null) {
                 test.collegecarpool.alpha.MapsUtilities.LatLng rideRequestLatLng = (test.collegecarpool.alpha.MapsUtilities.LatLng) intent.getSerializableExtra("request_latLng");
                 Log.d(TAG, "BROADCAST RECEIVED: " + rideRequestLatLng.toString());
-                //Toast.makeText(NavigationActivity.this, "Broadcast: " + rideRequestLatLng, Toast.LENGTH_SHORT).show();
                 requestLatLng = rideRequestLatLng.toGoogleLatLng();
                 acceptedRequest = true;
-                updateUI(journeyLatLngs, polyLatLngs, false);
+                updateUI(journeyLatLngs, polyLatLngs, false, instruction, atStartStep, atEndStep, maneuver, distance, duration);
             }
             else
                 Toast.makeText(NavigationActivity.this, "Could Not Read Request LatLng", Toast.LENGTH_SHORT).show();
@@ -145,7 +172,7 @@ public class NavigationActivity extends FragmentActivity implements OnMapReadyCa
         return latLngs;
     }
 
-    /*Where Abouts in the Journey to Put the */
+    /*Where Abouts in the Journey to Put the Ride Request*/
     private void insertRequestIntoJourney(LatLng latLng){
         Log.d(TAG, "NEW REQUEST FOUND");
         float [] distance = new float[1];
@@ -163,26 +190,65 @@ public class NavigationActivity extends FragmentActivity implements OnMapReadyCa
     }
 
     /*Update the Activity Based on the Result Received From The Service*/
-    public void updateUI(ArrayList<LatLng> journeyLatLngs, ArrayList<LatLng> polyLatLngs, boolean journeyFinished){
+    public void updateUI(ArrayList<LatLng> journeyLatLngs, ArrayList<LatLng> polyLatLngs, boolean journeyFinished, String instruction, boolean atStartStep, boolean atEndStep, String maneuver, int distance, int duration){
         Log.d(TAG, "updateUI CALLED");
 
         /*Clear The Map If Journey Is Over*/
         if(googleMap != null && journeyFinished && polyline != null){
             googleMap.clear();
         }
+
         /*If the Journey Is Not Finished*/
         if(!journeyFinished && googleMap != null) {
             this.journeyLatLngs = journeyLatLngs;
             this.polyLatLngs = polyLatLngs;
 
+            /*For Direction Step*/
+            this.instruction = instruction;
+            this.atStartStep = atStartStep;
+            this.atEndStep = atEndStep;
+            this.maneuver = maneuver;
+            this.distance = distance;
+            this.duration = duration;
+
             /*On Data Change, Follow the User*/
             googleMap.animateCamera(CameraUpdateFactory.newCameraPosition(setCamera(journeyLatLngs.get(0))));
+
+            /*If the User Is At a Start Step*/
+            if(atStartStep && !instruction.equals(previousInstruction) && !instruction.equals("")){
+                previousInstruction = instruction;
+                Log.d(TAG, "User At Start Step");
+                Log.d(TAG, "Instruction: " + instruction);
+                speaker.speak(instruction, TextToSpeech.QUEUE_FLUSH, null);
+                Log.d(TAG, "Speaker Speaks Instruction");
+                String textInstruction;
+                if(maneuver != null)
+                    textInstruction = instruction + "\n" + "Maneuver" + maneuver + "\n" + "Distance: " + distance + "m" + "\n" + "Duration:" + duration + "seconds";
+                else
+                    textInstruction = instruction + "\n" + "Distance: " + distance + "m" + "\n" + "Duration:" + duration + "seconds";
+                drivingInstructions.setText(textInstruction);
+            }
+
+            /*If User Is At an End Step*/
+            if(atEndStep && maneuver != null){
+                Log.d(TAG, "At End Of A Location");
+                Log.d(TAG, "Maneuver: " + maneuver);
+                speaker.speak(maneuver, TextToSpeech.QUEUE_FLUSH, null);
+                Log.d(TAG, "Speaker Speaks Maneuver");
+            }
 
             /*If A Driver Accepted A Request, then Add the LatLng*/
             if(acceptedRequest) {
                 Log.d(TAG, "A REQUEST WAS ACCEPTED");
                 insertRequestIntoJourney(requestLatLng);
+
+                /*If Waypoints Have Changed, Update Service With New Info*/
+                journey = waypointsInitializer.getJourney();
+
+                journeyLatLngs = getLatLngsFromWaypoint(journey.getWaypoints());
+
                 journey.addWaypoint(new Waypoint("Pickup", new test.collegecarpool.alpha.MapsUtilities.LatLng(requestLatLng.latitude, requestLatLng.longitude)));
+
                 acceptedRequest = false;
                 if(journeyLatLngs.size() > 0) {
                     try {
@@ -210,9 +276,6 @@ public class NavigationActivity extends FragmentActivity implements OnMapReadyCa
                 if(waypointsInitializer.waypointRemoved())
                     Log.d(TAG, "A WAYPOINT WAS REMOVED MANUALLY");
 
-                /*Clear the Map of Old Waypoints*/
-                googleMap.clear();
-
                 /*Retrieve The Updated List From WaypointsInitializer*/
                 journey = waypointsInitializer.getJourney();
 
@@ -222,6 +285,8 @@ public class NavigationActivity extends FragmentActivity implements OnMapReadyCa
                 /*If A Waypoint Was Removed Manually, Re-calculate PolyLine*/
                 if(journeyLatLngs.size() > 0) {
                     try {
+                        /*Clear the Map of Old Waypoints*/
+                        googleMap.clear();
                         polyLatLngs = new PolyDirections().execute(new PolyURLBuilder(journeyLatLngs).buildPolyURL()).get();
                         String encodePolyLine = PolyUtil.encode(polyLatLngs);
                         polyLinePusher.pushPolyLine(encodePolyLine, journeyLatLngs.subList(1, journeyLatLngs.size()));
@@ -237,6 +302,7 @@ public class NavigationActivity extends FragmentActivity implements OnMapReadyCa
                     intent.putExtra("ResultReceiver", polyDirectionResultReceiver);
 
                     startService(intent);
+
                     Log.d(TAG, "SAT_NAVE SERVICE STARTED AGAIN AFTER DELETED WAYPOINTS");
 
                 /*Reset Boolean For If A Waypoint Was Removed*/
@@ -258,6 +324,7 @@ public class NavigationActivity extends FragmentActivity implements OnMapReadyCa
             }
             else{
                 polyLinePusher.nullify();
+                drivingInstructions.setText("");
                 googleMap.clear();
                 stopService(intent);
                 Log.d(TAG, "JourneyLatLngsSize is: " + journeyLatLngs.size() + " so Journey Finished");
@@ -295,6 +362,7 @@ public class NavigationActivity extends FragmentActivity implements OnMapReadyCa
         waypointsInitializer.displayWaypoints(journey);
         googleMap.addPolyline(polylineOptions);
 
+        googleMap.setOnMapLongClickListener(this);
     }
 
     /*Zoom Map Around Entire Journey Before Zooming in on User*/
@@ -316,6 +384,8 @@ public class NavigationActivity extends FragmentActivity implements OnMapReadyCa
     @Override
     protected void onStop(){
         super.onStop();
+        previousInstruction = "";
+        speaker.shutdown();
         stopService(intent);
         Log.d(TAG, "NAV_SERVICE STOPPED");
         Variables.SAT_NAV_ENABLED = false; //Re-enable the viewing of Journeys When Out of Navigation mode
@@ -324,6 +394,14 @@ public class NavigationActivity extends FragmentActivity implements OnMapReadyCa
     @Override
     protected void onResume(){
         super.onResume();
-        startService(intent);
+        //startService(intent);
+    }
+
+    @Override
+    public void onMapLongClick(LatLng latLng) {
+        DatabaseReference tokenRef = FirebaseDatabase.getInstance().getReference("MapMarkers");
+        HashMap<String, Object> token = new HashMap<>();
+        token.put("/trafficMarkers/", new test.collegecarpool.alpha.MapsUtilities.LatLng(latLng.latitude, latLng.longitude));
+        tokenRef.updateChildren(token);
     }
 }

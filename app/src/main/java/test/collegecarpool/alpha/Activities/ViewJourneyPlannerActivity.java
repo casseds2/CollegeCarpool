@@ -44,7 +44,7 @@ public class ViewJourneyPlannerActivity extends AppCompatActivity {
 
     private DatabaseReference journeyRef;
     ArrayList<Journey> journeys; //SEND THIS TO NAVIGATION - PICK CORRESPONDING JOURNEY TO CLICKED JOURNEY OUT OF IT AND SEND TO NAVIGATION
-    private final String TAG = "JOURNEYPLANNER";
+    private final String TAG = "VIEWJOURNEYPLANNER";
     private ActionBarDrawerToggle actionBarDrawerToggle;
     private FirebaseAuth auth;
     ViewJourneyPlannerAdapter adapter;
@@ -117,7 +117,7 @@ public class ViewJourneyPlannerActivity extends AppCompatActivity {
 
     /*Initialise the ListView*/
     private void initListView() {
-        Log.d(TAG, "JOURNEY OBJECT: " + journeys.toString());
+        //Log.d(TAG, "JOURNEY OBJECT: " + journeys.toString());
         adapter = new ViewJourneyPlannerAdapter(this, R.layout.journey_planner_list, journeys);
         if(journeys != null)
             //adapter.sortJourneys(); //WILL CRASH OF OVER TWO IN SIZE???
@@ -166,7 +166,7 @@ public class ViewJourneyPlannerActivity extends AppCompatActivity {
                     //Log.d(TAG, "BOOLEAN JOURNEY: " + journey.compareTo(tempJourney));
                     //Log.d(TAG, "BOOLEAN DATE: " + journey.getDate().compareTo(tempJourney.getDate()));
                     //Log.d(TAG, "BOOLEAN WAYPOINTS: " + journey.getWaypoints().equals(tempJourney.getWaypoints()));
-                    if(journey.myCompareTo(tempJourney)){
+                    if(journey.isTheSameAs(tempJourney)){
                         data1.getRef().setValue(null);
                         Log.d(TAG, "JOURNEYS FIRE " + journeys.toString());
                     }
@@ -223,7 +223,7 @@ public class ViewJourneyPlannerActivity extends AppCompatActivity {
                     }
                     if(journey.getDate() != null || journey.getWaypoints() != null) {
                         journeys.add(journey);
-                        Log.d(TAG, "ADDED JOURNEY: " + journey);
+                        Log.d(TAG, "ELEMENT: " + journey);
                         if (!todayDate.isBefore(journey.getDate())) {
                             Log.d(TAG, "Removing Past Journey " + journey.toString());
                             data1.getRef().setValue(null);

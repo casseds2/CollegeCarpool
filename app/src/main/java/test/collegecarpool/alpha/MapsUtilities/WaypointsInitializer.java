@@ -78,6 +78,7 @@ public class WaypointsInitializer extends Activity implements GoogleMap.OnMarker
             /*Makes a Marker With The Waypoint Name And Sets Its Tag With A Waypoint Object*/
             Marker waypointMarker = googleMap.addMarker(new MarkerOptions()
                     .position(latLngGoogle)
+                    .flat(true)
                     .title(waypoint.getName()));
             waypointMarker.setTag(waypoint);
 
@@ -101,6 +102,7 @@ public class WaypointsInitializer extends Activity implements GoogleMap.OnMarker
             /*Makes a Marker With The Waypoint Name And Sets Its Tag With A Waypoint Object*/
             Marker waypointMarker = googleMap.addMarker(new MarkerOptions()
                     .position(latLngGoogle)
+                    .flat(true)
                     .title(waypoint.getName()));
             waypointMarker.setTag(waypoint);
 

@@ -33,7 +33,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import test.collegecarpool.alpha.Activities.HomeScreenActivity;
-import test.collegecarpool.alpha.Activities.NavigationActivity;
 import test.collegecarpool.alpha.Activities.ProfileActivity;
 import test.collegecarpool.alpha.Activities.SettingsActivity;
 import test.collegecarpool.alpha.LoginAndRegistrationActivities.SigninActivity;

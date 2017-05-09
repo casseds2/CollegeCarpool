@@ -2,27 +2,43 @@ package test.collegecarpool.alpha.MapsUtilities;
 
 import com.google.android.gms.maps.model.LatLng;
 
-public class DirectionStep {
+import java.io.Serializable;
+import java.util.ArrayList;
+
+public class DirectionStep implements Serializable{
 
     private int distance;
     private LatLng start, end;
     private int duration;
     private String htmlInstruction;
     private String maneuver;
+    private ArrayList<LatLng> polyStep;
 
-    public DirectionStep(int distance, int duration, LatLng start, LatLng end, String maneuver, String htmlInstruction){
+    public DirectionStep(){}
+
+    public DirectionStep(int distance, int duration, LatLng start, LatLng end, String maneuver, String htmlInstruction,ArrayList<LatLng> polyStep){
         this.distance = distance;
         this.duration = duration;
         this.start = start;
         this.end = end;
         this.maneuver = maneuver;
         this.htmlInstruction = htmlInstruction;
+        this.polyStep = polyStep;
     }
 
     public String toString(){
         return "\n" + "Distance: " +  distance + "\n" + "Duration: " + duration + "\n"
                 + "Start: " + start.toString() + "\n" + "End: " + end.toString() + "\n" + "Maneuver: " + maneuver + "\n"
-                + "Html: " + htmlInstruction;
+                + "Html: " + htmlInstruction + "\n"
+                + "Encoded Poly: " + polyStep.toString();
+    }
+
+    public ArrayList<LatLng> getPolyStep() {
+        return polyStep;
+    }
+
+    public void setPolyStep(ArrayList<LatLng> polyStep) {
+        this.polyStep = polyStep;
     }
 
     public int getDistance() {

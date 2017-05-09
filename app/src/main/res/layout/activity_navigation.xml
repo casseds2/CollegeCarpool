@@ -5,4 +5,17 @@
     android:name="com.google.android.gms.maps.SupportMapFragment"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="test.collegecarpool.alpha.Activities.NavigationActivity" />
+    tools:context="test.collegecarpool.alpha.Activities.NavigationActivity">
+
+    <TextView
+        android:id="@+id/driving_instructions"
+        android:textColorHint="@color/white"
+        android:textColor="@color/black"
+        android:background="@color/white"
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:layout_gravity="bottom|end"
+        android:paddingLeft="10dp"
+        android:paddingBottom="20dp" />
+
+</fragment>

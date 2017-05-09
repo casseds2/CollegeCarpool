@@ -59,7 +59,6 @@ public class ActiveUserMap{
                 markers = new ArrayList<>();
                 userAndMarkers = (HashMap<String, ArrayList<LatLng>>) polyline.getTag();
                 drawPolyWaypoints();
-                //Toast.makeText(context, "Polyline Clicked", Toast.LENGTH_SHORT).show();
             }
         });
 

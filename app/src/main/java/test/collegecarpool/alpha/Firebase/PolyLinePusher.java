@@ -41,6 +41,8 @@ public class PolyLinePusher {
     }
 
     public void nullify(){
-        databaseReference.child("/ActiveJourneys/" + user.getUid()).setValue(null);
+        databaseReference = FirebaseDatabase.getInstance().getReference();
+        if(databaseReference.child("/ActiveJourneys/" + user.getUid()) != null)
+            databaseReference.child("/ActiveJourneys/" + user.getUid()).setValue(null);
     }
 }

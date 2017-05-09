@@ -55,13 +55,12 @@ import test.collegecarpool.alpha.UserClasses.Date;
 
 public class PlanJourneyActivity extends AppCompatActivity implements DatePickerDialog.OnDateSetListener {
 
-    private final String TAG = "PLAN JOURNEY";
+    private final String TAG = "PLANJOURNEYACTIVITY";
     private ArrayList<Place> places = new ArrayList<>();
     private ArrayList<String> placeNames = new ArrayList<>();
     private DatePickerDialog datePickerDialog;
     private Date date;
     private boolean dateChosen = false;
-    //private ArrayList<LatLng> latLngs;
     private FirebaseUser user;
     private DatabaseReference userRef;
     private Journey journey;
@@ -71,7 +70,7 @@ public class PlanJourneyActivity extends AppCompatActivity implements DatePicker
     private PlanJourneyAdapter adapter;
     private PlaceAutocompleteFragment autocompleteFragment;
     private Calendar calendar = Calendar.getInstance();
-    private ArrayList<Journey> fireJourneys = new ArrayList<>();
+    private ArrayList<Journey> fireJourneys;
     private GoogleApiClient googleApiClient = null;
     private GoogleClientBuilder googleClientBuilder;
     private Place currentPlace;
@@ -250,16 +249,18 @@ public class PlanJourneyActivity extends AppCompatActivity implements DatePicker
                 if (places.size() > 1 && dateChosen) {
                     journey = new Journey(date, new WaypointFromPlaceGenerator().convertPlacesToWayPoints(places)); //Pushes a Journey with a date and a list of place names taken from MyPlaces
                     Log.d(TAG, "Fire Journey: " + fireJourneys.toString());
-                    Log.d(TAG, "BOOL: " + !journey.isElementOf(fireJourneys));
-                    if (!journey.isElementOf(fireJourneys)) {
+                    Log.d(TAG, "BOOL: " + journey.isContainedIn(fireJourneys));
+                    if (!journey.isContainedIn(fireJourneys)) {
                         /*Push the Journey to The History Book*/
+                        Log.d(TAG, "SAVED: " + journey.toString());
                         manageJourneyHistory.pushJourneyToHistory(journey);
                         pushJourneyToFirebase(); //new MyPlace().convertPlacesToMyPlace(places) converts the ArrayList<Places> to and ArrayList<String> of the place names
                         dateChosen = false;
                         Toast.makeText(PlanJourneyActivity.this, "Saved Journey to Planner", Toast.LENGTH_SHORT).show();
+                        getCurrentJourneys();
                     }
-                    else
-                        Toast.makeText(PlanJourneyActivity.this, "Already in Planner", Toast.LENGTH_SHORT).show();
+                    //else
+                        //Toast.makeText(PlanJourneyActivity.this, "Already in Planner", Toast.LENGTH_SHORT).show();
                 }
                 else
                     if(places.size() < 2 && dateChosen)
@@ -321,23 +322,11 @@ public class PlanJourneyActivity extends AppCompatActivity implements DatePicker
         btn2.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-//                latLngs = new ArrayList<>();
-//                for (int i = 0; i < places.size(); i++) {
-//                    LatLng latLng = places.get(i).getLatLng();
-//                    latLngs.add(latLng);
-//                }
-//                Intent intent = new Intent(PlanJourneyActivity.this, ViewJourneyActivity.class);
-//                intent.putExtra("LAT/LNG", latLngs);
-//                Log.d(TAG, "LAT/LNG Extra: " + latLngs.toString());
-//                if (latLngs.size() > 1) {
-//                    startActivity(intent);
-//                }
-//                else
-//                    Toast.makeText(PlanJourneyActivity.this, "Enter At Least Two Stops", Toast.LENGTH_SHORT).show();
                 if(places.size() > 1) {
                     date = new Date(calendar.get(Calendar.DAY_OF_MONTH), calendar.get(Calendar.MONTH), calendar.get(Calendar.YEAR));
                     journey = new Journey(date, new WaypointFromPlaceGenerator().convertPlacesToWayPoints(places));
-                    Intent intent = new Intent(PlanJourneyActivity.this, NavigationActivity.class);
+                    /*Changed For Testing*/
+                    Intent intent = new Intent(PlanJourneyActivity.this, Nav2.class);
                     intent.putExtra("SelectedJourney", journey);
                     startActivity(intent);
                 }
@@ -454,13 +443,14 @@ public class PlanJourneyActivity extends AppCompatActivity implements DatePicker
     /*Get All of the Currently Selected Journeys so User Can't Repeat Same Journey on Same Date*/
     private void getCurrentJourneys(){
         DatabaseReference journeyRef = FirebaseDatabase.getInstance().getReference("UserProfile").child(user.getUid()).child("JourneyPlanner");
-        journeyRef.addListenerForSingleValueEvent(new ValueEventListener() {
+        journeyRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
+                fireJourneys = new ArrayList<>();
                 Iterable<DataSnapshot> dataSnapshots = dataSnapshot.getChildren();
+                Journey tempJourney = new Journey();
                 for(DataSnapshot data1 : dataSnapshots){ //For Each TimeStamp
                     Iterable<DataSnapshot> dataSnapshots1 = data1.getChildren();
-                    Journey tempJourney = new Journey();
                     for(DataSnapshot data2 : dataSnapshots1){ //FOR EACH DATE / Waypoints list
                         if(data2.getKey().equals("date")){
                             Date date = data2.getValue(Date.class);
@@ -475,12 +465,10 @@ public class PlanJourneyActivity extends AppCompatActivity implements DatePicker
                                 for(DataSnapshot data4 : dataSnapshots3) {
                                     if (data4.getKey().equals("latLng")) {
                                         test.collegecarpool.alpha.MapsUtilities.LatLng latLng = data4.getValue(test.collegecarpool.alpha.MapsUtilities.LatLng.class);
-                                        //Log.d(TAG, "LAT/LNG IS " + latLng.toString());
                                         waypoint.setLatLng(latLng);
                                     }
                                     if (data4.getKey().equals("name")) {
                                         String name = data4.getValue(String.class);
-                                        //Log.d(TAG, "NAME IS " + name);
                                         waypoint.setName(name);
                                     }
                                 }
@@ -489,12 +477,12 @@ public class PlanJourneyActivity extends AppCompatActivity implements DatePicker
                             tempJourney.setWaypoints(waypoints);
                         }
                     }
-                    //TEMP JOURNEY IS EQUAL DON'T UPLOAD IT
-                    /*Have To Check If Not null Because Of Addition of History Feature*/
-                    if(tempJourney.getDate() != null) {
-                        fireJourneys.add(tempJourney);
-                        Log.d(TAG, "Exists Journey: " + tempJourney.toString());
-                    }
+                }
+                //TEMP JOURNEY IS EQUAL DON'T UPLOAD IT
+                /*Have To Check If Not null Because Of Addition of History Feature*/
+                if(tempJourney.getDate() != null) {
+                    fireJourneys.add(tempJourney);
+                    Log.d(TAG, "Added Journey: " + tempJourney.toString());
                 }
             }
 

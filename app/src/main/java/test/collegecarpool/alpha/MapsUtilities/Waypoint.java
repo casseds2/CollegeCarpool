@@ -1,6 +1,7 @@
 package test.collegecarpool.alpha.MapsUtilities;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 
 public class Waypoint implements Serializable{
 
@@ -20,6 +21,14 @@ public class Waypoint implements Serializable{
 
     boolean isTheSameAs(Waypoint waypoint){
         return this.name.equals(waypoint.getName()) && this.latLng.equals(waypoint.getLatLng());
+    }
+
+    boolean isContainedIn(ArrayList<Waypoint> waypoints){
+        for(Waypoint waypoint : waypoints){
+            if(this.isTheSameAs(waypoint))
+                return true;
+        }
+        return false;
     }
 
     public String getName(){

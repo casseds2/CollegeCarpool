@@ -19,6 +19,9 @@
     <string name="hint_secondName">Second Name</string>
     <string name="title_activity_home_screen">Map</string>
     <string name="title_activity_maps">Map</string>
+    <string name="google_login">Google Login</string>
+
+    <string name="google_login_client">1005050635291-mem5cc24rdkmeaihtjg6u061p4cmq7d2.apps.googleusercontent.com</string>
 
     <!-- Nav Indicators -->
     <string name="navigation_drawer_open">Open navigation drawer</string>
@@ -62,5 +65,6 @@
 
     <string name="title_activity_view_journey">Map</string>
     <string name="title_activity_navigation">Navigation</string>
+    <string name="title_activity_nav2">Map</string>
 
 </resources>

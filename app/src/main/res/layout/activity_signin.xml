@@ -67,6 +67,13 @@
                 android:layout_width="match_parent"
                 android:layout_height="50dp"
                 android:textSize="@dimen/button_text_size"/>
+            <Button
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/google_login"
+                android:height="50dp"
+                android:hint="@string/google_login"
+                android:textSize="@dimen/button_text_size"/>
 
             <ProgressBar
                 android:id="@+id/progressBar"

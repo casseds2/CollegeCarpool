@@ -41,7 +41,7 @@ public class Date implements Serializable{ //implements so it can be passed in J
         return this.year;
     }
 
-    public boolean compareTo(Date d){
+    public boolean isEqualTo(Date d){
         return day == d.day && month == d.month && year == d.year;
     }
 
