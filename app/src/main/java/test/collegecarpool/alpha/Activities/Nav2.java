@@ -181,7 +181,7 @@ public class Nav2 extends FragmentActivity implements OnMapReadyCallback, Google
         this.userAtEndStep = userAtEndStep;
         this.bearing = bearing;
 
-        String displayText = "Instruction: " + instruction + "\nManeuver: " + maneuver;
+        String displayText = "Instruction: " + instruction + "\nNext Maneuver: " + maneuver;
         if(userAtEndStep){
             displayText = displayText + "\nStep: End Step";
         }

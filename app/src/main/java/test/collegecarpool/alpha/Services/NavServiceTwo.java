@@ -170,14 +170,14 @@ public class NavServiceTwo extends Service {
                                 incrementStep = false;
                             }
                             /*Start Step (20m)*/
-                            if (isNear(userLatLng, currentStep.getStart(), 50.0f)) {
+                            if (isNear(userLatLng, currentStep.getStart(), 40.0f)) {
                                 Log.d(TAG, "User Is At a Start Step");
                                 stepDistance = currentStep.getDistance();
                                 stepInstruction = currentStep.getHtmlInstruction();
                                 userAtStartOfStep = true;
                             }
                             /*End Step (200m)*/
-                            if (isNear(userLatLng, currentStep.getEnd(), 100.0f)) {
+                            if (isNear(userLatLng, currentStep.getEnd(), 150.0f)) {
                                 Log.d(TAG, "User Is At an End Step");
                                 stepManeuver = currentStep.getManeuver();
                                 userAtEndOfStep = true;
@@ -193,8 +193,8 @@ public class NavServiceTwo extends Service {
                                 float[] dist = new float[2];
                                 Location.distanceBetween(myProfile.getLatitude(), myProfile.getLongitude(), currentStep.getEnd().latitude, currentStep.getEnd().longitude, dist);
                                 Location.distanceBetween(myProfile.getLatitude(), myProfile.getLongitude(), currentStep.getStart().latitude, currentStep.getStart().longitude, dist);
-                                Log.d(TAG, "Dist[0] is: " + dist[0] + ", Dist[1] is: " + dist[1]);
-                                if (dist[0] < dist[1]) {
+                                Log.d(TAG, "Dist[0] (toEnd) is: " + Math.abs(dist[0]) + ", Dist[1] (toStart) is: " + Math.abs(dist[1]));
+                                if (Math.abs(dist[0]) < Math.abs(dist[1])) {
                                     userAtStartOfStep = false;
                                     Log.d(TAG, "userAtStartStep Set To False So Maneuver Gets Priority");
                                 } else {

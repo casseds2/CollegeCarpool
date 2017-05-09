@@ -172,3 +172,16 @@ make continuous calls to Google Directions API, it will only call if off route, 
 meant performance is sped up severely. Might also look into parsing the JSON for more info tomorrow if I can get the messaging and possible custom
 notifications working.
 
+## My Eighteenth Blog
+Very busy with studying for exams so have only been chipping away at small bits of project. I got the notifications working with node.js in Firebase Functions.
+This allowed me to trigger node.js functions whenever a data event happened in the database which allowed me to send push notifications through firebase
+cloud messaging (FCM). I have no instant messaging and ride requests (on the move) "working" to an extent. Also completely rewrote the sat nav activity and
+the sat nav service. It was too messy as I began the function without a proper understanding of the objective and how to reach it. Writing it the first time
+gave me the experience to learn what needed to be done and what sort of functions I'd need. When it came to modifying the first attempt, all was too hard to
+understand so I made the decision to rework it, taking bits from the previous version and shortening others. Previously I had been attempting to over-complicate
+the activity but making it object orientated. I learned my lesson that going down this road isn't always the best solution. Readable code is a lot better than
+"formal" object orientated code in some cases as it is sometimes just plain easier to read. It is now a matter of testing the distances conditions in the nav
+service are triggered by. A major issue I found with it (to my annoyance) was that I was comparing a float to and int at one stage. Although I would believe
+that the java compiler would change the int to type float while performing the comparison, I don't think it was doing it in practice. Further testing/ fine tuning
+needed.
+
