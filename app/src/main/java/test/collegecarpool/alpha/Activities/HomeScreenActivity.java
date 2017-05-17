@@ -189,7 +189,7 @@ public class HomeScreenActivity extends AppCompatActivity implements OnMapReadyC
     protected void onStop() {
         super.onStop();
         Log.d(TAG, "onStop");
-        activeUserMap.stopListeningForJourneys();
+        //activeUserMap.stopListeningForJourneys();
     }
 
     @Override

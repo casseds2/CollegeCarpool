@@ -61,13 +61,14 @@ public class MessagingService extends FirebaseMessagingService {
 
     private void handleFriendRequest(Map<String, String> data, RemoteMessage remoteMessage){
         String userName = data.get("username");
+        String message = userName + " sent you a friend request.";
         Uri tone = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
                 .setSmallIcon(R.mipmap.ic_person_outline_white_24dp)
                 .setColor(Color.BLACK)
                 .setContentTitle(remoteMessage.getNotification().getTitle())
                 .setStyle(new NotificationCompat.BigTextStyle()
-                    .bigText(userName + " sent you a friend request."))
+                        .bigText(message))
                 .setSound(tone)
                 .setPriority(Notification.PRIORITY_MAX)
                 .setAutoCancel(true);

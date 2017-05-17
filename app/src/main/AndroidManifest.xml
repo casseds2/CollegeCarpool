@@ -151,7 +151,8 @@
         <activity
             android:name=".Activities.FriendActivity"
             android:label="@string/title_activity_friend"
-            android:theme="@style/AppTheme.NoActionBar"></activity>
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity android:name=".Activities.ViewFriendPlanner"></activity>
     </application>
 
 </manifest>

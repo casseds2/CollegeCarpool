@@ -185,3 +185,8 @@ service are triggered by. A major issue I found with it (to my annoyance) was th
 that the java compiler would change the int to type float while performing the comparison, I don't think it was doing it in practice. Further testing/ fine tuning
 needed.
 
+## MyNineteenth Blog
+Added a friend system to the app. Users can now add friends from viewing available journeys. If the user sends a request, the other user will receiver a firebase
+cloud notification warning them. They can then go to the friends section of the app (nav menu) and go to friend requests which is a tab here. They can accept the
+request here and then the user will be added to their friends list. When in friends list, user can easily message people they know and also have the
+privilege of viewing the friend's journey list. They cannot edit the list.
