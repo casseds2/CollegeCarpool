@@ -11,7 +11,6 @@ import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.os.Bundle;
 import android.view.LayoutInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -23,10 +22,6 @@ import test.collegecarpool.alpha.R;
 
 public class FriendActivity extends AppCompatActivity {
 
-    private SectionsPagerAdapter mSectionsPagerAdapter;
-
-    private ViewPager mViewPager;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -35,8 +30,8 @@ public class FriendActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         toolbar.setBackgroundColor(Color.BLACK);
-        mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
-        mViewPager = (ViewPager) findViewById(R.id.container);
+        SectionsPagerAdapter mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
+        ViewPager mViewPager = (ViewPager) findViewById(R.id.container);
         mViewPager.setAdapter(mSectionsPagerAdapter);
 
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
@@ -44,32 +39,11 @@ public class FriendActivity extends AppCompatActivity {
         tabLayout.setBackgroundColor(Color.BLACK);
     }
 
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-
-        int id = item.getItemId();
-
-        if (id == R.id.action_settings) {
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
-    }
-
     public static class PlaceholderFragment extends Fragment {
 
         private static final String ARG_SECTION_NUMBER = "section_number";
 
         public PlaceholderFragment() {
-        }
-
-        public static PlaceholderFragment newInstance(int sectionNumber) {
-            PlaceholderFragment fragment = new PlaceholderFragment();
-            Bundle args = new Bundle();
-            args.putInt(ARG_SECTION_NUMBER, sectionNumber);
-            fragment.setArguments(args);
-            return fragment;
         }
 
         @Override
@@ -81,9 +55,9 @@ public class FriendActivity extends AppCompatActivity {
         }
     }
 
-    public class SectionsPagerAdapter extends FragmentPagerAdapter {
+    private class SectionsPagerAdapter extends FragmentPagerAdapter {
 
-        public SectionsPagerAdapter(FragmentManager fm) {
+        SectionsPagerAdapter(FragmentManager fm) {
             super(fm);
         }
 
@@ -91,11 +65,9 @@ public class FriendActivity extends AppCompatActivity {
         public Fragment getItem(int position) {
             switch (position){
                 case 0:
-                    FriendTabOne friendTabOne = new FriendTabOne();
-                    return friendTabOne;
+                    return new FriendTabOne();
                 case 1:
-                    FriendTabTwo friendTabTwo = new FriendTabTwo();
-                    return friendTabTwo;
+                    return new FriendTabTwo();
             }
             return null;
         }

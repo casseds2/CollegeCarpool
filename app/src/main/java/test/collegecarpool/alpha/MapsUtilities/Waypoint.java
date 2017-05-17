@@ -23,14 +23,6 @@ public class Waypoint implements Serializable{
         return this.name.equals(waypoint.getName()) && this.latLng.equals(waypoint.getLatLng());
     }
 
-    boolean isContainedIn(ArrayList<Waypoint> waypoints){
-        for(Waypoint waypoint : waypoints){
-            if(this.isTheSameAs(waypoint))
-                return true;
-        }
-        return false;
-    }
-
     public String getName(){
         return this.name;
     }

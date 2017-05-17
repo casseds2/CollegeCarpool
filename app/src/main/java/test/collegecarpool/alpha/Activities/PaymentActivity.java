@@ -2,16 +2,21 @@ package test.collegecarpool.alpha.Activities;
 
 import android.app.PendingIntent;
 import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.nfc.NdefMessage;
 import android.nfc.NdefRecord;
 import android.nfc.NfcAdapter;
 import android.nfc.NfcEvent;
 import android.os.Parcelable;
+import android.support.annotation.NonNull;
+import android.support.design.widget.NavigationView;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.View;
-import android.widget.Button;
+import android.view.MenuItem;
 import android.widget.NumberPicker;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -24,6 +29,8 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import test.collegecarpool.alpha.LoginAndRegistrationActivities.SigninActivity;
+import test.collegecarpool.alpha.MessagingActivities.ChatRoomActivity;
 import test.collegecarpool.alpha.R;
 import test.collegecarpool.alpha.UserClasses.UserProfile;
 
@@ -33,12 +40,14 @@ import static android.nfc.NdefRecord.createMime;
 public class PaymentActivity extends AppCompatActivity implements NfcAdapter.CreateNdefMessageCallback, NfcAdapter.OnNdefPushCompleteCallback {
 
     public NfcAdapter nfcAdapter;
-    private TextView balance, amountPaid;
+    private TextView balance;
     private final String TAG = "PaymentActivity";
     private FirebaseUser currentUser;
     private DatabaseReference userRef;
     private int euro, cent;
+    private FirebaseAuth auth;
     private double cost = 0;
+    private ActionBarDrawerToggle actionBarDrawerToggle;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,23 +56,12 @@ public class PaymentActivity extends AppCompatActivity implements NfcAdapter.Cre
 
         initFirebaseAuth();
 
+        auth = FirebaseAuth.getInstance();
         balance = (TextView) findViewById(R.id.balance);
 
         displayBalance();
         initNumWheels();
-
-        /*Test Code to Check Euro and Cents are Changing*/
-        amountPaid = (TextView) findViewById(R.id.amountPaid);
-
-        Button button = (Button) findViewById(R.id.refreshTest);
-        button.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                amountPaid.setText(euro + "." + cent);
-            }
-        });
-        /*End  of the test code*/
-
+        initDrawer();
 
         nfcAdapter = NfcAdapter.getDefaultAdapter(this);
         if(null != nfcAdapter && nfcAdapter.isEnabled()){
@@ -252,6 +250,54 @@ public class PaymentActivity extends AppCompatActivity implements NfcAdapter.Cre
             userRef.child(currentUser.getUid()).child("wallet").setValue(newBalance);
             displayBalance();
             Toast.makeText(PaymentActivity.this, "Transaction Complete", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        return actionBarDrawerToggle.onOptionsItemSelected(item) || super.onOptionsItemSelected(item);
+    }
+
+    private void initDrawer() {
+        DrawerLayout drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
+        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
+            @Override
+            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                switch (item.getItemId()) {
+                    case R.id.nav_home:
+                        startActivity(new Intent(PaymentActivity.this, HomeScreenActivity.class));
+                        onStop();
+                        return true;
+                    case R.id.nav_journey:
+                        startActivity(new Intent(PaymentActivity.this, PlanJourneyActivity.class));
+                        onStop();
+                        return true;
+                    case R.id.nav_messages:
+                        startActivity(new Intent(PaymentActivity.this, ChatRoomActivity.class));
+                        onStop();
+                        return true;
+                    case R.id.nav_payment:
+                        return true;
+                    case R.id.nav_friends:
+                        startActivity(new Intent(PaymentActivity.this, FriendActivity.class));
+                        onStop();
+                        return true;
+                    case R.id.nav_logout:
+                        auth.signOut();
+                        startActivity(new Intent(PaymentActivity.this, SigninActivity.class));
+                        onStop();
+                        return true;
+                }
+                return false;
+            }
+        });
+        actionBarDrawerToggle = new ActionBarDrawerToggle(this, drawerLayout, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        drawerLayout.addDrawerListener(actionBarDrawerToggle);
+        actionBarDrawerToggle.syncState();
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            getSupportActionBar().setBackgroundDrawable(new ColorDrawable(Color.BLACK));
         }
     }
 }

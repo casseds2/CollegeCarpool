@@ -1,7 +1,5 @@
 package test.collegecarpool.alpha.MapsUtilities;
 
-import android.util.Log;
-
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -48,7 +46,6 @@ public class Journey implements Serializable { //Implements Serializable So That
         for(Waypoint marker : waypoints){
             if(null != marker && waypoint != null && waypoint.isTheSameAs(marker)) {
                 waypoints.remove(waypoint);
-                Log.d("JOURNEY", waypoint.toString() + " WAS REMOVED");
                 return;
             }
         }
@@ -73,18 +70,6 @@ public class Journey implements Serializable { //Implements Serializable So That
 
     public String toString() {
         return this.date.toString() + " : " + this.waypoints.toString();
-    }
-
-    /*Return True If A Journey is a Part of A Journey List*/
-    public boolean isElementOf(ArrayList<Journey> journeys){
-        if(journeys.isEmpty())
-            return false;
-        for(Journey journey : journeys){
-            if(this.isTheSameAs(journey)) {
-                return true;
-            }
-        }
-        return false;
     }
 
     /*Compares One Journey To Another*/
@@ -113,20 +98,18 @@ public class Journey implements Serializable { //Implements Serializable So That
     /*Return true if journey exists in list*/
     public boolean isContainedIn(ArrayList<Journey> journeys){
         for(Journey journey: journeys){
-            if(this.date.isEqualTo(journey.getDate())){ //First If the Dates Are Equal
-                ArrayList<Waypoint> thisWaypoints = this.getWaypoints();
+            if(date.isEqualTo(journey.getDate())){ //First If the Dates Are Equal
+                ArrayList<Waypoint> thisWaypoints = waypoints;
                 ArrayList<Waypoint> journeyWaypoints = journey.getWaypoints();
                 if(thisWaypoints.size() == journeyWaypoints.size()){
                     for(int i = 0; i < thisWaypoints.size(); i++){ //Compare this waypoints with journey waypoints
                         Waypoint thisWaypoint = thisWaypoints.get(i);
                         Waypoint journeyWaypoint = journeyWaypoints.get(i);
                         if(thisWaypoint.isTheSameAs(journeyWaypoint)){
-                            if(i == thisWaypoints.size()){
+                            if(i == thisWaypoints.size()-1){
                                 return true;
                             }
                         }
-                        else
-                            break;
                     }
                 }
             }
@@ -134,26 +117,3 @@ public class Journey implements Serializable { //Implements Serializable So That
         return false;
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

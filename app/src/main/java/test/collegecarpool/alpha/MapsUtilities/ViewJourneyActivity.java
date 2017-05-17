@@ -17,6 +17,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.firebase.auth.FirebaseAuth;
 import java.util.ArrayList;
 import test.collegecarpool.alpha.Activities.HomeScreenActivity;
+import test.collegecarpool.alpha.Activities.PaymentActivity;
 import test.collegecarpool.alpha.Activities.PlanJourneyActivity;
 import test.collegecarpool.alpha.LoginAndRegistrationActivities.SigninActivity;
 import test.collegecarpool.alpha.MessagingActivities.ChatRoomActivity;
@@ -68,6 +69,14 @@ public class ViewJourneyActivity extends AppCompatActivity implements OnMapReady
                         return true;
                     case R.id.nav_messages:
                         startActivity(new Intent(ViewJourneyActivity.this, ChatRoomActivity.class));
+                        onStop();
+                        return true;
+                    case R.id.nav_payment:
+                        startActivity(new Intent(ViewJourneyActivity.this, PaymentActivity.class));
+                        onStop();
+                        return true;
+                    case R.id.nav_friends:
+                        startActivity(new Intent(ViewJourneyActivity.this, PaymentActivity.class));
                         onStop();
                         return true;
                     case R.id.nav_logout:

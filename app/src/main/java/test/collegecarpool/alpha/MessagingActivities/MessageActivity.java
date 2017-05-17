@@ -32,7 +32,10 @@ import com.google.firebase.database.ValueEventListener;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import test.collegecarpool.alpha.Activities.FriendActivity;
 import test.collegecarpool.alpha.Activities.HomeScreenActivity;
+import test.collegecarpool.alpha.Activities.PaymentActivity;
+import test.collegecarpool.alpha.Activities.PlanJourneyActivity;
 import test.collegecarpool.alpha.LoginAndRegistrationActivities.SigninActivity;
 import test.collegecarpool.alpha.R;
 import test.collegecarpool.alpha.UserClasses.UserProfile;
@@ -208,6 +211,18 @@ public class MessageActivity extends AppCompatActivity {
                         return true;
                     case R.id.nav_messages:
                         startActivity(new Intent(MessageActivity.this, ChatRoomActivity.class));
+                        onStop();
+                        return true;
+                    case R.id.nav_payment:
+                        startActivity(new Intent(MessageActivity.this, PaymentActivity.class));
+                        onStop();
+                        return true;
+                    case R.id.nav_journey:
+                        startActivity(new Intent(MessageActivity.this, PlanJourneyActivity.class));
+                        onStop();
+                        return true;
+                    case R.id.nav_friends:
+                        startActivity(new Intent(MessageActivity.this, FriendActivity.class));
                         onStop();
                         return true;
                     case R.id.nav_logout:

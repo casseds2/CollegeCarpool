@@ -43,13 +43,13 @@ import static test.collegecarpool.alpha.Tools.Variables.SAT_NAV_ENABLED;
 public class ViewJourneyPlannerActivity extends AppCompatActivity {
 
     private DatabaseReference journeyRef;
-    ArrayList<Journey> journeys; //SEND THIS TO NAVIGATION - PICK CORRESPONDING JOURNEY TO CLICKED JOURNEY OUT OF IT AND SEND TO NAVIGATION
-    private final String TAG = "VIEWJOURNEYPLANNER";
+    private ArrayList<Journey> journeys; //SEND THIS TO NAVIGATION - PICK CORRESPONDING JOURNEY TO CLICKED JOURNEY OUT OF IT AND SEND TO NAVIGATION
+    private final String TAG = "ViewJourneyPlanner";
     private ActionBarDrawerToggle actionBarDrawerToggle;
     private FirebaseAuth auth;
-    ViewJourneyPlannerAdapter adapter;
-    ListView listView;
-    Date todayDate;
+    private ViewJourneyPlannerAdapter adapter;
+    private ListView listView;
+    private Date todayDate;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -263,7 +263,11 @@ public class ViewJourneyPlannerActivity extends AppCompatActivity {
                         return true;
                     case R.id.nav_payment:
                         startActivity(new Intent(ViewJourneyPlannerActivity.this, PaymentActivity.class));
-                        onStart();
+                        onStop();
+                        return true;
+                    case R.id.nav_friends:
+                        startActivity(new Intent(ViewJourneyPlannerActivity.this, FriendActivity.class));
+                        onStop();
                         return true;
                     case R.id.nav_logout:
                         auth.signOut();

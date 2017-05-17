@@ -3,10 +3,8 @@ package test.collegecarpool.alpha.Activities;
 import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
-import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.ActivityCompat;
@@ -19,7 +17,6 @@ import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
-import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -27,10 +24,7 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.iid.FirebaseInstanceId;
-import com.squareup.picasso.Picasso;
-import com.squareup.picasso.Transformation;
 
 import test.collegecarpool.alpha.Firebase.FCMTokenPusher;
 import test.collegecarpool.alpha.Firebase.FireLocationMapZoom;
@@ -43,16 +37,14 @@ import test.collegecarpool.alpha.Tools.GoogleClientBuilder;
 
 import static test.collegecarpool.alpha.Tools.Variables.MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION;
 
-public class HomeScreenActivity extends AppCompatActivity implements OnMapReadyCallback, Transformation{
+public class HomeScreenActivity extends AppCompatActivity implements OnMapReadyCallback{
 
     private GoogleApiClient googleApiClient = null;
     private static String TAG = "HomeScreenActivity";
     private ActionBarDrawerToggle actionBarDrawerToggle;
     private FirebaseAuth auth;
-    private FirebaseUser user;
     private SupportMapFragment mapFragment;
     private GoogleClientBuilder googleClientBuilder;
-    private ActiveUserMap activeUserMap;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,7 +60,6 @@ public class HomeScreenActivity extends AppCompatActivity implements OnMapReadyC
         checkPermissions();
 
         auth = FirebaseAuth.getInstance();
-        user = auth.getCurrentUser();
 
         initDrawer();
 
@@ -99,7 +90,7 @@ public class HomeScreenActivity extends AppCompatActivity implements OnMapReadyC
         //googleMap.setTrafficEnabled(true);
 
         /*Display Users Broadcasting Location and PolyLines of People Travelling*/
-        activeUserMap = new ActiveUserMap(this, googleMap);
+        ActiveUserMap activeUserMap = new ActiveUserMap(this, googleMap);
         activeUserMap.displayActiveJourneys();
 
         /*Zoom On My Firebase Location*/
@@ -145,6 +136,13 @@ public class HomeScreenActivity extends AppCompatActivity implements OnMapReadyC
     private void initDrawer() {
         DrawerLayout drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+
+        View appHeader = navigationView.getHeaderView(0);
+        TextView name = (TextView) appHeader.findViewById(R.id.user_name_field);
+        name.setText("Hello");
+        TextView app = (TextView) appHeader.findViewById(R.id.app_name_field);
+        app.setText("College Carpool");
+
         navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
@@ -196,15 +194,5 @@ public class HomeScreenActivity extends AppCompatActivity implements OnMapReadyC
     protected void onPause() {
         super.onPause();
         Log.d(TAG, "onPause");
-    }
-
-    @Override
-    public Bitmap transform(Bitmap source) {
-        return null;
-    }
-
-    @Override
-    public String key() {
-        return null;
     }
 }

@@ -417,6 +417,10 @@ public class PlanJourneyActivity extends AppCompatActivity implements DatePicker
                         startActivity(new Intent(PlanJourneyActivity.this, PaymentActivity.class));
                         onStop();
                         return true;
+                    case R.id.nav_friends:
+                        startActivity(new Intent(PlanJourneyActivity.this, FriendActivity.class));
+                        onStop();
+                        return true;
                     case R.id.nav_logout:
                         auth.signOut();
                         startActivity(new Intent(PlanJourneyActivity.this, SigninActivity.class));

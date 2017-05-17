@@ -103,10 +103,7 @@ public class FindCarpoolActivity extends AppCompatActivity {
                 index = adapterContextMenuInfo.position;
                 Journey selectedJourney = allJourneys.get(index);
                 userID = findJourneyOwner(selectedJourney);
-                //Log.d(TAG, "UserID: " + userID);
-                //Toast.makeText(this, "Message User at " + index, Toast.LENGTH_SHORT).show();
                 if(!userID.equals(user.getUid())) {
-                    //Toast.makeText(this, "UserID: " + userID, Toast.LENGTH_SHORT).show();
                     Intent intent = new Intent(FindCarpoolActivity.this, MessageActivity.class);
                     intent.putExtra("ReceiverID", userID);
                     startActivity(intent);
@@ -117,10 +114,7 @@ public class FindCarpoolActivity extends AppCompatActivity {
                 index = adapterContextMenuInfo.position;
                 selectedJourney = allJourneys.get(index);
                 userID = findJourneyOwner(selectedJourney);
-                //Log.d(TAG, "UserID: " + userID);
-                //Toast.makeText(this, "Add Friend at " + index, Toast.LENGTH_SHORT).show();
                 if(!userID.equals(user.getUid())) {
-                    //Toast.makeText(this, "UserID: " + userID, Toast.LENGTH_SHORT).show();
                     HashMap<String, Object> friendRequest = new HashMap<>();
                     friendRequest.put("requestID", user.getUid());
                     friendRequest.put("userName", myUser.getFirstName() + " " + myUser.getSecondName());
@@ -285,6 +279,8 @@ public class FindCarpoolActivity extends AppCompatActivity {
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
                 switch (item.getItemId()) {
                     case R.id.nav_home:
+                        startActivity(new Intent(FindCarpoolActivity.this, HomeScreenActivity.class));
+                        onStop();
                         return true;
                     case R.id.nav_journey:
                         startActivity(new Intent(FindCarpoolActivity.this, PlanJourneyActivity.class));
@@ -297,6 +293,10 @@ public class FindCarpoolActivity extends AppCompatActivity {
                     case R.id.nav_payment:
                         startActivity(new Intent(FindCarpoolActivity.this, PaymentActivity.class));
                         onStart();
+                        return true;
+                    case R.id.nav_friends:
+                        startActivity(new Intent(FindCarpoolActivity.this, FriendActivity.class));
+                        onStop();
                         return true;
                     case R.id.nav_logout:
                         auth.signOut();

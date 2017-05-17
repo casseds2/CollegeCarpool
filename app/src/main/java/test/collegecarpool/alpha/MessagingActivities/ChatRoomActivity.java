@@ -27,7 +27,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+import test.collegecarpool.alpha.Activities.FriendActivity;
 import test.collegecarpool.alpha.Activities.HomeScreenActivity;
+import test.collegecarpool.alpha.Activities.PaymentActivity;
+import test.collegecarpool.alpha.Activities.PlanJourneyActivity;
 import test.collegecarpool.alpha.Adapters.MyChatsAdapter;
 import test.collegecarpool.alpha.LoginAndRegistrationActivities.SigninActivity;
 import test.collegecarpool.alpha.R;
@@ -172,6 +175,18 @@ public class ChatRoomActivity extends AppCompatActivity implements AdapterView.O
                         onStop();
                         return true;
                     case R.id.nav_messages:
+                        return true;
+                    case R.id.nav_friends:
+                        startActivity(new Intent(ChatRoomActivity.this, FriendActivity.class));
+                        onStop();
+                        return true;
+                    case R.id.nav_journey:
+                        startActivity(new Intent(ChatRoomActivity.this, PlanJourneyActivity.class));
+                        onStop();
+                        return true;
+                    case R.id.nav_payment:
+                        startActivity(new Intent(ChatRoomActivity.this, PaymentActivity.class));
+                        onStop();
                         return true;
                     case R.id.nav_logout:
                         auth.signOut();

@@ -6,18 +6,30 @@
     android:padding="20dp"
     android:id="@+id/app_head">
 
-    <ImageView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/profile_picture"
-        android:layout_marginEnd="16dp"
-        android:layout_marginBottom="18dp"
-        android:layout_gravity="center" />
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/name_field"
-        android:textColor="@color/common_google_signin_btn_text_dark_default"
-        android:textAlignment="center" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/user_name_field"
+            android:textColor="@color/common_google_signin_btn_text_dark_default"
+            android:textAlignment="center" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/app_name_field"
+            android:textColor="@color/common_google_signin_btn_text_dark_default"
+            android:textAlignment="center" />
+
+    </LinearLayout>
+
 </RelativeLayout>
