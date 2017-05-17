@@ -30,13 +30,14 @@ public class PlanJourneyAdapter extends ArrayAdapter<String>{
         View row = view.inflate(R.layout.plan_journey_list, parent, false);
         TextView rowInfo = (TextView) row.findViewById(R.id.plan_journey_text);
         int rowPosition = position + 1; //Index starts at 0
-        if(rowPosition == 1)
-            rowInfo.setText("Start )" + list.get(position));
-        else
-            if(rowPosition == list.size())
-                rowInfo.setText("End ) " + list.get(position));
-        else
-                rowInfo.setText("Stop " + (rowPosition-1) + ")  " + list.get(position));
+        rowInfo.setText("Stop " + rowPosition + ") " + list.get(position));
+//        if(rowPosition == 1)
+//            rowInfo.setText("Start )" + list.get(position));
+//        else
+//            if(rowPosition == list.size())
+//                rowInfo.setText("End ) " + list.get(position));
+//        else
+//                rowInfo.setText("Stop " + (rowPosition-1) + ")  " + list.get(position));
         return row;
     }
 }

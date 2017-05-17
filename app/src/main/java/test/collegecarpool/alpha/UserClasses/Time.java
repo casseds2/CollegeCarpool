@@ -22,27 +22,27 @@ public class Time {
         this.hours = hours;
     }
 
-    public int getSeconds() {
+    int getSeconds() {
         return seconds;
     }
 
-    public void setSeconds(int seconds) {
+    void setSeconds(int seconds) {
         this.seconds = seconds;
     }
 
-    public int getMinutes() {
+    int getMinutes() {
         return minutes;
     }
 
-    public void setMinutes(int minutes) {
+    void setMinutes(int minutes) {
         this.minutes = minutes;
     }
 
-    public int getHours() {
+    int getHours() {
         return hours;
     }
 
-    public void setHours(int hours) {
+    void setHours(int hours) {
         this.hours = hours;
     }
 }

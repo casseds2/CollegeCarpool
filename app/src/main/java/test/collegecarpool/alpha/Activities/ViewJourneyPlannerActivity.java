@@ -222,11 +222,13 @@ public class ViewJourneyPlannerActivity extends AppCompatActivity {
                         }
                     }
                     if(journey.getDate() != null || journey.getWaypoints() != null) {
-                        journeys.add(journey);
-                        Log.d(TAG, "ELEMENT: " + journey);
                         if (!todayDate.isBefore(journey.getDate())) {
                             Log.d(TAG, "Removing Past Journey " + journey.toString());
                             data1.getRef().setValue(null);
+                        }
+                        else{
+                            journeys.add(journey);
+                            Log.d(TAG, "ELEMENT: " + journey);
                         }
                     }
                 }
@@ -262,14 +264,6 @@ public class ViewJourneyPlannerActivity extends AppCompatActivity {
                     case R.id.nav_payment:
                         startActivity(new Intent(ViewJourneyPlannerActivity.this, PaymentActivity.class));
                         onStart();
-                        return true;
-                    case R.id.nav_profile:
-                        startActivity(new Intent(ViewJourneyPlannerActivity.this, ProfileActivity.class));
-                        onStop();
-                        return true;
-                    case R.id.nav_settings:
-                        startActivity(new Intent(ViewJourneyPlannerActivity.this, SettingsActivity.class));
-                        onStop();
                         return true;
                     case R.id.nav_logout:
                         auth.signOut();

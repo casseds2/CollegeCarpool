@@ -11,18 +11,16 @@ public class UserProfile {
     private String email;
     private double latitude;
     private double longitude;
-    private boolean broadcastLocation;
     private double wallet;
 
     public UserProfile(){}
 
-    public UserProfile(String firstName, String secondName, String email,double lat, double lon, boolean broadcastLocation, double wallet) {
+    public UserProfile(String firstName, String secondName, String email,double lat, double lon, double wallet) {
         this.firstName = firstName;
         this.secondName = secondName;
         this.email = email;
         this.latitude = lat;
         this.longitude = lon;
-        this.broadcastLocation = broadcastLocation;
         this.wallet = wallet;
     }
 
@@ -34,7 +32,6 @@ public class UserProfile {
         info.put("email", email);
         info.put("latitude", latitude);
         info.put("longitude", longitude);
-        info.put("broadcastLocation", broadcastLocation);
         info.put("wallet", wallet);
         return info;
     }
@@ -51,13 +48,33 @@ public class UserProfile {
         return this.email;
     }
 
-    public boolean getBroadcastLocation(){
-        return this.broadcastLocation;
-    }
-
     public double getWallet() { return this.wallet; }
 
     public String toString(){
         return "Name: " + firstName + " " + secondName + "\n" + email + "\n" + "LAT/LNG: " + getLatitude() + "/" + getLongitude();
+    }
+
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+    public void setSecondName(String secondName) {
+        this.secondName = secondName;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public void setLatitude(double latitude) {
+        this.latitude = latitude;
+    }
+
+    public void setLongitude(double longitude) {
+        this.longitude = longitude;
+    }
+
+    public void setWallet(double wallet) {
+        this.wallet = wallet;
     }
 }

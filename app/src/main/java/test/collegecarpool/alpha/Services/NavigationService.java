@@ -19,7 +19,6 @@ import com.google.firebase.database.ValueEventListener;
 import com.google.maps.android.PolyUtil;
 
 import java.util.ArrayList;
-import java.util.concurrent.ExecutionException;
 
 import test.collegecarpool.alpha.Firebase.PolyLinePusher;
 import test.collegecarpool.alpha.MapsUtilities.DirectionStep;
@@ -29,177 +28,196 @@ import test.collegecarpool.alpha.PolyDirectionsTools.PolyURLBuilder;
 import test.collegecarpool.alpha.Tools.Variables;
 import test.collegecarpool.alpha.UserClasses.UserProfile;
 
-public class NavigationService extends Service{
+public class NavigationService extends Service {
 
-    private final String TAG = "NAVIGATION SERVICE";
-    private FirebaseUser user;
+    private final String TAG = "NavigationService";
     private DatabaseReference userRef;
-    ArrayList<LatLng> polyLatLngs;
-    ArrayList<LatLng> journeyLatLngs;
-    ArrayList<DirectionStep> directionSteps;
-    PolyDirections polyDirections;
-    ResultReceiver resultReceiver;
-    Bundle bundle;
-    DirectionParser directionParser;
-    boolean journeyFinished;
-    boolean routeChanged;
-    PolyLinePusher polyLinePusher;
-    boolean myPositionAlreadyAdded;
-    LatLng userLatLng;
+    private String encodedPolyLine;
+    private String stepInstruction;
+    private ArrayList<LatLng> waypointLatLngs;
+    private ArrayList<LatLng> polyLatLngs;
+    private ArrayList<DirectionStep> directionSteps;
+    private ResultReceiver navTwoReceiver;
+    private PolyDirections polyDirections;
+    private PolyLinePusher polyLinePusher;
+    private DirectionStep currentStep;
+    private DirectionParser directionParser;
+    private LatLng nearWaypoint;
+    private LatLng userLatLng;
+    private int stepCount;
+    private boolean myLocationAdded;
+    private boolean journeyFinished;
+    private boolean userAtStartOfStep;
+    private boolean userAtEndOfStep;
+    private boolean removedCloseWaypoint;
+    private boolean polyLineRecalculated;
+    private float bearing;
 
-    /*For Direction Step*/
-    int duration;
-    int distance;
-    String instruction;
-    String maneuver;
-    boolean atStartStep;
-    boolean atEndStep;
-    DirectionStep currentStep;
-    int indexEnd;
-    boolean serviceStarted;
-    int stepCount;
+    public NavigationService() {}
 
-    public NavigationService(){}
-
-    /*Called At the Start of A Service*/
     @Override
-    public int onStartCommand(Intent intent, int flags, final int startId) {
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        Log.d(TAG, "NavServiceTwo Started");
 
-        Log.d(TAG, "NAV SERVICE STARTED");
-
-        /* 3 Have to be Here in Case Service is Restarted, Effectively Renews All Variables (For If Waypoints Are Changed)*/
-        myPositionAlreadyAdded = false;
-        journeyFinished = false;
-        routeChanged = false;
-
-        /*For Direction Step*/
-        atStartStep = true;
-        atEndStep = false;
-        distance = 0;
-        instruction = "";
-        maneuver = "";
-        duration = 0;
-        currentStep = new DirectionStep();
-        indexEnd = 0;
-        serviceStarted = true;
-        directionSteps = new ArrayList<>();
-        stepCount = 0;
-
-
-        /*START THE SAT_NAV*/
         Variables.SAT_NAV_ENABLED = true;
-
-        /*Assign the PolyLine LatLngs to latLngs && Journey Waypoints as ArrayList<LatLng> && ResultReceiver*/
-        resultReceiver = intent.getParcelableExtra("ResultReceiver");
-        polyLatLngs = intent.getParcelableArrayListExtra("PolyLatLngs");
-        journeyLatLngs = intent.getParcelableArrayListExtra("JourneyLatLngs");
-
-        /*Listener For Location Changes. If Change, Update the Polyline */
-        FirebaseAuth auth = FirebaseAuth.getInstance();
-        if(auth != null)
-            user = auth.getCurrentUser();
+        myLocationAdded = false;
         polyLinePusher = new PolyLinePusher();
+        journeyFinished = false;
+        stepCount = 0;
+        userAtStartOfStep = false;
+        stepInstruction = "";
+        userAtEndOfStep = false;
+        removedCloseWaypoint = false;
+        polyLineRecalculated = false;
+        bearing = 0.0f;
+
+        /*Get Info From The Intent*/
+        waypointLatLngs = intent.getParcelableArrayListExtra("WaypointLatLngs");
+        navTwoReceiver = intent.getParcelableExtra("ResultReceiver");
+
+        /*Start Up Firebase Listener*/
+        FirebaseAuth auth = FirebaseAuth.getInstance();
+        final FirebaseUser user = auth.getCurrentUser();
+        assert user != null;
         userRef = FirebaseDatabase.getInstance().getReference("UserProfile").child(user.getUid());
         userRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
+                Log.d(TAG, "User Location Changed");
 
-                Log.d(TAG, "DETECTED LOCATION CHANGE");
-                UserProfile userProfile = dataSnapshot.getValue(UserProfile.class);
-                userLatLng = new LatLng(userProfile.getLatitude(), userProfile.getLongitude());
+                /*Obtain User Position*/
+                UserProfile myProfile = dataSnapshot.getValue(UserProfile.class);
+                userLatLng = new LatLng(myProfile.getLatitude(), myProfile.getLongitude());
 
-                /*Variables Have To be Restarted At Each Iteration*/
-                atStartStep = serviceStarted;
-                atEndStep = false;
-
-                /*Only Insert Element(MyLocation) at Start of Journey Waypoints Array If Not Already Done*/
-                if (!myPositionAlreadyAdded) {
-                    journeyLatLngs.add(0, userLatLng);
-                    myPositionAlreadyAdded = true;
-                    Log.d(TAG, "ADDED MY POSITION TO JOURNEY ARRAY");
-                } else {
-                    journeyLatLngs.set(0, userLatLng);
-                    Log.d(TAG, "OVERWROTE MY POSITION IN JOURNEY ARRAY");
+                /*If SAT_NAV Finished During Loop, Shut it Down*/
+                if(!Variables.SAT_NAV_ENABLED){
+                    shutDownService();
+                    userRef.removeEventListener(this);
                 }
 
-                /*Check If User is On List Generated By PolyLine Builder*/
-                if (!userOnRoute(userLatLng)) {
-                    Log.d(TAG, "USER NOT ON ROUTE");
-                    handleRouteChange();
-                }
-                else {
-                    routeChanged = false;
-                    Log.d(TAG, "USER ON ROUTE");
-
-                    /*Check if the User is At A Journey LatLng. If So, Delete It*/
-                    if (userAtWaypoint(userLatLng)) {
-                        Log.d(TAG, "User Is At A Waypoint");
-                        removeWaypointNear(userLatLng);
-                        if (journeyLatLngs.size() < 2 && myPositionAlreadyAdded) {
-                            Log.d(TAG, "ALL WAYPOINTS REACHED, SERVICE STOPPED");
-                            userRef.removeEventListener(this);
-                            Log.d(TAG, "Value Event Listener Removed");
-                            stopMyService();
-                        } else {
-                            Log.d(TAG, "There Are " + (journeyLatLngs.size()-1) + " Stops Left Without User Location");
-                        /*Do I Want to Handle A Route Change Here?*/
-                            handleRouteChange();
-                        }
+                /*Add User To LatLng to Waypoints So We Can Draw PolyLine From Them*/
+                if (!myLocationAdded) {
+                    try {
+                        waypointLatLngs.add(0, userLatLng);
+                        myLocationAdded = true;
+                        Log.d(TAG, "My Location Added To Waypoint Array And Polyline Calculated");
+                        polyDirections = new PolyDirections();
+                        polyLatLngs = polyDirections.execute(new PolyURLBuilder(waypointLatLngs).buildPolyURL()).get();
+                        polyLineRecalculated = true;
+                        directionParser = polyDirections.getDirectionParser();
+                        directionSteps = directionParser.getDirectionSteps();
+                        currentStep = directionSteps.get(stepCount);
+                        encodedPolyLine = PolyUtil.encode(polyLatLngs);
+                        polyLinePusher.pushPolyLine(encodedPolyLine, waypointLatLngs.subList(1, waypointLatLngs.size()));
+                    } catch (Exception e) {
+                        Log.d(TAG, "Concurrent Exception With Initial API Request");
                     }
+                }
+                else
+                    waypointLatLngs.set(0, userLatLng);
 
-                    /*If There Is At Least One Direction Step Left*/
-                    if(directionSteps.size() > 0) {
-                    /*Handle If the User Is At the Start of a Step*/
-                        if (userAtStartLocation(userLatLng, directionSteps.get(stepCount).getStart()) || serviceStarted) {
-                            serviceStarted = false; //So directions will be loaded straight away
-                            atStartStep = true;
-                            Log.d(TAG, "USER IS AT A START STEP");
-                            currentStep = directionSteps.get(stepCount);
-                            Log.d(TAG, "CURRENT STEP: " + currentStep.toString());
-                            duration = currentStep.getDuration();
-                            distance = currentStep.getDistance();
-                            maneuver = currentStep.getManeuver();
-                            instruction = currentStep.getHtmlInstruction();
+                /*If The User Isn't on The Correct Route (100m)*/
+                if (!userOnRoute(userLatLng)) {
+                    stepCount = 0;
+                    try {
+                        Log.d(TAG, "User Wasn't On The Correct Route So Polyline Re-calculated");
+                        polyDirections = new PolyDirections();
+                        polyLatLngs = polyDirections.execute(new PolyURLBuilder(waypointLatLngs).buildPolyURL()).get();
+                        polyLineRecalculated = true;
+                        directionParser = polyDirections.getDirectionParser();
+                        directionSteps = directionParser.getDirectionSteps();
+                        currentStep = directionSteps.get(stepCount);
+                        encodedPolyLine = PolyUtil.encode(polyLatLngs);
+                        polyLinePusher.pushPolyLine(encodedPolyLine, waypointLatLngs.subList(1, waypointLatLngs.size()));
+                    } catch (Exception e) {
+                        Log.d(TAG, "Already Requesting User Route");
+                    }
+                }
+                /*The User Is on The Correct Route*/
+                else {
+                    Log.d(TAG, "User Is On Correct Route");
+
+                    currentStep = directionSteps.get(stepCount);
+
+                    if (waypointLatLngs.size() > 1) {
+                        /*Check If The User Is At A Waypoint*/
+                        if (userAtWaypoint()) {
+                            Log.d(TAG, "User At A Waypoint: " + nearWaypoint.toString());
+                            waypointLatLngs.remove(nearWaypoint);
+                            removedCloseWaypoint = true;
+                            if (waypointLatLngs.size() == 1 && myLocationAdded) {
+                                Log.d(TAG, "All Waypoints Reached, Stopping Service");
+                                userRef.removeEventListener(this);
+                                shutDownService();
+                            }
                         }
 
-                        /*Handle If the User Is At the End of a Step*/
-                        if (userAtEndLocation(userLatLng, directionSteps.get(stepCount).getEnd()) && !userAtStartLocation(userLatLng, directionSteps.get(0).getStart())) {
-                            atEndStep = true;
-                            Log.d(TAG, "USER IS AT AN END STEP");
-                            if (directionSteps.size() > 0) {
-                                Log.d(TAG, "Directions Steps Was: " + directionSteps.get(stepCount).toString());
-                                //directionSteps.remove(stepCount);
-                                if (null != directionSteps.get(stepCount)) {
-                                    stepCount++;
-                                    Log.d(TAG, "Directions Steps Is: " + directionSteps.get(stepCount).toString());
+                        /*CHECK IF USER IS 20M FROM NEXT START STEP BEFORE REASSIGNING CURRENT STEP*/
+                        /*REALLY TRY GET IT OUT, LAST DAY*/
+                        /*TEST IN MORNING*/
+
+                        /*Check If The User Is At A Start or End Step*/
+                        if (directionSteps.size() > 0) {
+                            /*Start Step (40m)*/
+                            if (isNear(userLatLng, currentStep.getStart(), 40.0f)) {
+                                Log.d(TAG, "User Is At a Start Step");
+                                stepInstruction = currentStep.getHtmlInstruction();
+                                userAtStartOfStep = true;
+                            }
+                            /*End Step (100m)*/
+                            if (isNear(userLatLng, currentStep.getEnd(), 100.0f) && directionSteps.size()-1 > stepCount) { //if there's another step
+                                Log.d(TAG, "User Is At an End Step");
+                                stepCount++;
+                                currentStep = directionSteps.get(stepCount);
+                                stepInstruction = directionSteps.get(stepCount).getHtmlInstruction();
+                                Log.d(TAG, "Instruction: " + stepInstruction);
+                                userAtEndOfStep = true;
+                            }
+                            /*Check If User Is At Both A Start And End Step*/
+                            if (userAtStartOfStep && userAtEndOfStep) {
+                                Log.d(TAG, "User Is At Both Start and End Step");
+                                /*Find Out Which One Is Closest*/
+                                float [] dist = new float[1];
+                                Location.distanceBetween(myProfile.getLatitude(), myProfile.getLongitude(), currentStep.getEnd().latitude, currentStep.getEnd().longitude, dist);
+                                Log.d(TAG, "Distance to end : " + dist[0]);
+                                float distanceToEnd = dist[0];
+                                dist = new float[1];
+                                Location.distanceBetween(myProfile.getLatitude(), myProfile.getLongitude(), currentStep.getStart().latitude, currentStep.getStart().longitude, dist);
+                                Log.d(TAG, "Distance to start : " + dist[0]);
+                                float distanceToStart = dist[0];
+                                if (distanceToEnd < distanceToStart || distanceToEnd < 100.0f) { //If Distance to End Is Less Than Distance to Start or less than 100m
+                                    userAtStartOfStep = false;
+                                    Log.d(TAG, "userAtStartStep Set To False So No Changes Happen");
+                                } else {
+                                    userAtEndOfStep = false;
+                                    Log.d(TAG, "userAtEndStep Set To False So Instruction Gets Priority");
                                 }
-                                else {
-                                    Log.d(TAG, "No Direction Steps Left");
+                                if(distanceToStart == distanceToEnd){
+                                    userAtStartOfStep = false;
+                                    Log.d(TAG, "Distances Are Equal Apart");
                                 }
                             }
                         }
-                    }
-
-                    /*Check if the Journey is Over (Only Consists of my Location) - Could Arise Through Deletion Of Waypoints*/
-                    if (journeyLatLngs.size() < 2 && myPositionAlreadyAdded) {
-                        Log.d(TAG, "ALL WAYPOINTS GONE, SERVICE STOPPED");
-                        userRef.removeEventListener(this);
-                        Log.d(TAG, "Value Event Listener Removed");
-                        stopMyService();
-                    }
-
-                    /*Stops the CallBack That Will Continue Running And Nullifies the Active Journey*/
+                        /*Stops the CallBack That Will Continue Running And Nullifies the Active Journey*/
                         if (!Variables.SAT_NAV_ENABLED) {
+                            Log.d(TAG, "Service Stopped Because SAT_NAV_ENABLED Was False");
+                            shutDownService();
                             userRef.removeEventListener(this);
-                            Log.d(TAG, "VALUE EVENT LISTENER REMOVED && ACTIVE JOURNEY NULLIFIED");
-                            stopSelf();
                         }
                     }
-                    /*Only Want To Call Send Bundle For UI's Sake*/
-                    if(currentStep != null) {
-                        updatePolyLatLngs(userLatLng, currentStep.getPolyStep()); //List Of the LatLngs Associated With teh Current Step
+                    /*Waypoints Array Size is Less Than One*/
+                    else {
+                        Log.d(TAG, "Journey Finished - Only My Position Left in Array");
+                        shutDownService();
+                        userRef.removeEventListener(this);
                     }
-                    sendBundle();
+                }
+                /*Remove Any LatLngs I'm Beside And Send the Bundle*/
+                updatePolyLtLngs();
+                getBearing();
+                sendBundle();
+                removedCloseWaypoint = false;
+                polyLineRecalculated = false;
             }
 
             @Override
@@ -207,160 +225,86 @@ public class NavigationService extends Service{
 
             }
         });
-        return START_NOT_STICKY; //Run Until It is Specifically Stopped
+
+        return START_NOT_STICKY;
     }
 
-    /*Handle New Route And Clean Up Variables*/
-    private void handleRouteChange(){
-        try {
-            /*If User Isn't on Route, Update PolyLatLngs and Add User Location To The Start*/
-            polyDirections = new PolyDirections();
-            Log.d(TAG, "GOOGLE DIRECTIONS REQUEST");
-            polyLatLngs = polyDirections.execute(new PolyURLBuilder(journeyLatLngs).buildPolyURL()).get();
-            String encodePolyLine = PolyUtil.encode(polyLatLngs);
-            polyLinePusher.pushPolyLine(encodePolyLine, journeyLatLngs.subList(1, journeyLatLngs.size()));
-            routeChanged = true;
-            directionParser = polyDirections.getDirectionParser();
-            directionSteps = directionParser.getDirectionSteps();
-            atStartStep = true; //Trigger This So That Directions Will be Set?
+    private void shutDownService(){
+        Variables.SAT_NAV_ENABLED = false;
+        journeyFinished = true;
+        if (polyDirections != null) {
+            polyDirections.cancel(true);
+            polyDirections = null;
         }
-        catch (InterruptedException | ExecutionException e) {
-            e.printStackTrace();
-        }
+        stopSelf();
     }
 
-    /*Sends A Bundle Of Extras to the ResultReceiver*/
-    private void sendBundle(){
-        bundle = new Bundle();
-        bundle.putSerializable("PolyLatLngs", polyLatLngs);
-        bundle.putSerializable("JourneyLatLngs", journeyLatLngs);
-        bundle.putBoolean("JourneyFinished", journeyFinished);
-        bundle.putString("Instruction", instruction);
-        bundle.putBoolean("atStartStep", atStartStep);
-        bundle.putBoolean("atEndStep", atEndStep);
-        bundle.putString("Maneuver", maneuver);
-        bundle.putInt("Distance", distance);
-        bundle.putInt("Duration", duration);
-        resultReceiver.send(0, bundle);
-        Log.d(TAG, "BUNDLE SENT TO RESULT RECEIVER");
-    }
-
-    /*Removed Parts of the Polyline As We Travel*/
-    private void updatePolyLatLngs(LatLng userLatLng, ArrayList<LatLng> stepLatLngs){
-        ArrayList<LatLng> temp = new ArrayList<>();
-        if(stepLatLngs.size() > 0) {
-            for (LatLng latLng : stepLatLngs) {
-                if (isNear(userLatLng, latLng, 15)) {
-                    temp.add(latLng);
-                    Log.d(TAG, "Removed From Step: " + latLng.toString());
-                }
+    /*If My Location is Near Any of The PolyLatLngs, Remove Them (5m)*/
+    private void updatePolyLtLngs(){
+        int indexMax = 0;
+        for(LatLng latLng : polyLatLngs){
+            if(isNear(userLatLng, latLng, 15.0f)) {
+                indexMax = polyLatLngs.indexOf(latLng);
             }
-            polyLatLngs.removeAll(temp);
+        }
+        Log.d(TAG, "Index of Max is: " + indexMax);
+        /*Attempt to Stop Straight Line Affect*/
+        polyLatLngs = new ArrayList<>(polyLatLngs.subList(indexMax, polyLatLngs.size()));
+    }
+
+    /*Get The Bearing Of the UserLatLng to The first Element of PolyLatLngs - Formula Igis Map*/
+    private void getBearing(){
+        /*Get The Bearing of Travelling Direction With Atan2 Formula*/
+        if(stepCount < directionSteps.size()) {
+            LatLng poly = directionSteps.get(stepCount).getEnd();
+            float Y = (float) Math.cos(poly.latitude) * (float) Math.sin(Math.abs(userLatLng.longitude - poly.longitude));
+            float X = (float) Math.cos(userLatLng.latitude) * (float) Math.sin(poly.latitude) - (float) Math.sin(userLatLng.latitude) * (float) Math.cos(poly.latitude) * (float) Math.cos(Math.abs(userLatLng.longitude - poly.longitude));
+            bearing = (float) Math.toDegrees(Math.atan2(Y, X));
+            Log.d(TAG, "Bearing is " + bearing);
         }
     }
 
-    /*Check If One LatLng(User) is Close to Another*/
-    private boolean isNear(LatLng userLatLng, LatLng other, int threshold){
+    /*Send the Bundle To the Results Receiver*/
+    private void sendBundle(){
+        Bundle bundle = new Bundle();
+        bundle.putSerializable("WaypointLatLngs", waypointLatLngs);
+        bundle.putSerializable("PolyLatLngs", polyLatLngs);
+        bundle.putBoolean("JourneyFinished", journeyFinished);
+        bundle.putBoolean("RemovedCloseWaypoint", removedCloseWaypoint);
+        bundle.putString("Instruction", stepInstruction);
+        bundle.putBoolean("UserAtStartStep", userAtStartOfStep);
+        bundle.putBoolean("UserAtEndStep", userAtEndOfStep);
+        bundle.putBoolean("PolyLineRecalculated", polyLineRecalculated);
+        bundle.putFloat("Bearing", bearing);
+        navTwoReceiver.send(0, bundle);
+        Log.d(TAG, "Bundle Was Sent To Result Receiver");
+    }
+
+    /*Check if User Is At a Waypoint (60m)*/
+    private boolean userAtWaypoint(){
+        for(LatLng latLng : waypointLatLngs.subList(1, waypointLatLngs.size())){
+            if(isNear(userLatLng, latLng, 60.0f)){
+                nearWaypoint = latLng;
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /*Check If One LatLng (User) is Close to Another*/
+    private boolean isNear(LatLng userLatLng, LatLng other, float threshold){
         float [] distance = new float [1];
         Location.distanceBetween(userLatLng.latitude, userLatLng.longitude, other.latitude, other.longitude, distance);
         return distance[0] < threshold;
     }
 
-    /*Check If User At the Start Of A Step*/
-    private boolean userAtStartLocation(LatLng user, LatLng startStep){
-        if(isNear(user, startStep, 30)){
-            Log.d(TAG, "User At Start Location");
-            atStartStep = true;
-            return true;
-        }
-        return false;
-    }
-
-    /*Check If User At the End Of A Step*/
-    private boolean userAtEndLocation(LatLng user, LatLng endStep){
-        if(isNear(user, endStep, 150)){
-            atEndStep = true;
-            return true;
-        }
-        return false;
-    }
-
-    /*Check if User is Within 10m of Route*/
-    private boolean userOnRoute(LatLng userLatLng){
-        return PolyUtil.isLocationOnPath(userLatLng, polyLatLngs, false, 80);
-    }
-
-    /*Check If The User Has Reached A Waypoint -- Incorporate Delete For the Waypoint*/
-    private boolean userAtWaypoint(LatLng userLatLng){
-        Log.d(TAG, "JOURNEYS LIST: " + journeyLatLngs.toString());
-        Log.d(TAG, "SUB LIST OF ACTUAL WAYPOINTS: " + journeyLatLngs.subList(1, journeyLatLngs.size()).toString());
-        return PolyUtil.isLocationOnPath(userLatLng, journeyLatLngs.subList(1, journeyLatLngs.size()), false, 50);
-    }
-
-    /*Find The Point Nearest To The User LatLng*/
-    private void removeWaypointNear(LatLng userLatLng){
-        boolean waypointToBeRemoved = false;
-        float [] distance = new float [1];
-        double minDistance = 100;
-        LatLng temp = new LatLng(0, 0);
-        for(LatLng journeyLatLng : journeyLatLngs.subList(1, journeyLatLngs.size())){ //User LatLng at Position 0 in ArrayList
-            Location.distanceBetween(userLatLng.latitude, userLatLng.longitude, journeyLatLng.latitude, journeyLatLng.longitude, distance);
-            if(distance[0] < minDistance){
-                temp = new LatLng(journeyLatLng.latitude, journeyLatLng.longitude);
-                waypointToBeRemoved = true;
-                Log.d(TAG, "User Lat/Lng: " + userLatLng.toString() + "  ||  Beside Waypoint: " + journeyLatLng);
-                Log.d(TAG, "NEW MIN DISTANCE IS " + distance[0]);
-                minDistance = distance[0];
-            }
-            else{
-                Log.d(TAG, "OTHER DISTANCE IS " + distance[0]);
-            }
-        }
-        if(waypointToBeRemoved) {
-            Log.d(TAG, "REMOVED " + temp.toString());
-            journeyLatLngs.remove(temp);
-            Log.d(TAG, "NEW JOURNEY IS " + journeyLatLngs.toString());
-        }
-    }
-
-    /*Stop the Journey If userLatLng is the only LatLng Left in the Journey Array*/
-    private void stopMyService(){
-        Log.d(TAG, "ALL WAYPOINTS REACHED, SERVICE STOPPED");
-        Variables.SAT_NAV_ENABLED = false;
-        journeyFinished = true;
-        if(polyDirections != null) {
-            polyDirections.cancel(true);
-            polyDirections = null;
-            Log.d(TAG, "ASYNC KILLED");
-        }
-        this.stopSelf();
+    /*Check If User is Near the Polyline (50m)*/
+    private boolean userOnRoute(LatLng userLatLng) {
+        return PolyUtil.isLocationOnPath(userLatLng, polyLatLngs, false, 50);
     }
 
     @Override
     public IBinder onBind(Intent intent) {
         throw new UnsupportedOperationException("Not yet implemented");
-    }
-
-    /*Called First When The Service Is Started*/
-    @Override
-    public void onCreate(){
-        super.onCreate();
-    }
-
-
-    /*Called When the Service is Stopped*/
-    @Override
-    public void onDestroy(){
-        super.onDestroy();
-        if(polyDirections != null) {
-            polyDirections.cancel(true);
-            polyDirections = null;
-            Log.d(TAG, "ASYNC KILLED");
-        }
-        if(journeyLatLngs.subList(1, journeyLatLngs.size()).size() > 0)
-            polyLinePusher.nullify();
-        Log.d(TAG, "SAT_NAV_SERVICE STOPPED");
-        Variables.SAT_NAV_ENABLED = false;
-        this.stopSelf();
     }
 }

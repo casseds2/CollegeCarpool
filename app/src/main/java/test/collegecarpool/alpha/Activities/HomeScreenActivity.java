@@ -145,22 +145,6 @@ public class HomeScreenActivity extends AppCompatActivity implements OnMapReadyC
     private void initDrawer() {
         DrawerLayout drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
-        TextView name = (TextView) navigationView.getHeaderView(0).findViewById(R.id.name_field);
-        ImageView picture = (ImageView) navigationView.getHeaderView(0).findViewById(R.id.profile_picture);
-        if(user.getProviderId().equals("google.com")) {
-            String displayName = user.getDisplayName();
-            name.setText(displayName);
-            Uri photoUrl = user.getPhotoUrl();
-            Picasso.with(getApplicationContext())
-                    .load(photoUrl.toString())
-                    .placeholder(R.drawable.amu_bubble_shadow)
-                    .resize(100, 100)
-                    .centerCrop()
-                    .into(picture);
-        }
-        else{
-            name .setText(user.getEmail());
-        }
         navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
@@ -177,14 +161,10 @@ public class HomeScreenActivity extends AppCompatActivity implements OnMapReadyC
                         return true;
                     case R.id.nav_payment:
                         startActivity(new Intent(HomeScreenActivity.this, PaymentActivity.class));
-                        onStart();
-                        return true;
-                    case R.id.nav_profile:
-                        startActivity(new Intent(HomeScreenActivity.this, ProfileActivity.class));
                         onStop();
                         return true;
-                    case R.id.nav_settings:
-                        startActivity(new Intent(HomeScreenActivity.this, SettingsActivity.class));
+                    case R.id.nav_friends:
+                        startActivity(new Intent(HomeScreenActivity.this, FriendActivity.class));
                         onStop();
                         return true;
                     case R.id.nav_logout:

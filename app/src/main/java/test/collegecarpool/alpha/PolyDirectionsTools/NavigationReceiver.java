@@ -8,29 +8,29 @@ import com.google.android.gms.maps.model.LatLng;
 
 import java.util.ArrayList;
 
-import test.collegecarpool.alpha.Activities.Nav2;
+import test.collegecarpool.alpha.Activities.NavigationActivity;
 
-public class NavTwoReceiver extends ResultReceiver {
+public class NavigationReceiver extends ResultReceiver {
 
-    private Nav2 nav2;
+    private NavigationActivity navigationActivity;
 
-    public NavTwoReceiver(Handler handler, Nav2 nav2) {
+    public NavigationReceiver(Handler handler, NavigationActivity navigationActivity) {
         super(handler);
-        this.nav2 = nav2;
+        this.navigationActivity = navigationActivity;
     }
 
     /*Call updateUI() on the navigation MaP*/
     @Override
     protected void onReceiveResult(int resultCode, Bundle resultData) {
-        nav2.updateUI(
+        navigationActivity.updateUI(
                 (ArrayList<LatLng>) resultData.getSerializable("WaypointLatLngs"),
                 (ArrayList<LatLng>) resultData.getSerializable("PolyLatLngs"),
                 resultData.getBoolean("JourneyFinished"),
                 resultData.getBoolean("RemovedCloseWaypoint"),
                 resultData.getBoolean("UserAtStartStep"),
                 resultData.getBoolean("UserAtEndStep"),
+                resultData.getBoolean("PolyLineRecalculated"),
                 resultData.getString("Instruction"),
-                resultData.getString("Maneuver"),
                 resultData.getFloat("Bearing"));
     }
 }

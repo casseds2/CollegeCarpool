@@ -3,6 +3,7 @@ package test.collegecarpool.alpha.Activities;
 import android.Manifest;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
@@ -14,11 +15,12 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
+import android.support.v7.app.AlertDialog;
+import android.support.v7.view.ContextThemeWrapper;
 import android.util.Log;
 import android.view.WindowManager;
 import android.widget.TextView;
 import android.widget.Toast;
-
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -26,66 +28,52 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.LatLngBounds;
-import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.maps.android.PolyUtil;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Locale;
-import java.util.concurrent.ExecutionException;
 
 import test.collegecarpool.alpha.Firebase.PolyLinePusher;
 import test.collegecarpool.alpha.MapsUtilities.Journey;
 import test.collegecarpool.alpha.MapsUtilities.Waypoint;
-import test.collegecarpool.alpha.MapsUtilities.WaypointsInitializer;
+import test.collegecarpool.alpha.PolyDirectionsTools.NavigationReceiver;
 import test.collegecarpool.alpha.R;
 import test.collegecarpool.alpha.Services.NavigationService;
-import test.collegecarpool.alpha.PolyDirectionsTools.PolyDirectionResultReceiver;
-import test.collegecarpool.alpha.PolyDirectionsTools.PolyDirections;
-import test.collegecarpool.alpha.PolyDirectionsTools.PolyURLBuilder;
 import test.collegecarpool.alpha.Tools.Variables;
 
 import static test.collegecarpool.alpha.Tools.Variables.MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION;
 
-public class NavigationActivity extends FragmentActivity implements OnMapReadyCallback, GoogleMap.OnMapLongClickListener{
+public class NavigationActivity extends FragmentActivity implements OnMapReadyCallback, GoogleMap.OnMarkerClickListener {
 
-    private final String TAG = "NAVIGATION ACTIVITY";
-    private Intent intent;
-    private ArrayList<LatLng> polyLatLngs;
-    private ArrayList<LatLng> journeyLatLngs;
-    private Journey journey;
     private GoogleMap googleMap;
-    private Polyline polyline;
-    private PolyDirectionResultReceiver polyDirectionResultReceiver;
-    private WaypointsInitializer waypointsInitializer;
+    private TextView instructions;
+    private final String TAG = "NavigationActivity";
+    private Journey journey;
+    private ArrayList<LatLng> waypointLatLngs;
+    private ArrayList<LatLng> polyLatLngs;
+    private NavigationReceiver navReceiver;
+    private Intent intent;
+    private TextToSpeech speaker;
+    private boolean waypointWasRemovedManually;
+    private boolean journeyFinished;
+    private boolean userAtStartStep;
+    private boolean userAtEndStep;
+    private String instruction = "";
+    private boolean serviceEnded;
+    private boolean polyLineRecalculated;
+    private boolean removedCloseWaypoint;
+    private boolean acceptedRequest;
     private PolyLinePusher polyLinePusher;
     private LatLng requestLatLng;
-    private boolean acceptedRequest;
-    private TextView drivingInstructions;
-
-    /*For Direction Step*/
-    private String instruction;
-    private boolean atStartStep;
-    private boolean atEndStep;
-    private String maneuver;
-    private int distance;
-    private int duration;
-    private TextToSpeech speaker;
-    private String previousInstruction;
+    private float bearing;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_navigation);
-
-        /*Start The SAT_NAV Service*/
-        Variables.SAT_NAV_ENABLED = true;
-
-        drivingInstructions = (TextView) findViewById(R.id.driving_instructions);
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
 
         /*Initialise Text To Speech As English*/
         speaker = new TextToSpeech(this, new TextToSpeech.OnInitListener() {
@@ -93,54 +81,42 @@ public class NavigationActivity extends FragmentActivity implements OnMapReadyCa
             public void onInit(int status) {
                 if(status != TextToSpeech.ERROR) {
                     speaker.setLanguage(Locale.UK);
-                    Log.d(TAG, "SPEAKER INITIALIZED");
+                    Log.d(TAG, "Speaker Initialized");
                 }
                 else{
-                    Log.d(TAG, "SPEAKER HAD AN ERROR");
+                    Log.d(TAG, "Speaker Had an Error");
                 }
             }
         });
 
+        waypointWasRemovedManually = false;
+        serviceEnded = false;
         acceptedRequest = false;
-
-        /*So we Can Nullify Journey From Here*/
+        polyLineRecalculated = false;
         polyLinePusher = new PolyLinePusher();
+        instructions = (TextView) findViewById(R.id.driving_instructions);
 
         /*Keep Screen From Locking When Activity Is On Display*/
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED
-                | WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD
-                | WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
-                | WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON);
+        getWindow().addFlags(
+                WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD
+                        | WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
+                        | WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON);
+
+         /*Set Up The Broadcast Receiver*/
+        LocalBroadcastManager.getInstance(this).registerReceiver(rideRequestReceiver, new IntentFilter("ride_request_latLng"));
 
         /*Retrieve The Journey LatLngs*/
         journey = (Journey) getIntent().getSerializableExtra("SelectedJourney");
-
-        journeyLatLngs = getLatLngsFromWaypoint(journey.getWaypoints());
-
-        /*Get the ArrayList of LatLngs From The PolyLine By Calling the Async Method, the .get() will wait for it to complete--does block UI*/
-        PolyDirections polyDirections = new PolyDirections();
-        try {
-            polyLatLngs = polyDirections.execute(new PolyURLBuilder(journeyLatLngs).buildPolyURL()).get();
-        }
-        catch (InterruptedException | ExecutionException e) {
-            e.printStackTrace();
-        }
-
+        /*Gets the Waypoint LatLngs From The Journey*/
+        waypointLatLngs = getWaypointLatLngs();
         /*Initialize the PolyDirectionResultReceiver*/
-        polyDirectionResultReceiver = new PolyDirectionResultReceiver(new Handler(), this);
-
-        /*Start The Navigation Service And Pass the PolyPoints To It*/
+        navReceiver = new NavigationReceiver(new Handler(), this);
+        /*Set Up The Intent*/
         intent = new Intent(NavigationActivity.this, NavigationService.class);
-        intent.putExtra("ResultReceiver", polyDirectionResultReceiver);
-        intent.putExtra("PolyLatLngs", polyLatLngs);
-        intent.putExtra("JourneyLatLngs", journeyLatLngs);
-
+        intent.putExtra("ResultReceiver", navReceiver);
+        intent.putExtra("WaypointLatLngs", waypointLatLngs);
         startService(intent);
 
-        /*Set Up The Broadcast Receiver*/
-        LocalBroadcastManager.getInstance(this).registerReceiver(rideRequestReceiver, new IntentFilter("ride_request_latLng"));
-
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
     }
 
@@ -150,194 +126,32 @@ public class NavigationActivity extends FragmentActivity implements OnMapReadyCa
         public void onReceive(Context context, Intent intent) {
             if(intent.getSerializableExtra("request_latLng") != null) {
                 test.collegecarpool.alpha.MapsUtilities.LatLng rideRequestLatLng = (test.collegecarpool.alpha.MapsUtilities.LatLng) intent.getSerializableExtra("request_latLng");
-                Log.d(TAG, "BROADCAST RECEIVED: " + rideRequestLatLng.toString());
                 requestLatLng = rideRequestLatLng.toGoogleLatLng();
                 acceptedRequest = true;
-                updateUI(journeyLatLngs, polyLatLngs, false, instruction, atStartStep, atEndStep, maneuver, distance, duration);
+                Log.d(TAG, "Received Ride Request");
+                updateUI(waypointLatLngs, polyLatLngs, journeyFinished, removedCloseWaypoint, userAtStartStep, userAtEndStep, polyLineRecalculated, null, bearing);
             }
             else
                 Toast.makeText(NavigationActivity.this, "Could Not Read Request LatLng", Toast.LENGTH_SHORT).show();
         }
     };
 
-    /*Obtain the Waypoints' LatLngs from the Journey Object*/
-    private ArrayList<LatLng> getLatLngsFromWaypoint(ArrayList<Waypoint> waypoints){
-        ArrayList<LatLng> latLngs = new ArrayList<>();
-        for(Waypoint waypoint : waypoints){
-            double lat = waypoint.getLatLng().getLat();
-            double lng = waypoint.getLatLng().getLng();
-            LatLng latLng = new LatLng(lat, lng);
-            latLngs.add(latLng);
-        }
-        return latLngs;
-    }
-
     /*Where Abouts in the Journey to Put the Ride Request*/
-    private void insertRequestIntoJourney(LatLng latLng){
-        Log.d(TAG, "NEW REQUEST FOUND");
+    private void insertRequestIntoWaypointLatLngs(LatLng latLng){
+        Log.d(TAG, "New Ride Request Received");
         float [] distance = new float[1];
         double minDistance = 100000;
         int minIndex = 1;
-        for(LatLng latLng1 : journeyLatLngs.subList(1, journeyLatLngs.size())){
+        for(LatLng latLng1 : waypointLatLngs.subList(1, waypointLatLngs.size())){
             Location.distanceBetween(latLng.latitude, latLng.longitude, latLng1.latitude, latLng1.longitude, distance);
             if(distance[0] < minDistance){
-                minIndex = journeyLatLngs.indexOf(latLng1);
+                minIndex = waypointLatLngs.indexOf(latLng1);
                 minDistance = distance[0];
                 Log.d(TAG, "MinDistance is: " + String.valueOf(minDistance) + "\n MinIndex is: " + minIndex);
             }
         }
-        journeyLatLngs.add(minIndex, latLng);
-    }
-
-    /*Update the Activity Based on the Result Received From The Service*/
-    public void updateUI(ArrayList<LatLng> journeyLatLngs, ArrayList<LatLng> polyLatLngs, boolean journeyFinished, String instruction, boolean atStartStep, boolean atEndStep, String maneuver, int distance, int duration){
-        Log.d(TAG, "updateUI CALLED");
-
-        /*Clear The Map If Journey Is Over*/
-        if(googleMap != null && journeyFinished && polyline != null){
-            googleMap.clear();
-        }
-
-        /*If the Journey Is Not Finished*/
-        if(!journeyFinished && googleMap != null) {
-            this.journeyLatLngs = journeyLatLngs;
-            this.polyLatLngs = polyLatLngs;
-
-            /*For Direction Step*/
-            this.instruction = instruction;
-            this.atStartStep = atStartStep;
-            this.atEndStep = atEndStep;
-            this.maneuver = maneuver;
-            this.distance = distance;
-            this.duration = duration;
-
-            /*On Data Change, Follow the User*/
-            googleMap.animateCamera(CameraUpdateFactory.newCameraPosition(setCamera(journeyLatLngs.get(0))));
-
-            /*If the User Is At a Start Step*/
-            if(atStartStep && !instruction.equals(previousInstruction) && !instruction.equals("")){
-                previousInstruction = instruction;
-                Log.d(TAG, "User At Start Step");
-                Log.d(TAG, "Instruction: " + instruction);
-                speaker.speak(instruction, TextToSpeech.QUEUE_FLUSH, null);
-                Log.d(TAG, "Speaker Speaks Instruction");
-                String textInstruction;
-                if(maneuver != null)
-                    textInstruction = instruction + "\n" + "Maneuver" + maneuver + "\n" + "Distance: " + distance + "m" + "\n" + "Duration:" + duration + "seconds";
-                else
-                    textInstruction = instruction + "\n" + "Distance: " + distance + "m" + "\n" + "Duration:" + duration + "seconds";
-                drivingInstructions.setText(textInstruction);
-            }
-
-            /*If User Is At an End Step*/
-            if(atEndStep && maneuver != null){
-                Log.d(TAG, "At End Of A Location");
-                Log.d(TAG, "Maneuver: " + maneuver);
-                speaker.speak(maneuver, TextToSpeech.QUEUE_FLUSH, null);
-                Log.d(TAG, "Speaker Speaks Maneuver");
-            }
-
-            /*If A Driver Accepted A Request, then Add the LatLng*/
-            if(acceptedRequest) {
-                Log.d(TAG, "A REQUEST WAS ACCEPTED");
-                insertRequestIntoJourney(requestLatLng);
-
-                /*If Waypoints Have Changed, Update Service With New Info*/
-                journey = waypointsInitializer.getJourney();
-
-                journeyLatLngs = getLatLngsFromWaypoint(journey.getWaypoints());
-
-                journey.addWaypoint(new Waypoint("Pickup", new test.collegecarpool.alpha.MapsUtilities.LatLng(requestLatLng.latitude, requestLatLng.longitude)));
-
-                acceptedRequest = false;
-                if(journeyLatLngs.size() > 0) {
-                    try {
-                        polyLatLngs = new PolyDirections().execute(new PolyURLBuilder(journeyLatLngs).buildPolyURL()).get();
-                        String encodePolyLine = PolyUtil.encode(polyLatLngs);
-                        polyLinePusher.pushPolyLine(encodePolyLine, journeyLatLngs.subList(1, journeyLatLngs.size()));
-                        Log.d(TAG, "NEW POLYLATLNGS CALCULATED AFTER REMOVING WAYPOINT");
-
-                    } catch (InterruptedException | ExecutionException e) {
-                        e.printStackTrace();
-                    }
-                    /*Inject The New Extras Into A Service*/
-                    intent.putExtra("PolyLatLngs", polyLatLngs);
-                    intent.putExtra("JourneyLatLngs", journeyLatLngs);
-                    intent.putExtra("ResultReceiver", polyDirectionResultReceiver);
-
-                    startService(intent);
-                    Log.d(TAG, "SAT_NAVE SERVICE STARTED AGAIN AFTER ACCEPTING REQUEST");
-                }
-            }
-
-            /*Handle If A Waypoint Was Removed Manually*/
-            if(waypointsInitializer.waypointRemoved() && journeyLatLngs.size() > 1){
-
-                if(waypointsInitializer.waypointRemoved())
-                    Log.d(TAG, "A WAYPOINT WAS REMOVED MANUALLY");
-
-                /*Retrieve The Updated List From WaypointsInitializer*/
-                journey = waypointsInitializer.getJourney();
-
-                /*If Waypoints Have Changed, Update Service With New Info*/
-                journeyLatLngs = getLatLngsFromWaypoint(journey.getWaypoints());
-
-                /*If A Waypoint Was Removed Manually, Re-calculate PolyLine*/
-                if(journeyLatLngs.size() > 0) {
-                    try {
-                        /*Clear the Map of Old Waypoints*/
-                        googleMap.clear();
-                        polyLatLngs = new PolyDirections().execute(new PolyURLBuilder(journeyLatLngs).buildPolyURL()).get();
-                        String encodePolyLine = PolyUtil.encode(polyLatLngs);
-                        polyLinePusher.pushPolyLine(encodePolyLine, journeyLatLngs.subList(1, journeyLatLngs.size()));
-                        Log.d(TAG, "NEW POLYLATLNGS CALCULATED AFTER REMOVING WAYPOINT");
-
-                    }
-                    catch (InterruptedException | ExecutionException e) {
-                        e.printStackTrace();
-                    }
-                    /*Inject The New Extras Into A Service*/
-                    intent.putExtra("PolyLatLngs", polyLatLngs);
-                    intent.putExtra("JourneyLatLngs", journeyLatLngs);
-                    intent.putExtra("ResultReceiver", polyDirectionResultReceiver);
-
-                    startService(intent);
-
-                    Log.d(TAG, "SAT_NAVE SERVICE STARTED AGAIN AFTER DELETED WAYPOINTS");
-
-                /*Reset Boolean For If A Waypoint Was Removed*/
-                    waypointsInitializer.resetWaypointRemoved();
-                }
-                else{
-                    googleMap.clear();
-                    polyLinePusher.nullify();
-                    stopService(intent);
-                    Log.d(TAG, "JourneyLatLngsSize is: " + journeyLatLngs.size() + " so Journey Finished");
-                }
-            }
-            /*Refreshes the User UI*/
-            if(journeyLatLngs.size() > 0) {
-                waypointsInitializer.displayWaypoints(journey, this.journeyLatLngs);
-                PolylineOptions polylineOptions = new PolylineOptions();
-                polylineOptions.addAll(polyLatLngs).width(8).color(Color.BLUE);
-                polyline = googleMap.addPolyline(polylineOptions);
-            }
-            else{
-                polyLinePusher.nullify();
-                drivingInstructions.setText("");
-                googleMap.clear();
-                stopService(intent);
-                Log.d(TAG, "JourneyLatLngsSize is: " + journeyLatLngs.size() + " so Journey Finished");
-            }
-        }
-    }
-
-    /*Sets Camera To Follow User Around*/
-    private CameraPosition setCamera(LatLng userLatLng){
-        return new CameraPosition.Builder()
-                .target(userLatLng)// Sets the center of the map to location user
-                .zoom(16) // Sets the zoom
-                .build();
+        journey.addWaypoint(new Waypoint("Pickup", new test.collegecarpool.alpha.MapsUtilities.LatLng(latLng.latitude, latLng.longitude)));
+        waypointLatLngs.add(minIndex, latLng);
     }
 
     @Override
@@ -350,58 +164,179 @@ public class NavigationActivity extends FragmentActivity implements OnMapReadyCa
         googleMap.setBuildingsEnabled(true);
         googleMap.getUiSettings().setMapToolbarEnabled(false);
 
-        /*Draw the PolyLine On The Map, Bigger Journeys Will Not Work Without It*/
-        PolylineOptions polylineOptions = new PolylineOptions();
-        polylineOptions.addAll(polyLatLngs).width(8).color(Color.BLUE);
-        zoomPoly(googleMap, polyLatLngs);
-
-        /*Initialize The Waypoint Initializer*/
-        waypointsInitializer = new WaypointsInitializer(this, googleMap);
-
-        /*Show The Waypoints On The Map*/
-        waypointsInitializer.displayWaypoints(journey);
-        googleMap.addPolyline(polylineOptions);
-
-        googleMap.setOnMapLongClickListener(this);
+        drawWaypointsOnMap();
+        googleMap.setOnMarkerClickListener(this);
     }
 
-    /*Zoom Map Around Entire Journey Before Zooming in on User*/
-    private void zoomPoly(GoogleMap googleMap, ArrayList<LatLng> latLngArray){
-        LatLngBounds.Builder builder = new LatLngBounds.Builder();
-        for(LatLng latLng : latLngArray){
-            builder.include(latLng);
+    /*Update The UI With Info From the Service*/
+    public void updateUI(ArrayList<LatLng> waypointLatLngs, ArrayList<LatLng> polyLatLngs, boolean journeyFinished, boolean removedCloseWaypoint, boolean userAtStartStep, boolean userAtEndStep, boolean polyLineRecalculated, String instruction, float bearing){
+
+        /*So We Have Local Variables*/
+        this.waypointLatLngs = waypointLatLngs;
+        this.polyLatLngs = polyLatLngs;
+        this.journeyFinished = journeyFinished;
+        this.removedCloseWaypoint = removedCloseWaypoint;
+        this.userAtStartStep = userAtStartStep;
+        this.userAtEndStep = userAtEndStep;
+        this.polyLineRecalculated = polyLineRecalculated;
+        this.bearing = bearing;
+
+        instructions.setText(instruction);
+
+        /*Check If The User Was At A Waypoint*/
+        if(removedCloseWaypoint){
+            speaker.speak("You Have Reached A Stop", TextToSpeech.QUEUE_FLUSH, null);
+            googleMap.clear();
+            polyLineRecalculated = true;
+            if(waypointLatLngs.size() == 1)
+                journeyFinished = true;
         }
 
-        /*Got Error Message Telling Me To Do This*/
-        int screenWidth = getResources().getDisplayMetrics().widthPixels;
-        int screenHeight = getResources().getDisplayMetrics().heightPixels;
-        int padding = (int) (screenWidth * 0.05);
+        /*Check If The Journey Is Finished*/
+        if(journeyFinished && !serviceEnded){
+            googleMap.clear();
+            serviceEnded = true;
+            Log.d(TAG, "Journey Is Finished");
+            speaker.speak("Journey Finished", TextToSpeech.QUEUE_FLUSH, null);
+            stopService(intent);
+        }
 
-        googleMap.moveCamera(CameraUpdateFactory.newLatLngBounds(builder.build(), screenWidth, screenHeight, padding));
+        /*If the User Accepted A Ride Request*/
+        if(acceptedRequest){
+            insertRequestIntoWaypointLatLngs(requestLatLng);
+            acceptedRequest = false;
+            /*Reset So Instruction Can Be Repeated If Journey Changes*/
+            this.instruction = "";
+            /*Set Up The Intent*/
+            intent = new Intent(NavigationActivity.this, NavigationService.class);
+            intent.putExtra("ResultReceiver", navReceiver);
+            intent.putExtra("WaypointLatLngs", waypointLatLngs);
+            startService(intent);
+        }
+
+        /*If A Waypoint Was Removed Manually, Restart The Service With Updated Route*/
+        if(waypointWasRemovedManually && waypointLatLngs.size() > 1){
+            waypointWasRemovedManually = false;
+            speaker.speak("Waypoint Removed", TextToSpeech.QUEUE_FLUSH, null);
+            /*Reset So Instruction Can Be Repeated If Journey Changes*/
+            this.instruction = "";
+            /*Set Up The Intent*/
+            intent = new Intent(NavigationActivity.this, NavigationService.class);
+            intent.putExtra("ResultReceiver", navReceiver);
+            intent.putExtra("WaypointLatLngs", waypointLatLngs);
+            startService(intent);
+        }
+
+        /*Set Camera On User Position & Update waypointLatLngs With My Position*/
+        googleMap.animateCamera(CameraUpdateFactory.newCameraPosition(setCamera(waypointLatLngs.get(0))));
+
+        /*Manage If User At Start Or End Step*/
+        if(userAtStartStep || userAtEndStep) {
+            if (instruction != null) {
+                if (!this.instruction.equals(instruction)) {
+                    Log.d(TAG, "User At Start Point");
+                    Log.d(TAG, "Instruction: " + instruction);
+                    this.instruction = instruction;
+                    speaker.speak(instruction, TextToSpeech.QUEUE_FLUSH, null);
+                } else
+                    Log.d(TAG, "Already Spoke Instruction");
+            }
+        }
+
+        /*Stop The Lines Being Drawn At the End Of A Journey*/
+        if(!journeyFinished) {
+            if(polyLineRecalculated || userAtEndStep) { //Redraw at line update or at end step
+                /*Add Markers To The Map*/
+                drawWaypointsOnMap();
+                /*Add the Polyline to The Map*/
+                PolylineOptions polylineOptions = new PolylineOptions();
+                polylineOptions.addAll(polyLatLngs).width(8).color(Color.BLUE);
+                googleMap.addPolyline(polylineOptions);
+            }
+        }
+    }
+
+    /*Draws Any Waypoints from Waypoints LatLng On the Map*/
+    private void drawWaypointsOnMap(){
+        ArrayList<Waypoint> waypoints = journey.getWaypoints();
+        if(waypointLatLngs.size() > 0){
+            for(LatLng latLng : waypointLatLngs){
+                for(Waypoint waypoint : waypoints){
+                    if(waypoint.getLatLng().toGoogleLatLng().equals(latLng)){
+                        Marker marker = googleMap.addMarker(new MarkerOptions().position(latLng));
+                        marker.setTitle(waypoint.getName());
+                        marker.setTag(waypoint);
+                        Log.d(TAG, "Added " + latLng.toString() + " to Map");
+                    }
+                }
+            }
+        }
+        else{
+            Log.d(TAG, "No Waypoints Left");
+        }
+    }
+
+    /*Sets Camera To Follow User Around*/
+    private CameraPosition setCamera(LatLng userLatLng){
+        return new CameraPosition.Builder()
+                .target(userLatLng)
+                .zoom(16)
+                .bearing(bearing)
+                .build();
+    }
+
+    /*Gets the LatLngs From the Journey Objects as Google LatLngs*/
+    private ArrayList<LatLng> getWaypointLatLngs(){
+        ArrayList<Waypoint> waypoints = journey.getWaypoints();
+        ArrayList<LatLng> latLngs = new ArrayList<>();
+        for(Waypoint waypoint : waypoints){
+            latLngs.add(new LatLng(waypoint.getLatLng().getLat(), waypoint.getLatLng().getLng()));
+        }
+        Log.d(TAG,  "Got Waypoint Lat/Lngs From Journey");
+        return latLngs;
+    }
+
+    /*Click Listener For Markers*/
+    @Override
+    public boolean onMarkerClick(final Marker marker) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(this, R.style.Theme_AppCompat_DayNight))
+                .setTitle("Remove Waypoint?")
+                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        Log.d(TAG, "Removed Waypoint Manually");
+                        waypointWasRemovedManually = true;
+                        Waypoint waypoint = (Waypoint) marker.getTag();
+                        if (waypoint != null) {
+                            Log.d(TAG, "Waypoints Was: " + waypointLatLngs.toString());
+                            LatLng latLng = waypoint.getLatLng().toGoogleLatLng();
+                            waypointLatLngs.remove(latLng);
+                            journey.removeWaypoint(waypoint);
+                            if(waypointLatLngs.size() == 1)
+                                journeyFinished = true;
+                            Log.d(TAG, "Waypoints Now: " + waypointLatLngs.toString());
+                            updateUI(waypointLatLngs, polyLatLngs, journeyFinished, removedCloseWaypoint, userAtStartStep, userAtEndStep, polyLineRecalculated, null, bearing);
+                        }
+                    }
+                })
+                .setNegativeButton("No", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+
+                    }
+                });
+        builder.create().show();
+        return false;
     }
 
     /*When the Actvity is Stopped, Kill the Service*/
     @Override
     protected void onStop(){
         super.onStop();
-        previousInstruction = "";
         speaker.shutdown();
         stopService(intent);
+        polyLinePusher.nullify();
         Log.d(TAG, "NAV_SERVICE STOPPED");
-        Variables.SAT_NAV_ENABLED = false; //Re-enable the viewing of Journeys When Out of Navigation mode
-    }
-
-    @Override
-    protected void onResume(){
-        super.onResume();
-        //startService(intent);
-    }
-
-    @Override
-    public void onMapLongClick(LatLng latLng) {
-        DatabaseReference tokenRef = FirebaseDatabase.getInstance().getReference("MapMarkers");
-        HashMap<String, Object> token = new HashMap<>();
-        token.put("/trafficMarkers/", new test.collegecarpool.alpha.MapsUtilities.LatLng(latLng.latitude, latLng.longitude));
-        tokenRef.updateChildren(token);
+        Variables.SAT_NAV_ENABLED = false;
     }
 }

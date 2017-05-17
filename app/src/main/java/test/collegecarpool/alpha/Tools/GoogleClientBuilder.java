@@ -110,7 +110,7 @@ public class GoogleClientBuilder extends Activity implements GoogleApiClient.Con
     @Override
     public void onConnected(@Nullable Bundle bundle){
         /*If A Location Client Is In Use*/
-            locationSettings.requestLocationUpdates(googleApiClient);
+        locationSettings.requestLocationUpdates(googleApiClient);
     }
 
 

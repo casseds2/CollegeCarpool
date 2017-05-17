@@ -106,7 +106,7 @@ public class SignupActivity extends AppCompatActivity {
                                 }
                                 else {
                                     saveUserProfile();
-                                    startActivity(new Intent(SignupActivity.this, HomeScreenActivity.class));
+                                    startActivity(new Intent(SignupActivity.this, SigninActivity.class));
                                     finish();
                                 }
                             }
@@ -131,7 +131,7 @@ public class SignupActivity extends AppCompatActivity {
 
     /*Add the User to a Database*/
     private void saveUserProfile(){
-        UserProfile userProfile = new UserProfile(firstName, secondName, email, 0, 0, false, 10);
+        UserProfile userProfile = new UserProfile(firstName, secondName, email, 0, 0, 10);
         HashMap<String, Object> children = new HashMap<>();
         if(auth.getCurrentUser() != null) {
             children.put(auth.getCurrentUser().getUid(), userProfile.toMap());

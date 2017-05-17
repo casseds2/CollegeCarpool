@@ -33,8 +33,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import test.collegecarpool.alpha.Activities.HomeScreenActivity;
-import test.collegecarpool.alpha.Activities.ProfileActivity;
-import test.collegecarpool.alpha.Activities.SettingsActivity;
 import test.collegecarpool.alpha.LoginAndRegistrationActivities.SigninActivity;
 import test.collegecarpool.alpha.R;
 import test.collegecarpool.alpha.UserClasses.UserProfile;
@@ -210,14 +208,6 @@ public class MessageActivity extends AppCompatActivity {
                         return true;
                     case R.id.nav_messages:
                         startActivity(new Intent(MessageActivity.this, ChatRoomActivity.class));
-                        onStop();
-                        return true;
-                    case R.id.nav_profile:
-                        startActivity(new Intent(MessageActivity.this, ProfileActivity.class));
-                        onStop();
-                        return true;
-                    case R.id.nav_settings:
-                        startActivity(new Intent(MessageActivity.this, SettingsActivity.class));
                         onStop();
                         return true;
                     case R.id.nav_logout:

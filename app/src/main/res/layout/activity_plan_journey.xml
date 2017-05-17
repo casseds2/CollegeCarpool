@@ -53,8 +53,8 @@ android:id="@+id/drawer_layout">
                 android:layout_weight="0.5"
                 android:layout_width="0dip"
                 android:layout_height="wrap_content"
-                android:id="@+id/view_journey"
-                android:text="@string/view_journey"
+                android:id="@+id/go_now"
+                android:text="@string/go_now"
                 android:drawableStart="@mipmap/ic_directions_car_black_24dp"/>
 
         </LinearLayout>
@@ -89,6 +89,13 @@ android:id="@+id/drawer_layout">
             android:layout_height="wrap_content"
             android:id="@+id/view_journey_planner"
             android:drawableStart="@mipmap/ic_access_time_black_24dp"/>
+
+        <Button
+            android:text="@string/find_carpool"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/find_carpool"
+            android:drawableStart="@mipmap/ic_search_black_24dp"/>
 
     </LinearLayout>
 

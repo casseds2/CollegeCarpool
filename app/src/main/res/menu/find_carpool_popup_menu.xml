@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/add_friend"
+        android:title="Add Friend"/>
+    <item
+        android:id="@+id/message_user"
+        android:title="Send Message"/>
+    <item
+        android:id="@+id/view_journey"
+        android:title="View Journey"/>
+</menu>

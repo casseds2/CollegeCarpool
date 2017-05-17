@@ -74,6 +74,7 @@ public class DirectionParser {
                         //Log.d(TAG, "Duration: " + duration);
                         htmlInstructions = (String) ((JSONObject)steps.get(k)).get("html_instructions");
                         htmlInstructions = Html.fromHtml(htmlInstructions).toString();
+                        htmlInstructions = htmlInstructions.replaceAll("\\s+", " ");
                         //Log.d(TAG, "Html: " + htmlInstructions);
                         if(((JSONObject) steps.get(k)).has("maneuver")) {  //Check If there is actually an element of type
                             maneuver = (String)((JSONObject) steps.get(k)).get("maneuver");

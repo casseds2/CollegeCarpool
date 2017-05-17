@@ -1,5 +1,4 @@
 package test.collegecarpool.alpha.MapsUtilities;
-
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
@@ -10,31 +9,25 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.MenuItem;
-
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.firebase.auth.FirebaseAuth;
-
 import java.util.ArrayList;
-
 import test.collegecarpool.alpha.Activities.HomeScreenActivity;
 import test.collegecarpool.alpha.Activities.PlanJourneyActivity;
-import test.collegecarpool.alpha.Activities.ProfileActivity;
-import test.collegecarpool.alpha.Activities.SettingsActivity;
 import test.collegecarpool.alpha.LoginAndRegistrationActivities.SigninActivity;
 import test.collegecarpool.alpha.MessagingActivities.ChatRoomActivity;
 import test.collegecarpool.alpha.R;
 import test.collegecarpool.alpha.PolyDirectionsTools.PolyURLBuilder;
-
 public class ViewJourneyActivity extends AppCompatActivity implements OnMapReadyCallback {
 
     private GoogleMap googleMap;
     private ArrayList<LatLng> latLngs;
     private ActionBarDrawerToggle actionBarDrawerToggle;
     private FirebaseAuth auth;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -45,22 +38,19 @@ public class ViewJourneyActivity extends AppCompatActivity implements OnMapReady
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
     }
-
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         return actionBarDrawerToggle.onOptionsItemSelected(item) || super.onOptionsItemSelected(item);
     }
-
     @Override
     public void onMapReady(GoogleMap googleMap) {
         this.googleMap = googleMap;
-
         googleMap.getUiSettings().setMapToolbarEnabled(false);
-
         new PolyURLBuilder(this, googleMap, latLngs).buildPolyURL();
-        new WaypointsInitializer(this, googleMap).displayWaypoints(latLngs);
+        for(LatLng latLng : latLngs){
+            googleMap.addMarker(new MarkerOptions().position(latLng));
+        }
     }
-
     public void initDrawer() {
         DrawerLayout drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
@@ -80,14 +70,6 @@ public class ViewJourneyActivity extends AppCompatActivity implements OnMapReady
                         startActivity(new Intent(ViewJourneyActivity.this, ChatRoomActivity.class));
                         onStop();
                         return true;
-                    case R.id.nav_profile:
-                        startActivity(new Intent(ViewJourneyActivity.this, ProfileActivity.class));
-                        onStop();
-                        return true;
-                    case R.id.nav_settings:
-                        startActivity(new Intent(ViewJourneyActivity.this, SettingsActivity.class));
-                        onStop();
-                        return true;
                     case R.id.nav_logout:
                         auth.signOut();
                         startActivity(new Intent(ViewJourneyActivity.this, SigninActivity.class));
@@ -105,7 +87,6 @@ public class ViewJourneyActivity extends AppCompatActivity implements OnMapReady
             getSupportActionBar().setBackgroundDrawable(new ColorDrawable(Color.BLACK));
         }
     }
-
     @Override
     public void onStop(){
         super.onStop();

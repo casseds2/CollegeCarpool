@@ -50,10 +50,11 @@
 
     <!-- Plan Journey UI -->
     <string name="submit_address">Submit Address</string>
-    <string name="view_journey">Go Now</string>
+    <string name="go_now">Go Now</string>
     <string name="pick_date">Pick A Date</string>
     <string name="save_journey">Save Journey</string>
     <string name="use_my_location">Use My Location</string>
+    <string name="find_carpool">Find A Carpool</string>
 
     <!--Custom Notification-->
     <string name="ride_notification_accept">Accept</string>
@@ -66,5 +67,8 @@
     <string name="title_activity_view_journey">Map</string>
     <string name="title_activity_navigation">Navigation</string>
     <string name="title_activity_nav2">Map</string>
+    <string name="title_activity_friend">FriendActivity</string>
+    <string name="action_settings">Settings</string>
+    <string name="section_format">Hello World from section: %1$d</string>
 
 </resources>

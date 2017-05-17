@@ -11,6 +11,8 @@ import android.net.Uri;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 
@@ -26,10 +28,14 @@ import test.collegecarpool.alpha.BroadcastReceivers.RideBroadcastAcceptReceiver;
 public class MessagingService extends FirebaseMessagingService {
 
     private final String TAG = "MESSAGING SERVICE";
+    private FirebaseUser user;
 
     @Override
     public void onMessageReceived(RemoteMessage remoteMessage) {
         super.onMessageReceived(remoteMessage);
+
+        FirebaseAuth auth = FirebaseAuth.getInstance();
+        user = auth.getCurrentUser();
 
         /*Handle Data Data*/
         if(remoteMessage.getData() != null){
@@ -46,7 +52,27 @@ public class MessagingService extends FirebaseMessagingService {
                 Log.d(TAG, "TYPE: requestResponse");
                 handleRequestResponse(data, remoteMessage);
             }
+            if(data.get("type").equals("friendRequest")){
+                Log.d(TAG, "TYPE: friendRequest");
+                handleFriendRequest(data, remoteMessage);
+            }
         }
+    }
+
+    private void handleFriendRequest(Map<String, String> data, RemoteMessage remoteMessage){
+        String userName = data.get("username");
+        Uri tone = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
+                .setSmallIcon(R.mipmap.ic_person_outline_white_24dp)
+                .setColor(Color.BLACK)
+                .setContentTitle(remoteMessage.getNotification().getTitle())
+                .setStyle(new NotificationCompat.BigTextStyle()
+                    .bigText(userName + " sent you a friend request."))
+                .setSound(tone)
+                .setPriority(Notification.PRIORITY_MAX)
+                .setAutoCancel(true);
+        NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+        notificationManager.notify(0, builder.build());
     }
 
     private void handleRequestResponse(Map<String, String> data, RemoteMessage remoteMessage) {
@@ -69,27 +95,29 @@ public class MessagingService extends FirebaseMessagingService {
 
     /*Handle If A Message Was Received*/
     private void handleMessage(Map<String, String> data, RemoteMessage remoteMessage) {
-        String message = data.get("message");
-        Log.d(TAG, "Message is: " + message);
-        Uri tone = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+        if(!data.get("senderID").equals(user.getUid())) {
+            String message = data.get("message");
+            Log.d(TAG, "Message is: " + message);
+            Uri tone = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
 
-        Intent intent = new Intent(this, MessageActivity.class);
-        intent.putExtra("ReceiverID", data.get("senderID"));
-        PendingIntent pendingIntent = PendingIntent.getActivity(getApplicationContext(), (int) System.currentTimeMillis(), intent, 0);
+            Intent intent = new Intent(this, MessageActivity.class);
+            intent.putExtra("ReceiverID", data.get("senderID"));
+            PendingIntent pendingIntent = PendingIntent.getActivity(getApplicationContext(), (int) System.currentTimeMillis(), intent, 0);
 
         /*Build Message Notification*/
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
-                .setSmallIcon(R.mipmap.ic_mail_white_24dp)
-                .setColor(Color.BLACK)
-                .setContentTitle(remoteMessage.getNotification().getTitle())
-                .setStyle(new NotificationCompat.BigTextStyle()
-                        .bigText(remoteMessage.getNotification().getBody() + message))
-                .setSound(tone)
-                .setPriority(Notification.PRIORITY_MAX)
-                .setAutoCancel(true)
-                .addAction(R.drawable.ic_menu_send, "Respond", pendingIntent);
-        NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-        notificationManager.notify(0, builder.build());
+            NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
+                    .setSmallIcon(R.mipmap.ic_mail_white_24dp)
+                    .setColor(Color.BLACK)
+                    .setContentTitle(remoteMessage.getNotification().getTitle())
+                    .setStyle(new NotificationCompat.BigTextStyle()
+                            .bigText(remoteMessage.getNotification().getBody() + message))
+                    .setSound(tone)
+                    .setPriority(Notification.PRIORITY_MAX)
+                    .setAutoCancel(true)
+                    .addAction(R.drawable.ic_menu_send, "Respond", pendingIntent);
+            NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+            notificationManager.notify(0, builder.build());
+        }
     }
 
     /*Handle If A Ride Request Was Received*/

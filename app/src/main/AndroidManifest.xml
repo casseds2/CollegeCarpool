@@ -21,12 +21,12 @@
 
     <!-- <uses-feature android:name="android.hardware.nfc" android:required="true"/> ONLY INSTALLABLE IF PHONE HAS NFC -->
     <application
+        android:name="android.support.multidex.MultiDexApplication"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:supportsRtl="true"
-        android:theme="@style/AppTheme"
-        android:name="android.support.multidex.MultiDexApplication">
+        android:theme="@style/AppTheme">
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_icon"
             android:resource="@mipmap/ic_home_white_24dp" />
@@ -88,15 +88,7 @@
             android:configChanges="keyboardHidden|orientation|screenSize"
             android:screenOrientation="portrait" />
         <activity
-            android:name=".Activities.ProfileActivity"
-            android:configChanges="keyboardHidden|orientation|screenSize"
-            android:screenOrientation="portrait" />
-        <activity
             android:name=".MessagingActivities.ChatRoomActivity"
-            android:configChanges="keyboardHidden|orientation|screenSize"
-            android:screenOrientation="portrait" />
-        <activity
-            android:name=".Activities.SettingsActivity"
             android:configChanges="keyboardHidden|orientation|screenSize"
             android:screenOrientation="portrait" />
         <activity
@@ -123,10 +115,6 @@
 
         <activity
             android:name=".Activities.PlanJourneyActivity"
-            android:screenOrientation="portrait" />
-        <activity
-            android:name=".MapsUtilities.ViewJourneyActivity"
-            android:label="@string/title_activity_view_journey"
             android:screenOrientation="portrait" />
         <activity
             android:name=".Activities.ViewJourneyPlannerActivity"
@@ -156,15 +144,14 @@
             </intent-filter>
         </service>
 
+        <activity android:name=".Activities.FindCarpoolActivity" />
         <activity
-            android:name=".Activities.Nav2"
-            android:screenOrientation="portrait"
-            android:label="@string/title_activity_nav2" />
-
-        <service
-            android:name=".Services.NavServiceTwo"
-            android:enabled="true"
-            android:exported="true"></service>
+            android:name=".MapsUtilities.ViewJourneyActivity"
+            android:label="@string/title_activity_view_journey" />
+        <activity
+            android:name=".Activities.FriendActivity"
+            android:label="@string/title_activity_friend"
+            android:theme="@style/AppTheme.NoActionBar"></activity>
     </application>
 
 </manifest>

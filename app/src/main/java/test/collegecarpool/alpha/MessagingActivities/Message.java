@@ -9,7 +9,7 @@ public class Message {
     private String sender;
     private boolean copied;
 
-    public Message(){}
+    Message(){}
 
     Message(String sender, String message){
         this.sender = sender;
@@ -39,7 +39,11 @@ public class Message {
         this.message = message;
     }
 
-    public void setTimeStamp(String timeStamp) {
+    void setSender(String sender){
+        this.sender = sender;
+    }
+
+    void setTimeStamp(String timeStamp) {
         this.timeStamp = timeStamp;
     }
 

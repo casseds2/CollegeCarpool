@@ -90,7 +90,7 @@ public class PlanJourneyActivity extends AppCompatActivity implements DatePicker
         initDrawer();
         initSearchBar();
         initButtons();
-        initViewJourney();
+        initGoNow();
 
         initFirebase();
         manageJourneyHistory = new ManageJourneyHistory(user);
@@ -242,6 +242,14 @@ public class PlanJourneyActivity extends AppCompatActivity implements DatePicker
             }
         });
 
+        Button findJourney = (Button) findViewById(R.id.find_carpool);
+        findJourney.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(PlanJourneyActivity.this, FindCarpoolActivity.class));
+            }
+        });
+
         Button saveJourney = (Button) findViewById(R.id.save_journey);
         saveJourney.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -317,21 +325,21 @@ public class PlanJourneyActivity extends AppCompatActivity implements DatePicker
     }
 
     /*Initialize the View Journey Button*/
-    private void initViewJourney() {
-        Button btn2 = (Button) findViewById(R.id.view_journey);
+    private void initGoNow() {
+        Button btn2 = (Button) findViewById(R.id.go_now);
         btn2.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(places.size() > 1) {
+                if(places.size() > 0) {
                     date = new Date(calendar.get(Calendar.DAY_OF_MONTH), calendar.get(Calendar.MONTH), calendar.get(Calendar.YEAR));
                     journey = new Journey(date, new WaypointFromPlaceGenerator().convertPlacesToWayPoints(places));
                     /*Changed For Testing*/
-                    Intent intent = new Intent(PlanJourneyActivity.this, Nav2.class);
+                    Intent intent = new Intent(PlanJourneyActivity.this, NavigationActivity.class);
                     intent.putExtra("SelectedJourney", journey);
                     startActivity(intent);
                 }
                 else
-                    Toast.makeText(PlanJourneyActivity.this, "Enter At Least Two Stops", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(PlanJourneyActivity.this, "Enter At Least One Stop", Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -407,14 +415,6 @@ public class PlanJourneyActivity extends AppCompatActivity implements DatePicker
                         return true;
                     case R.id.nav_payment:
                         startActivity(new Intent(PlanJourneyActivity.this, PaymentActivity.class));
-                        onStop();
-                        return true;
-                    case R.id.nav_profile:
-                        startActivity(new Intent(PlanJourneyActivity.this, ProfileActivity.class));
-                        onStop();
-                        return true;
-                    case R.id.nav_settings:
-                        startActivity(new Intent(PlanJourneyActivity.this, SettingsActivity.class));
                         onStop();
                         return true;
                     case R.id.nav_logout:

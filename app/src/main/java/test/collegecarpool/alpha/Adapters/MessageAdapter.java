@@ -14,11 +14,11 @@ import java.util.ArrayList;
 
 import test.collegecarpool.alpha.R;
 
-public class MyChatsAdapter extends ArrayAdapter<String> {
+public class MessageAdapter extends ArrayAdapter<String> {
 
     private ArrayList<String> list;
 
-    public MyChatsAdapter(@NonNull Context context, @LayoutRes int resource, @NonNull ArrayList<String> objects) {
+    public MessageAdapter(@NonNull Context context, @LayoutRes int resource, @NonNull ArrayList<String> objects) {
         super(context, resource, objects);
         this.list = objects;
     }
@@ -27,8 +27,8 @@ public class MyChatsAdapter extends ArrayAdapter<String> {
     @Override
     public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
         LayoutInflater view = (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        View row = view.inflate(R.layout.chat_list, parent, false);
-        TextView rowInfo = (TextView) row.findViewById(R.id.chat_text);
+        View row = view.inflate(R.layout.message_list, parent, false);
+        TextView rowInfo = (TextView) row.findViewById(R.id.message_text);
         rowInfo.setText(list.get(position));
         return row;
     }

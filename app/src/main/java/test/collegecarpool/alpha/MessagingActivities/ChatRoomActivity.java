@@ -11,6 +11,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ListView;
 
 import com.google.firebase.auth.FirebaseAuth;
@@ -26,20 +28,19 @@ import java.util.HashMap;
 import java.util.Map;
 
 import test.collegecarpool.alpha.Activities.HomeScreenActivity;
-import test.collegecarpool.alpha.Activities.ProfileActivity;
-import test.collegecarpool.alpha.Activities.SettingsActivity;
 import test.collegecarpool.alpha.Adapters.MyChatsAdapter;
 import test.collegecarpool.alpha.LoginAndRegistrationActivities.SigninActivity;
 import test.collegecarpool.alpha.R;
 import test.collegecarpool.alpha.UserClasses.UserProfile;
 
-public class ChatRoomActivity extends AppCompatActivity {
+public class ChatRoomActivity extends AppCompatActivity implements AdapterView.OnItemClickListener{
 
     private final static String TAG = "ChatActivity";
     private FirebaseAuth auth;
     private FirebaseUser user;
-    HashMap<String, String> userNames;
-    HashMap<String, String> myChats;
+    private HashMap<String, String> userNames;
+    private HashMap<String, String> myChats;
+    private ArrayList<String> userNamesList;
 
 
     private ActionBarDrawerToggle actionBarDrawerToggle;
@@ -49,6 +50,7 @@ public class ChatRoomActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat_room);
 
+        userNamesList = new ArrayList<>();
         userNames = new HashMap<>();
         myChats = new HashMap<>();
 
@@ -62,18 +64,38 @@ public class ChatRoomActivity extends AppCompatActivity {
 
     /*Initialise the List View Adapter*/
     private void initListView() {
-        MyChatsAdapter chatNames = new MyChatsAdapter(this, R.layout.chat_list, getUsersFromMap());
+        userNamesList = getUsersFromMap();
+        MyChatsAdapter chatNames = new MyChatsAdapter(this, R.layout.chat_list, userNamesList);
         ListView listView = (ListView) findViewById(R.id.chat_room_list_view);
         listView.setAdapter(chatNames);
-        registerForContextMenu(listView);
+        listView.setClickable(true);
+        listView.setOnItemClickListener(this);
         Log.d(TAG, "List View Initialized");
     }
+
+    @Override
+    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+        Intent intent = new Intent(ChatRoomActivity.this, MessageActivity.class);
+        String userName = userNamesList.get(position);
+        String userID = "";
+        Log.d(TAG, "UserName For Message: " + userName);
+        for(Map.Entry entry : myChats.entrySet()){
+            if(entry.getValue().equals(userName)) {
+                userID = (String) entry.getKey();
+                Log.d(TAG, "UserID For Message: " + userID);
+            }
+        }
+        intent.putExtra("ReceiverID", userID);
+        startActivity(intent);
+    }
+
 
     /*Transform the UserMap Into a List So We Can Manipulate the List*/
     private ArrayList<String> getUsersFromMap(){
         ArrayList<String> names = new ArrayList<>();
         for(Map.Entry entry : myChats.entrySet()){
             String userName = entry.getValue().toString();
+            names.add(userName);
             Log.d(TAG, "Added " + userName + " to my Chats");
         }
         return names;
@@ -109,7 +131,11 @@ public class ChatRoomActivity extends AppCompatActivity {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 Iterable<DataSnapshot> users = dataSnapshot.getChildren();
+                Log.d(TAG, "Children: " + dataSnapshot.toString());
+                Log.d(TAG, "getMyChats() Entered");
+                Log.d(TAG, users.toString());
                 for(DataSnapshot data : users) {
+                    Log.d(TAG, "Key: " + data.getKey());
                     String userID = data.getKey();
                     Log.d(TAG, "UserID: " + userID);
                     if (userNames.containsKey(userID)) {
@@ -146,17 +172,6 @@ public class ChatRoomActivity extends AppCompatActivity {
                         onStop();
                         return true;
                     case R.id.nav_messages:
-                        actionBarDrawerToggle.syncState();
-                        startActivity(new Intent(ChatRoomActivity.this, MessageActivity.class));
-                        onStop();
-                        return true;
-                    case R.id.nav_profile:
-                        startActivity(new Intent(ChatRoomActivity.this, ProfileActivity.class));
-                        onStop();
-                        return true;
-                    case R.id.nav_settings:
-                        startActivity(new Intent(ChatRoomActivity.this, SettingsActivity.class));
-                        onStop();
                         return true;
                     case R.id.nav_logout:
                         auth.signOut();

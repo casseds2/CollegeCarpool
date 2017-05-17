@@ -114,6 +114,37 @@ exports.rideRequest = functions.database.ref("/UserProfile/{driverID}/RideReques
             });
         }
 
+/*Listen For A Friend Request*/
+exports.friendRequest = functions.database.ref("/UserProfile/{receiverID}/FriendRequest/{requestID}/")
+    .onWrite(event => {
+
+        const request = event.data.val();
+        console.log("Friend Request: " + request);
+        const userName = request.userName;
+        const receiverID = event.params.receiverID;
+
+        sendFriendRequestNotification(receiverID, userName);
+    });
+
+    function sendFriendRequestNotification(receiverID, userName){
+        var database = admin.database();
+        var ref = database.ref("UserProfile/" + receiverID);
+        var fcmToken;
+        ref.once("value", function(snapshot){
+            fcmToken = snapshot.val().fcmToken;
+            console.log("FCM Token: " + fcmToken);
+            const payload = {
+                notification : {
+                    title: "New Friend Request",
+                },
+                data : {
+                    "type" : "friendRequest",
+                    "username" : userName
+                }
+            };
+            sendNotification(fcmToken, payload);
+        });
+    }
 
 /*Listen For A Response Status To A Ride Request*/
 exports.requestResponse = functions.database.ref("/UserProfile/{driverID}/RideRequests/{requestID}/Response")

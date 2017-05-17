@@ -44,9 +44,11 @@ public class PaymentActivity extends AppCompatActivity implements NfcAdapter.Cre
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_payment);
-        balance = (TextView) findViewById(R.id.balance);
 
         initFirebaseAuth();
+
+        balance = (TextView) findViewById(R.id.balance);
+
         displayBalance();
         initNumWheels();
 
@@ -181,7 +183,6 @@ public class PaymentActivity extends AppCompatActivity implements NfcAdapter.Cre
     public void onResume() {
         super.onResume();
         if(NfcAdapter.ACTION_NDEF_DISCOVERED.equals(getIntent().getAction())){
-           //Toast.makeText(this, "PHONE SEEN", Toast.LENGTH_SHORT).show();
            onNewIntent(getIntent());
         }
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, new Intent(this, getClass()).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP), 0);
@@ -210,10 +211,12 @@ public class PaymentActivity extends AppCompatActivity implements NfcAdapter.Cre
             public void onDataChange(DataSnapshot dataSnapshot) {
                 Iterable <DataSnapshot> dataSnapshots = dataSnapshot.getChildren();
                 for(DataSnapshot dataSnapshot1 : dataSnapshots){
-                    UserProfile userProfile = dataSnapshot1.getValue(UserProfile.class);
-                    if(userProfile.getEmail().equals(currentUser.getEmail())){
-                        double wallet = userProfile.getWallet();
-                        balance.setText(String.valueOf(wallet));
+                    if(dataSnapshot.getKey().equals(currentUser.getUid())) {
+                        UserProfile userProfile = dataSnapshot1.getValue(UserProfile.class);
+                        if (userProfile.getEmail().equals(currentUser.getEmail())) {
+                            double wallet = userProfile.getWallet();
+                            balance.setText(String.valueOf(wallet));
+                        }
                     }
                 }
             }

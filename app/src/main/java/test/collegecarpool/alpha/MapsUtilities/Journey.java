@@ -15,6 +15,8 @@ public class Journey implements Serializable { //Implements Serializable So That
     private ArrayList<Waypoint> waypoints;
 
     public Journey() {
+        date = new Date();
+        waypoints = new ArrayList<>();
     }
 
     public Journey(Date date, ArrayList<Waypoint> waypoints) {
@@ -23,7 +25,7 @@ public class Journey implements Serializable { //Implements Serializable So That
     }
 
     public void addWaypoint(Waypoint waypoint){
-        waypoints.add(waypoints.size(), waypoint);
+        waypoints.add(waypoint);
     }
 
     public Date getDate() {

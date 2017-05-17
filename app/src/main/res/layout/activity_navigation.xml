@@ -11,9 +11,10 @@
         android:id="@+id/driving_instructions"
         android:textColorHint="@color/white"
         android:textColor="@color/black"
+        android:textSize="15dp"
         android:background="@color/white"
         android:layout_width="match_parent"
-        android:layout_height="100dp"
+        android:layout_height="80dp"
         android:layout_gravity="bottom|end"
         android:paddingLeft="10dp"
         android:paddingBottom="20dp" />

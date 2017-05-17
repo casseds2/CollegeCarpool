@@ -193,7 +193,7 @@ public class SigninActivity extends AppCompatActivity implements GoogleApiClient
                     Log.d(TAG, firstName);
                     Log.d(TAG, secondName);
                     Log.d(TAG, email);
-                    UserProfile userProfile = new UserProfile(firstName, secondName, email, 0, 0, false, 10);
+                    UserProfile userProfile = new UserProfile(firstName, secondName, email, 0, 0, 10);
                     userMap.put(auth.getCurrentUser().getUid(), userProfile.toMap());
                     databaseReference.updateChildren(userMap);
                     Log.d(TAG, userProfile.toString());
@@ -217,7 +217,7 @@ public class SigninActivity extends AppCompatActivity implements GoogleApiClient
                                 HashMap<String, Object> userMap = new HashMap<>();
                                 DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("UserProfile/");
                                 if(databaseReference.child(auth.getCurrentUser().getUid()) == null) {
-                                    UserProfile userProfile = new UserProfile(firstName, secondName, email, 0, 0, false, 10);
+                                    UserProfile userProfile = new UserProfile(firstName, secondName, email, 0, 0, 10);
                                     userMap.put(auth.getCurrentUser().getUid(), userProfile.toMap());
                                     databaseReference.updateChildren(userMap);
                                 }
