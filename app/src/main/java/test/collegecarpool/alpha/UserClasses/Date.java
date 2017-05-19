@@ -44,18 +44,29 @@ public class Date implements Serializable{ //implements so it can be passed in J
         return day == d.day && month == d.month && year == d.year;
     }
 
-    //If date is more present than d, return true if date is in future/present, false otherwise
-    //Return True if Today is before Date d
+    //Return True if this is before Date d
     public boolean isBefore(Date d){
-        //java.util.Date dateLocal = new java.util.Date(this.day, this.month, this.year);
-        //java.util.Date dateParam = new java.util.Date(d.day, d.month, d.year);
-        //return dateLocal.before(dateParam);
-        if(this.year <= d.getYear()){
-            if(this.month <= d.getMonth()){
-                return this.day <= d.getDay();
+        if(year <= d.getYear()){ //If Year is <= To
+            if(year == d.getYear()){ //Years Are Equal To
+                if(month <= d.getMonth()){ //If <= To
+                    if(month == d.getMonth()){ //Is Equal To
+                        if(day <= d.getDay()){ //If Day is Less Than Or Equal To
+                            return true;
+                        }
+                        else
+                            return false;
+                    }
+                    else{ //Is Less Than
+                        return true;
+                    }
+                }
+                else{
+                    return false;
+                }
             }
-            else
-                return false;
+            else{ //If Today Year Is Less Than
+                return true;
+            }
         }
         else
             return false;

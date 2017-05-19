@@ -82,7 +82,7 @@ public class PlanJourneyActivity extends AppCompatActivity implements DatePicker
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_plan_journey);
 
-        datePickerDialog = new DatePickerDialog(PlanJourneyActivity.this, PlanJourneyActivity.this, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH));
+        datePickerDialog = new DatePickerDialog(PlanJourneyActivity.this, R.style.DialogTheme, this, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH));
 
         googleClientBuilder = new GoogleClientBuilder(this, googleApiClient);
         googleClientBuilder.buildPlacesClient();
@@ -355,7 +355,6 @@ public class PlanJourneyActivity extends AppCompatActivity implements DatePicker
                     Toast.makeText(PlanJourneyActivity.this, "Already Picked", Toast.LENGTH_SHORT).show();
                 if(places.size() == 5)
                     Toast.makeText(PlanJourneyActivity.this, "Only Allowed 5 Places", Toast.LENGTH_SHORT).show();
-                autocompleteFragment.setHint("Enter Address");
                 if(!places.contains(place) && places.size() < 5) {
                     if(place.getLatLng() != null) {
                         places.add(place);
@@ -363,6 +362,7 @@ public class PlanJourneyActivity extends AppCompatActivity implements DatePicker
                         placeNames.add(place.getName().toString());
                         printPlacesArray();
                         printPlaceNamesArray();
+                        autocompleteFragment.setText("Hello");
                         adapter.notifyDataSetChanged();
                     }
                     else
@@ -383,8 +383,10 @@ public class PlanJourneyActivity extends AppCompatActivity implements DatePicker
     /*Callback for when a date is chosen from dialog*/
     @Override
     public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
-        date = new Date(dayOfMonth, month + 1, year); //+1 to accommodate for the ol' [0-11] array being 12 in size...
-        Date today = new Date(calendar.get(Calendar.DAY_OF_MONTH), calendar.get(Calendar.MONTH), calendar.get(Calendar.YEAR));
+        date = new Date(dayOfMonth, month + 1, year);
+        Log.d(TAG, "Date1: " + date.toString());
+        Date today = new Date(calendar.get(Calendar.DAY_OF_MONTH), calendar.get(Calendar.MONTH) + 1, calendar.get(Calendar.YEAR));
+        Log.d(TAG, "Today: " + today.toString());
         if(today.isBefore(date))
             dateChosen = true;
         else {

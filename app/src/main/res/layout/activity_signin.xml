@@ -15,72 +15,93 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@color/orange_drop"
+        android:background="@color/white"
         android:paddingBottom="5dp"
         android:paddingLeft="5dp"
         android:paddingRight="5dp"
         android:paddingTop="5dp">
 
         <LinearLayout
-            android:orientation="vertical"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:background="@color/bg_main"
+            android:orientation="vertical"
             android:padding="10dp"
-            android:paddingBottom="10dp">
+            android:paddingBottom="10dp"
+            android:weightSum="1">
+
+            <FrameLayout
+                android:layout_width="320dp"
+                android:layout_height="26dp"
+                android:layout_weight="0.22">
+
+            </FrameLayout>
 
             <EditText
                 android:id="@+id/email"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:maxLines="1"
-                android:inputType="text"
                 android:hint="@string/email"
-                android:textColorHint="@color/white"
-                android:textColor="@color/white"/>
+                android:inputType="text"
+                android:maxLines="1"
+                android:textColor="@color/white"
+                android:textColorHint="@color/white" />
 
             <EditText
                 android:id="@+id/password"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:maxLines="1"
-                android:inputType="textPassword"
                 android:hint="@string/hint_password"
-                android:textColorHint="@color/white"
-                android:textColor="@color/white"/>
+                android:inputType="textPassword"
+                android:maxLines="1"
+                android:textColor="@color/white"
+                android:textColorHint="@color/white" />
+
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="25dp">
+
+            </FrameLayout>
 
             <Button
                 android:id="@+id/btn_login"
-                android:hint="@string/btn_login"
                 android:layout_width="match_parent"
                 android:layout_height="50dp"
-                android:textSize="@dimen/button_text_size"/>
+                android:hint="@string/btn_login"
+                android:textSize="@dimen/button_text_size" />
+
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="20dp">
+
+            </FrameLayout>
+
             <Button
                 android:id="@+id/btn_Signup"
-                android:hint="@string/btn_sign_up"
                 android:layout_width="match_parent"
                 android:layout_height="50dp"
-                android:textSize="@dimen/button_text_size"/>
+                android:hint="@string/btn_sign_up"
+                android:textSize="@dimen/button_text_size" />
+
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="20dp">
+
+            </FrameLayout>
+
             <Button
                 android:id="@+id/btn_forgotPassword"
-                android:hint="@string/btn_forgot_password"
                 android:layout_width="match_parent"
                 android:layout_height="50dp"
-                android:textSize="@dimen/button_text_size"/>
-            <Button
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:id="@+id/google_login"
-                android:height="50dp"
-                android:hint="@string/google_login"
-                android:textSize="@dimen/button_text_size"/>
+                android:hint="@string/btn_forgot_password"
+                android:textSize="@dimen/button_text_size" />
 
             <ProgressBar
                 android:id="@+id/progressBar"
                 android:layout_width="30dp"
                 android:layout_height="30dp"
                 android:layout_gravity="center|bottom"
-                android:visibility="gone"/>
+                android:visibility="gone" />
 
         </LinearLayout>
 

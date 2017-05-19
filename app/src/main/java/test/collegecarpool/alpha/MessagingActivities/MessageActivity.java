@@ -18,8 +18,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.TextView;
-import android.widget.Toast;
+import android.widget.ListView;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -36,6 +35,7 @@ import test.collegecarpool.alpha.Activities.FriendActivity;
 import test.collegecarpool.alpha.Activities.HomeScreenActivity;
 import test.collegecarpool.alpha.Activities.PaymentActivity;
 import test.collegecarpool.alpha.Activities.PlanJourneyActivity;
+import test.collegecarpool.alpha.Adapters.MessageAdapter;
 import test.collegecarpool.alpha.LoginAndRegistrationActivities.SigninActivity;
 import test.collegecarpool.alpha.R;
 import test.collegecarpool.alpha.UserClasses.UserProfile;
@@ -44,20 +44,13 @@ public class MessageActivity extends AppCompatActivity {
 
     private EditText message;
     private ActionBarDrawerToggle actionBarDrawerToggle;
-
-    final static String TAG = "MessageActivity";
-
+    private final static String TAG = "MessageActivity";
     private DatabaseReference receiverChatRef;
-
     private FirebaseAuth auth;
     private FirebaseUser user;
-
     private String receiverID;
-    private TextView messageList;
-
-    String myUserName;
-
-    ArrayList<String> allMessages;
+    private String myUserName;
+    private ArrayList<Message> messages;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -79,27 +72,40 @@ public class MessageActivity extends AppCompatActivity {
         /*Set The Activity Name To The User You Are Sending To*/
         getUserNames();
 
+        /*Listener For Enter Key From Keyboard*/
         message = (EditText) findViewById(R.id.message);
-        messageList = (TextView) findViewById(R.id.chatMessageList);
 
         /*Populate the Page With Any Previous Messages*/
         populateMessages();
 
         initDrawer();
 
+        /*Button to Send Message*/
         Button btnSendMessage = (Button) findViewById(R.id.btnSendMessage);
         btnSendMessage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 String messageText = message.getText().toString();
-                Message myMessage = new Message(myUserName, messageText);
-                sendMessage(myMessage);
-                message.setText("");
+                if(!messageText.equals("")) {
+                    Message myMessage = new Message(myUserName, messageText);
+                    sendMessage(myMessage);
+                    message.setText("");
+                    populateMessages();
+                }
             }
         });
 
         /*Set Up The Broadcast Receiver*/
         LocalBroadcastManager.getInstance(this).registerReceiver(messageReceiver, new IntentFilter("message_received"));
+    }
+
+    /*Initialise the List View Adapter*/
+    private void initListView() {
+        MessageAdapter messageAdapter = new MessageAdapter(this, R.layout.message_list_right, messages);
+        ListView listView = (ListView) findViewById(R.id.message_list_view);
+        listView.setAdapter(messageAdapter);
+        registerForContextMenu(listView);
+        Log.d(TAG, "ListView" + listView);
     }
 
     /*On Receive Of A Broadcast*/
@@ -113,8 +119,6 @@ public class MessageActivity extends AppCompatActivity {
                 populateMessages();
                 Log.d(TAG, "MESSAGE RECEIVED");
             }
-            else
-                Toast.makeText(MessageActivity.this, "Could Not Read Request LatLng", Toast.LENGTH_SHORT).show();
         }
     };
 
@@ -132,26 +136,22 @@ public class MessageActivity extends AppCompatActivity {
         receiverChatRef.child("Messaging").addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                /*List Of All Messages (To Be Sent To Message Adapter)*/
-                allMessages = new ArrayList<>();
-                messageList.setText("");
+                messages = new ArrayList<>();
                 Iterable<DataSnapshot> data = dataSnapshot.getChildren();
                 for(DataSnapshot dataSnap : data){ //Cycle Through Users
                     Log.d(TAG, "KEY IS: " + dataSnap.getKey());
                     if(dataSnap.getKey().equals(user.getUid())) {
                         Log.d(TAG, "RECEIVER ID MATCHED");
                         Iterable<DataSnapshot> data1 = dataSnap.getChildren();
+                        Log.d(TAG, "Size: " + dataSnap.getChildrenCount());
                         for (DataSnapshot dataSnap1 : data1) {
                             Message storedMessage = dataSnap1.getValue(Message.class);
                             Log.d(TAG, "Message: " + storedMessage.getMessage());
-                            allMessages.add(storedMessage.getSender() + ": " + storedMessage.getMessage());
-                            Log.d(TAG, "STORED MESSAGE IS: " + storedMessage.getMessage());
+                            messages.add(storedMessage);
                         }
                     }
                 }
-                for(String s : allMessages){
-                    messageList.append(s + "\n");
-                }
+                initListView();
             }
 
             @Override

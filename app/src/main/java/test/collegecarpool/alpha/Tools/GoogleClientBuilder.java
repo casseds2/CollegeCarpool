@@ -31,6 +31,10 @@ public class GoogleClientBuilder extends Activity implements GoogleApiClient.Con
         this.googleApiClient = googleApiClient;
     }
 
+    public GoogleApiClient getGoogleApiClient(){
+        return googleApiClient;
+    }
+
     /*Disconnect the Client*/
     public void disconnect(){
         this.googleApiClient.disconnect();

@@ -61,8 +61,12 @@ public class HomeScreenActivity extends AppCompatActivity implements OnMapReadyC
 
         auth = FirebaseAuth.getInstance();
 
+        initPlanJourney();
         initDrawer();
 
+    }
+
+    public void initPlanJourney(){
         Button btnPlanJourney = (Button) findViewById(R.id.plan_journey);
         btnPlanJourney.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -71,7 +75,6 @@ public class HomeScreenActivity extends AppCompatActivity implements OnMapReadyC
                 startActivity(new Intent(HomeScreenActivity.this, PlanJourneyActivity.class));
             }
         });
-
     }
 
     @Override

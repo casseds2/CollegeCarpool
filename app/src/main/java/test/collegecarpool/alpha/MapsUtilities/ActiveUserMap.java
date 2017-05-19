@@ -156,7 +156,8 @@ public class ActiveUserMap{
                     polylineOptions.isClickable();
                     polylineOptions.geodesic(true);
                     Polyline polyline = googleMap.addPolyline(polylineOptions);
-                    /*Set PolyLien Styles - New Update*/
+                    /*Set PolyLine Styles - New Update*/
+                    polyline.setStartCap(new RoundCap());
                     polyline.setEndCap(new RoundCap());
                     polyline.setJointType(JointType.ROUND);
                     userAndMarkers.put(userID, polyWaypoints);

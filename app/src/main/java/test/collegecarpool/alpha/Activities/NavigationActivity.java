@@ -27,10 +27,13 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.CameraPosition;
+import com.google.android.gms.maps.model.JointType;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
+import com.google.android.gms.maps.model.RoundCap;
 
 import java.util.ArrayList;
 import java.util.Locale;
@@ -137,7 +140,7 @@ public class NavigationActivity extends FragmentActivity implements OnMapReadyCa
     };
 
     /*Where Abouts in the Journey to Put the Ride Request*/
-    private void insertRequestIntoWaypointLatLngs(LatLng latLng){
+    public void insertRequestIntoWaypointLatLngs(LatLng latLng){
         Log.d(TAG, "New Ride Request Received");
         float [] distance = new float[1];
         double minDistance = 100000;
@@ -203,6 +206,7 @@ public class NavigationActivity extends FragmentActivity implements OnMapReadyCa
 
         /*If the User Accepted A Ride Request*/
         if(acceptedRequest){
+            //googleMap.clear();
             insertRequestIntoWaypointLatLngs(requestLatLng);
             acceptedRequest = false;
             /*Reset So Instruction Can Be Repeated If Journey Changes*/
@@ -246,12 +250,27 @@ public class NavigationActivity extends FragmentActivity implements OnMapReadyCa
         /*Stop The Lines Being Drawn At the End Of A Journey*/
         if(!journeyFinished) {
             if(polyLineRecalculated || userAtEndStep) { //Redraw at line update or at end step
+                /*Clear Map*/
+                googleMap.clear();
                 /*Add Markers To The Map*/
                 drawWaypointsOnMap();
                 /*Add the Polyline to The Map*/
+                //PolylineOptions polylineOptions = new PolylineOptions();
+                //polylineOptions.addAll(polyLatLngs).width(8).color(Color.BLUE);
+                //googleMap.addPolyline(polylineOptions);
+                /*Set Up How Polyline Looks*/
                 PolylineOptions polylineOptions = new PolylineOptions();
-                polylineOptions.addAll(polyLatLngs).width(8).color(Color.BLUE);
-                googleMap.addPolyline(polylineOptions);
+                polylineOptions.addAll(polyLatLngs);
+                polylineOptions.width(10);
+                polylineOptions.color(Color.BLUE);
+                polylineOptions.clickable(true);
+                polylineOptions.isClickable();
+                polylineOptions.geodesic(true);
+                Polyline polyline = googleMap.addPolyline(polylineOptions);
+                /*Set PolyLine Styles - New Update*/
+                polyline.setStartCap(new RoundCap());
+                polyline.setEndCap(new RoundCap());
+                polyline.setJointType(JointType.ROUND);
             }
         }
     }
@@ -286,7 +305,7 @@ public class NavigationActivity extends FragmentActivity implements OnMapReadyCa
     }
 
     /*Gets the LatLngs From the Journey Objects as Google LatLngs*/
-    private ArrayList<LatLng> getWaypointLatLngs(){
+    public ArrayList<LatLng> getWaypointLatLngs(){
         ArrayList<Waypoint> waypoints = journey.getWaypoints();
         ArrayList<LatLng> latLngs = new ArrayList<>();
         for(Waypoint waypoint : waypoints){

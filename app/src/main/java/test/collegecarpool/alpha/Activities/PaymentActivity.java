@@ -40,6 +40,7 @@ import static android.nfc.NdefRecord.createMime;
 public class PaymentActivity extends AppCompatActivity implements NfcAdapter.CreateNdefMessageCallback, NfcAdapter.OnNdefPushCompleteCallback {
 
     public NfcAdapter nfcAdapter;
+    private boolean tapDetected;
     private TextView balance;
     private final String TAG = "PaymentActivity";
     private FirebaseUser currentUser;
@@ -47,6 +48,8 @@ public class PaymentActivity extends AppCompatActivity implements NfcAdapter.Cre
     private int euro, cent;
     private FirebaseAuth auth;
     private double cost = 0;
+    private TextView paymentAmount;
+    private double wallet;
     private ActionBarDrawerToggle actionBarDrawerToggle;
 
     @Override
@@ -56,11 +59,15 @@ public class PaymentActivity extends AppCompatActivity implements NfcAdapter.Cre
 
         initFirebaseAuth();
 
+        tapDetected = true;
         auth = FirebaseAuth.getInstance();
         balance = (TextView) findViewById(R.id.balance);
+        euro = 0;
+        cent = 0;
 
         displayBalance();
         initNumWheels();
+        initPaymentAmount();
         initDrawer();
 
         nfcAdapter = NfcAdapter.getDefaultAdapter(this);
@@ -73,6 +80,11 @@ public class PaymentActivity extends AppCompatActivity implements NfcAdapter.Cre
             Toast.makeText(this, "Nfc Not Available", Toast.LENGTH_SHORT).show();
             Log.d(TAG, "NFC NOT AVAILABLE");
         }
+    }
+
+    private void initPaymentAmount(){
+        paymentAmount = (TextView) findViewById(R.id.payment_amount);
+        paymentAmount.setText("Donation: €" + String.valueOf(euro) + "." + String.valueOf(cent));
     }
 
     private void initNumWheels(){
@@ -90,6 +102,11 @@ public class PaymentActivity extends AppCompatActivity implements NfcAdapter.Cre
             public void onValueChange(NumberPicker picker, int oldVal, int newVal) {
                 Log.d(TAG, oldVal + " changed to " + newVal);
                 euro = newVal;
+                if(cent < 10)
+                    paymentAmount.setText("Donation: €" + String.valueOf(euro) + ".0" + String.valueOf(cent));
+                else
+                    paymentAmount.setText("Donation: €" + String.valueOf(euro) + "." + String.valueOf(cent));
+
             }
         });
         Log.d(TAG, "NEW EURO: " + String.valueOf(euro));
@@ -105,6 +122,10 @@ public class PaymentActivity extends AppCompatActivity implements NfcAdapter.Cre
             public void onValueChange(NumberPicker picker, int oldVal, int newVal) {
                 Log.d(TAG, oldVal + " changed to " + newVal);
                 cent = newVal;
+                if(cent < 10)
+                    paymentAmount.setText("Donation: €" + String.valueOf(euro) + ".0" + String.valueOf(cent));
+                else
+                    paymentAmount.setText("Donation: €" + String.valueOf(euro) + "." + String.valueOf(cent));
             }
         });
         Log.d(TAG, "NEW CENT: " + cent);
@@ -119,28 +140,37 @@ public class PaymentActivity extends AppCompatActivity implements NfcAdapter.Cre
         cost = Double.parseDouble(message);
         /*This incorrect loop cause money to be taken away irregardless of message being beamed*/
         Log.d(TAG, "Personal Balance is " + String.valueOf(getPersonalBalance()) + " and Cost is " + String.valueOf(cost));
-        if(userHasEnoughCredit(cost)) { //This is the point where its going wrong
-            removeCostFromWallet(cost);
-            displayBalance();
-            return new NdefMessage(new NdefRecord[]{
-                    createMime("application/test.collegecarpool.alpha", message.getBytes()), //Inserts the Mime Message
-                    createApplicationRecord("test.collegecarpool.alpha") //Embeds Android Application Record into Ndef Message to Start Correct Package
-            });
-        }
-        else{
+        if (userHasEnoughCredit(cost)) { //This is the point where its going wrong
+            if(tapDetected) {
+                tapDetected = false;
+                removeCostFromWallet(cost);
+                displayBalance();
+                return new NdefMessage(new NdefRecord[]{
+                        createMime("application/test.collegecarpool.alpha", message.getBytes()), //Inserts the Mime Message
+                        createApplicationRecord("test.collegecarpool.alpha") //Embeds Android Application Record into Ndef Message to Start Correct Package
+                });
+            }
+            else {
+                String tapWarning = "Restart Activity";
+                return new NdefMessage(new NdefRecord[]{
+                        createMime("application/test.collegecarpool.alpha", tapWarning.getBytes()),
+                        createApplicationRecord("test.collegecarpool.alpha")
+                });
+            }
+        } else {
             Log.d(TAG, "ENTERED ELSE NDEF STATE");
             String ErrorMessage = "Not Enough Credit";
             return new NdefMessage(new NdefRecord[]{
-               createMime("application/test.collegecarpool.alpha", ErrorMessage.getBytes()),
-               createApplicationRecord("test.collegecarpool.alpha")
+                    createMime("application/test.collegecarpool.alpha", ErrorMessage.getBytes()),
+                    createApplicationRecord("test.collegecarpool.alpha")
             });
         }
     }
 
     /*Retrieve the User Balance From the Wallet TextView*/
     private double getPersonalBalance(){
-        Log.d(TAG, "getPersonalBalance() is " + balance.getText().toString());
-        return Double.parseDouble(balance.getText().toString());
+        Log.d(TAG, "getPersonalBalance() is " + wallet);
+        return wallet;
     }
 
     /*Check if the Cost Parameter is Less than the User Balance*/
@@ -166,13 +196,16 @@ public class PaymentActivity extends AppCompatActivity implements NfcAdapter.Cre
                 String message = new String(ndefMessage.getRecords()[0].getPayload());
                 Log.d(TAG, "NDEF MESSAGE!!! " + ndefMessage.toString());
                 Log.d(TAG, "NFC MESSAGE!!! " + message);
-                if (!message.equals("Not Enough Credit")) {
+                if (!message.equals("Not Enough Credit") && !message.equals("User Must Restart Activity")) {
                     cost = Double.parseDouble(message);
                     Log.d(TAG, "RECEIVED COST IS" + cost);
                     addCostToWallet(cost);
                 }
                 else
-                    Toast.makeText(PaymentActivity.this, "User Hasn't Enough Credit", Toast.LENGTH_SHORT).show();
+                    if(message.equals("Not Enough Credit"))
+                        Toast.makeText(PaymentActivity.this, "User Hasn't Enough Credit", Toast.LENGTH_SHORT).show();
+                    else
+                        Toast.makeText(PaymentActivity.this, "User Must Restart Payment Activity", Toast.LENGTH_SHORT).show();
             }
         }
     }
@@ -203,20 +236,14 @@ public class PaymentActivity extends AppCompatActivity implements NfcAdapter.Cre
     }
 
     private void displayBalance(){
-        userRef = FirebaseDatabase.getInstance().getReference("UserProfile");
+        userRef = FirebaseDatabase.getInstance().getReference("UserProfile").child(currentUser.getUid());
         userRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                Iterable <DataSnapshot> dataSnapshots = dataSnapshot.getChildren();
-                for(DataSnapshot dataSnapshot1 : dataSnapshots){
-                    if(dataSnapshot.getKey().equals(currentUser.getUid())) {
-                        UserProfile userProfile = dataSnapshot1.getValue(UserProfile.class);
-                        if (userProfile.getEmail().equals(currentUser.getEmail())) {
-                            double wallet = userProfile.getWallet();
-                            balance.setText(String.valueOf(wallet));
-                        }
-                    }
-                }
+                UserProfile userProfile = dataSnapshot.getValue(UserProfile.class);
+                wallet = userProfile.getWallet();
+                Log.d(TAG, "Wallet: " + String.valueOf(wallet));
+                balance.setText("Wallet: €" + String.valueOf(wallet));
             }
 
             @Override

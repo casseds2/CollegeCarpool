@@ -16,6 +16,7 @@ exports.messageNotification = functions.database.ref("/UserProfile/{receiverID}/
         console.log("Event Message: " + message.message);
         console.log("Event Sender: " + message.sender);
         console.log("Event time: " + message.timeStamp);
+        console.log("Event uid: " + message.uid);
 
         message.copied = true;
         const receiverID = event.params.receiverID;
@@ -34,7 +35,8 @@ exports.messageNotification = functions.database.ref("/UserProfile/{receiverID}/
             copied : message.copied,
             message : message.message,
             sender : message.sender,
-            timeStamp : message.timeStamp
+            timeStamp : message.timeStamp,
+            uid : message.uid
         });
         console.log("Message Stored For Sender");
     }

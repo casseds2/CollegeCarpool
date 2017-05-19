@@ -51,8 +51,8 @@ public class DateTest {
 
     @org.junit.Test
     public void isBefore() throws Exception {
-        Date date1 = new Date(1, 2, 2017);
-        Date date2 = new Date(1, 3, 2017);
-        assertEquals(!date1.isBefore(date2), false);
+        Date date1 = new Date(17, 5, 2017);
+        Date date2 = new Date(8, 6, 2017);
+        assertEquals(date1.isBefore(date2), true);
     }
 }

@@ -1,5 +1,8 @@
 package test.collegecarpool.alpha.MessagingActivities;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+
 import java.util.HashMap;
 
 public class Message {
@@ -7,7 +10,9 @@ public class Message {
     private String message;
     private String timeStamp;
     private String sender;
+    private String uid;
     private boolean copied;
+    private FirebaseUser user;
 
     Message(){}
 
@@ -16,10 +21,21 @@ public class Message {
         this.message = message;
         copied = false;
         timeStamp = Long.toString(System.currentTimeMillis());
+        FirebaseAuth auth = FirebaseAuth.getInstance();
+        user = auth.getCurrentUser();
+        uid = user.getUid();
     }
 
     boolean getCopied(){
         return copied;
+    }
+
+    public String getUid(){
+        return uid;
+    }
+
+    void setUid(String uid){
+        this.uid = uid;
     }
 
     void setCopied(){
@@ -28,6 +44,7 @@ public class Message {
 
     HashMap<String, Object> toMap(){
         HashMap<String, Object> mapMessage = new HashMap<>();
+        mapMessage.put("uid", uid);
         mapMessage.put("sender", sender);
         mapMessage.put("message", message);
         mapMessage.put("copied", copied);
@@ -56,8 +73,7 @@ public class Message {
 
     }
 
-    String getMessage(){
+    public String getMessage(){
         return message;
     }
-
 }

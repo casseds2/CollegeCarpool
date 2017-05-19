@@ -1,6 +1,7 @@
 package test.collegecarpool.alpha.LoginAndRegistrationActivities;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.support.annotation.NonNull;
@@ -23,7 +24,6 @@ import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.HashMap;
 
-import test.collegecarpool.alpha.Activities.HomeScreenActivity;
 import test.collegecarpool.alpha.R;
 import test.collegecarpool.alpha.UserClasses.UserProfile;
 
@@ -31,6 +31,7 @@ public class SignupActivity extends AppCompatActivity {
 
     private EditText inputEmail, inputPassword, inputFirstName, inputSecondName;
     private Button btn_Signup, btn_back;
+    private SharedPreferences settings;
 
     private ProgressBar progressBar;
 
@@ -50,6 +51,7 @@ public class SignupActivity extends AppCompatActivity {
         /*Get Firebase Instances*/
         auth = FirebaseAuth.getInstance();
         userRef = FirebaseDatabase.getInstance().getReference("UserProfile");
+        settings = this.getSharedPreferences("Login", 0);
 
         /*Define XML Elements*/
         btn_Signup = (Button) findViewById(R.id.btn_Signup);
@@ -86,32 +88,17 @@ public class SignupActivity extends AppCompatActivity {
                     Toast.makeText(getApplicationContext(), "Enter a Stronger Password", Toast.LENGTH_SHORT).show();
                     return;
                 }
+                Log.d(TAG, "Email: " + email);
+                if(!email.substring(email.length() - 12, email.length()).equals("@mail.dcu.ie")){
+                    Toast.makeText(getApplicationContext(), "Enter a DCU Email", Toast.LENGTH_SHORT).show();
+                    return;
+                }
 
                 progressBar.setVisibility(View.VISIBLE);
 
                 /*Create a User*/
-                auth.createUserWithEmailAndPassword(email, password)
-                        .addOnCompleteListener(SignupActivity.this, new OnCompleteListener<AuthResult>() {
-                            @Override
-                            public void onComplete(@NonNull Task<AuthResult> task) {
-                                Toast.makeText(SignupActivity.this, "Successfully Created: " + task.isSuccessful(), Toast.LENGTH_SHORT).show();
-                                progressBar.setVisibility(View.GONE);
-                                if (!task.isSuccessful()) {
-                                    try {
-                                        Toast.makeText(SignupActivity.this, "Error Signing Up", Toast.LENGTH_SHORT).show();
-                                    }
-                                    catch(Exception e){
-                                        Log.e("SignupActivity", "Failed to Create User");
-                                    }
-                                }
-                                else {
-                                    saveUserProfile();
-                                    startActivity(new Intent(SignupActivity.this, SigninActivity.class));
-                                    finish();
-                                }
-                            }
-                        });
-
+                createUser(email, password);
+                saveLogin(email, password);
             }
         });
 
@@ -123,14 +110,45 @@ public class SignupActivity extends AppCompatActivity {
         });
     }
 
+    public void createUser(String email, String password){
+        auth.createUserWithEmailAndPassword(email, password)
+                .addOnCompleteListener(SignupActivity.this, new OnCompleteListener<AuthResult>() {
+                    @Override
+                    public void onComplete(@NonNull Task<AuthResult> task) {
+                        Toast.makeText(SignupActivity.this, "Successfully Created: " + task.isSuccessful(), Toast.LENGTH_SHORT).show();
+                        progressBar.setVisibility(View.GONE);
+                        if (!task.isSuccessful()) {
+                            try {
+                                Toast.makeText(SignupActivity.this, "Error Signing Up", Toast.LENGTH_SHORT).show();
+                            }
+                            catch(Exception e){
+                                Log.e("SignupActivity", "Failed to Create User");
+                            }
+                        }
+                        else {
+                            saveUserProfile();
+                            startActivity(new Intent(SignupActivity.this, SigninActivity.class));
+                            finish();
+                        }
+                    }
+                });
+    }
+
     @Override
     protected void onResume(){
         super.onResume();
         progressBar.setVisibility(View.GONE);
     }
 
+    private void saveLogin(String email, String password){
+        SharedPreferences.Editor editor = settings.edit();
+        editor.putString("Email", email);
+        editor.putString("Password", password);
+        editor.apply();
+    }
+
     /*Add the User to a Database*/
-    private void saveUserProfile(){
+    public void saveUserProfile(){
         UserProfile userProfile = new UserProfile(firstName, secondName, email, 0, 0, 10);
         HashMap<String, Object> children = new HashMap<>();
         if(auth.getCurrentUser() != null) {
