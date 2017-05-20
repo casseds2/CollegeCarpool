@@ -119,23 +119,20 @@
         <activity
             android:name=".Activities.ViewJourneyPlannerActivity"
             android:screenOrientation="portrait" />
-
-        <activity android:name=".Activities.FindCarpoolActivity"
-            android:screenOrientation="portrait"/>
-
+        <activity
+            android:name=".Activities.FindCarpoolActivity"
+            android:screenOrientation="portrait" />
         <activity
             android:name=".MapsUtilities.ViewJourneyActivity"
             android:label="@string/title_activity_view_journey"
-            android:screenOrientation="portrait"/>
-
+            android:screenOrientation="portrait" />
         <activity
             android:name=".Activities.FriendActivity"
-            android:theme="@style/AppTheme.NoActionBar"
-            android:screenOrientation="portrait"/>
-
-        <activity android:name=".Activities.ViewFriendPlanner"
-            android:screenOrientation="portrait"></activity>
-
+            android:screenOrientation="portrait"
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity
+            android:name=".Activities.ViewFriendPlanner"
+            android:screenOrientation="portrait" />
         <activity
             android:name=".Activities.NavigationActivity"
             android:label="@string/title_activity_navigation"

@@ -89,7 +89,7 @@ public class SignupActivity extends AppCompatActivity {
                     return;
                 }
                 Log.d(TAG, "Email: " + email);
-                if(!email.substring(email.length() - 12, email.length()).equals("@mail.dcu.ie")){
+                if(!email.substring(email.indexOf("@"), email.length()).equals("@mail.dcu.ie")){
                     Toast.makeText(getApplicationContext(), "Enter a DCU Email", Toast.LENGTH_SHORT).show();
                     return;
                 }

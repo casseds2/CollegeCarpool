@@ -2,6 +2,7 @@ package test.collegecarpool.alpha.Services.FirebaseMessaging;
 
 import android.util.Log;
 
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.firebase.iid.FirebaseInstanceIdService;
 
@@ -13,8 +14,10 @@ public class MessagingTokenRefreshService extends FirebaseInstanceIdService{
 
     @Override
     public void onTokenRefresh() {
-        String token = FirebaseInstanceId.getInstance().getToken();
-        Log.d(TAG, "Token is: " + token);
-        new FCMTokenPusher().pushFCMToken(token);
+        if(FirebaseAuth.getInstance() != null) {
+            String token = FirebaseInstanceId.getInstance().getToken();
+            Log.d(TAG, "Token is: " + token);
+            new FCMTokenPusher().pushFCMToken(token);
+        }
     }
 }
