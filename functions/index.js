@@ -5,6 +5,7 @@ const functions = require("firebase-functions");
 const admin = require("firebase-admin");
 admin.initializeApp(functions.config().firebase);
 
+/*Listen For A Messaging Event*/
 exports.messageNotification = functions.database.ref("/UserProfile/{receiverID}/Messaging/{senderID}/{timeStamp}")
     .onWrite(event => {
         const message = event.data.val();
@@ -116,6 +117,44 @@ exports.rideRequest = functions.database.ref("/UserProfile/{driverID}/RideReques
             });
         }
 
+        /*Listen For A Response Status To A Ride Request*/
+        exports.requestResponse = functions.database.ref("/UserProfile/{driverID}/RideRequests/{requestID}/Response")
+            .onWrite(event => {
+
+                const response = event.data.val();
+                console.log("Response: " + response);
+
+                const status = response.Status;
+                console.log("Status: " + status);
+
+                const requestID = event.params.requestID;
+                const driverID = event.params.driverID;
+
+                sendStatusUpdateToRequester(requestID, driverID, status);
+            });
+
+            /*Send the Status Update To The Person Who Requested A Lift*/
+            function sendStatusUpdateToRequester(requestID, driverID, status){
+                var database = admin.database();
+                var ref = database.ref("UserProfile/" + requestID);
+                var fcmToken;
+                ref.once("value", function(snapshot){
+                    fcmToken = snapshot.val().fcmToken;
+                    console.log("FCM Token: " + fcmToken);
+                    const payload = {
+                        notification : {
+                            title: "Request Was " + status
+                        },
+                        data : {
+                            "type" : "requestResponse",
+                            "status" : status,
+                            "driverID" : driverID
+                        }
+                    };
+                    sendNotification(fcmToken, payload);
+                });
+            }
+
 /*Listen For A Friend Request*/
 exports.friendRequest = functions.database.ref("/UserProfile/{receiverID}/FriendRequest/{requestID}/")
     .onWrite(event => {
@@ -142,44 +181,6 @@ exports.friendRequest = functions.database.ref("/UserProfile/{receiverID}/Friend
                 data : {
                     "type" : "friendRequest",
                     "username" : userName
-                }
-            };
-            sendNotification(fcmToken, payload);
-        });
-    }
-
-/*Listen For A Response Status To A Ride Request*/
-exports.requestResponse = functions.database.ref("/UserProfile/{driverID}/RideRequests/{requestID}/Response")
-    .onWrite(event => {
-
-        const response = event.data.val();
-        console.log("Response: " + response);
-
-        const status = response.Status;
-        console.log("Status: " + status);
-
-        const requestID = event.params.requestID;
-        const driverID = event.params.driverID;
-
-        sendStatusUpdateToRequester(requestID, driverID, status);
-    });
-
-    /*Send the Status Update To The Person Who Requested A Lift*/
-    function sendStatusUpdateToRequester(requestID, driverID, status){
-        var database = admin.database();
-        var ref = database.ref("UserProfile/" + requestID);
-        var fcmToken;
-        ref.once("value", function(snapshot){
-            fcmToken = snapshot.val().fcmToken;
-            console.log("FCM Token: " + fcmToken);
-            const payload = {
-                notification : {
-                    title: "Request Was " + status
-                },
-                data : {
-                    "type" : "requestResponse",
-                    "status" : status,
-                    "driverID" : driverID
                 }
             };
             sendNotification(fcmToken, payload);

@@ -96,7 +96,9 @@ public class ViewFriendPlanner extends AppCompatActivity {
                     }
                     journey.setDate(date);
                     journey.setWaypoints(waypoints);
-                    journeys.add(journey);
+                    if(journey.getDate().getDay() != 0) {
+                        journeys.add(journey);
+                    }
                 }
                 initListView();
             }

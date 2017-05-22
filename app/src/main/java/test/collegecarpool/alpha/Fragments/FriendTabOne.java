@@ -82,6 +82,7 @@ public class FriendTabOne extends Fragment{
     @Override
     public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
         super.onCreateContextMenu(menu, v, menuInfo);
+
         MenuInflater menuInflater = getActivity().getMenuInflater();
         menuInflater.inflate(R.menu.friend_tab_1_popup_menu, menu);
     }
@@ -133,6 +134,7 @@ public class FriendTabOne extends Fragment{
         friendsRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
+                userNames = new ArrayList<>();
                 Iterable<DataSnapshot> friends = dataSnapshot.getChildren();
                 if(null != dataSnapshot.getChildren()){
                     for(DataSnapshot friend : friends) {

@@ -10,16 +10,20 @@ import java.util.HashMap;
 public class FCMTokenPusher {
 
     private FirebaseUser user;
+    private FirebaseAuth auth;
 
     public FCMTokenPusher(){
-        FirebaseAuth auth = FirebaseAuth.getInstance();
-        user = auth.getCurrentUser();
+        auth = FirebaseAuth.getInstance();
+        if(auth.getCurrentUser() != null)
+            user = auth.getCurrentUser();
     }
 
     public void pushFCMToken(String fcmToken){
-        DatabaseReference tokenRef = FirebaseDatabase.getInstance().getReference("UserProfile").child(user.getUid());
-        HashMap<String, Object> token = new HashMap<>();
-        token.put("/fcmToken/", fcmToken);
-        tokenRef.updateChildren(token);
+        if(auth.getCurrentUser() != null) {
+            DatabaseReference tokenRef = FirebaseDatabase.getInstance().getReference("UserProfile").child(user.getUid());
+            HashMap<String, Object> token = new HashMap<>();
+            token.put("/fcmToken/", fcmToken);
+            tokenRef.updateChildren(token);
+        }
     }
 }

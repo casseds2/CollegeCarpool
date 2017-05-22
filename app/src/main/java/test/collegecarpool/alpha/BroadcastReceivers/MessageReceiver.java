@@ -9,7 +9,7 @@ import android.util.Log;
 
 import static android.content.Context.NOTIFICATION_SERVICE;
 
-public class MessageReceiver  extends BroadcastReceiver {
+public class MessageReceiver extends BroadcastReceiver {
 
     private final String TAG = "MESSAGE RECEIVER";
 

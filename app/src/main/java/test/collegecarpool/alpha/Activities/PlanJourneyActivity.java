@@ -55,7 +55,7 @@ import test.collegecarpool.alpha.UserClasses.Date;
 
 public class PlanJourneyActivity extends AppCompatActivity implements DatePickerDialog.OnDateSetListener {
 
-    private final String TAG = "PLANJOURNEYACTIVITY";
+    private final String TAG = "PlanJourneyMaster";
     private ArrayList<Place> places = new ArrayList<>();
     private ArrayList<String> placeNames = new ArrayList<>();
     private DatePickerDialog datePickerDialog;
@@ -91,11 +91,8 @@ public class PlanJourneyActivity extends AppCompatActivity implements DatePicker
         initSearchBar();
         initButtons();
         initGoNow();
-
         initFirebase();
         manageJourneyHistory = new ManageJourneyHistory(user);
-
-
         initListView();
         initAddMyLocation();
         getCurrentJourneys();

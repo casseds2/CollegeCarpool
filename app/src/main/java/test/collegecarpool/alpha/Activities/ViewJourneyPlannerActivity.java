@@ -58,7 +58,7 @@ public class ViewJourneyPlannerActivity extends AppCompatActivity {
 
         journeys = new ArrayList<>();
         Calendar calendar = Calendar.getInstance();
-        todayDate = new Date(calendar.get(Calendar.DAY_OF_MONTH), calendar.get(Calendar.MONTH), calendar.get(Calendar.YEAR));
+        todayDate = new Date(calendar.get(Calendar.DAY_OF_MONTH), calendar.get(Calendar.MONTH) + 1, calendar.get(Calendar.YEAR));
 
 
         initDrawer();
@@ -222,13 +222,17 @@ public class ViewJourneyPlannerActivity extends AppCompatActivity {
                         }
                     }
                     if(journey.getDate() != null || journey.getWaypoints() != null) {
+                        //Log.d(TAG, "Journey Date: " + journey.getDate().toString());
+                        //Log.d(TAG, "Today Date: " + todayDate.toString());
                         if (!todayDate.isBefore(journey.getDate())) {
-                            Log.d(TAG, "Removing Past Journey " + journey.toString());
-                            data1.getRef().setValue(null);
+                            //Log.d(TAG, "Removing Past Journey " + journey.toString());
+                            if(!data1.getRef().getKey().equals("History"))
+                                data1.getRef().setValue(null);
                         }
                         else{
                             journeys.add(journey);
-                            Log.d(TAG, "ELEMENT: " + journey);
+                            //Log.d(TAG, journey.getDate().toString() + " is after " + todayDate.toString());
+                            //Log.d(TAG, "ELEMENT: " + journey);
                         }
                     }
                 }

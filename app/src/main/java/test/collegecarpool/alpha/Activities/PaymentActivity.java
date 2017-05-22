@@ -72,7 +72,7 @@ public class PaymentActivity extends AppCompatActivity implements NfcAdapter.Cre
 
         nfcAdapter = NfcAdapter.getDefaultAdapter(this);
         if(null != nfcAdapter && nfcAdapter.isEnabled()){
-            Toast.makeText(this, "Nfc Available", Toast.LENGTH_SHORT).show();
+            //Toast.makeText(this, "Nfc Available", Toast.LENGTH_SHORT).show();
             nfcAdapter.setNdefPushMessageCallback(this, this); //Called when NFC device in range
             nfcAdapter.setOnNdefPushCompleteCallback(this, this); //Called when nDef message delivered
         }
@@ -143,8 +143,8 @@ public class PaymentActivity extends AppCompatActivity implements NfcAdapter.Cre
         if (userHasEnoughCredit(cost)) { //This is the point where its going wrong
             if(tapDetected) {
                 tapDetected = false;
-                removeCostFromWallet(cost);
-                displayBalance();
+                //removeCostFromWallet(cost);
+                //displayBalance();
                 return new NdefMessage(new NdefRecord[]{
                         createMime("application/test.collegecarpool.alpha", message.getBytes()), //Inserts the Mime Message
                         createApplicationRecord("test.collegecarpool.alpha") //Embeds Android Application Record into Ndef Message to Start Correct Package
@@ -182,6 +182,9 @@ public class PaymentActivity extends AppCompatActivity implements NfcAdapter.Cre
     @Override
     public void onNdefPushComplete(NfcEvent event) {
         //Toast.makeText(this, "Payload Delivered", Toast.LENGTH_SHORT).show();
+        removeCostFromWallet(cost);
+        displayBalance();
+        tapDetected = true;
         Log.d(TAG, "Payload Delivered: " + String.valueOf(euro) + "." + String.valueOf(cent));
     }
 

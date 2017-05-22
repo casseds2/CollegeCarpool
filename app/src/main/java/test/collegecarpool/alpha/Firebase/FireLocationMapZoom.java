@@ -36,19 +36,21 @@ public class FireLocationMapZoom {
 
     public void zoomMyLocation(){
         if(auth != null) {
-            final DatabaseReference myRef = FirebaseDatabase.getInstance().getReference("UserProfile").child(user.getUid());
-            myRef.addListenerForSingleValueEvent(new ValueEventListener() {
-                @Override
-                public void onDataChange(DataSnapshot dataSnapshot) {
-                    UserProfile userProfile = dataSnapshot.getValue(UserProfile.class);
-                    googleMap.animateCamera(CameraUpdateFactory.newCameraPosition(setCamera(new LatLng(userProfile.getLatitude(), userProfile.getLongitude()))));
-                }
+            if(user != null) {
+                final DatabaseReference myRef = FirebaseDatabase.getInstance().getReference("UserProfile").child(user.getUid());
+                myRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        UserProfile userProfile = dataSnapshot.getValue(UserProfile.class);
+                        googleMap.animateCamera(CameraUpdateFactory.newCameraPosition(setCamera(new LatLng(userProfile.getLatitude(), userProfile.getLongitude()))));
+                    }
 
-                @Override
-                public void onCancelled(DatabaseError databaseError) {
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
 
-                }
-            });
+                    }
+                });
+            }
         }
     }
 }

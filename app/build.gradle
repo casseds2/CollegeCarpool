@@ -7,7 +7,7 @@ android {
         applicationId "test.collegecarpool.alpha"
         minSdkVersion 19
         targetSdkVersion 24
-        multiDexEnabled = true
+        multiDexEnabled true
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"

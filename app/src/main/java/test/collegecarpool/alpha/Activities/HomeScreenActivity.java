@@ -140,11 +140,11 @@ public class HomeScreenActivity extends AppCompatActivity implements OnMapReadyC
         DrawerLayout drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
 
-        View appHeader = navigationView.getHeaderView(0);
-        TextView name = (TextView) appHeader.findViewById(R.id.user_name_field);
-        name.setText("Hello");
-        TextView app = (TextView) appHeader.findViewById(R.id.app_name_field);
-        app.setText("College Carpool");
+//        View appHeader = navigationView.getHeaderView(0);
+//        TextView name = (TextView) appHeader.findViewById(R.id.user_name_field);
+//        name.setText("Hello");
+//        TextView app = (TextView) appHeader.findViewById(R.id.app_name_field);
+//        app.setText("College Carpool");
 
         navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
             @Override

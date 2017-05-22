@@ -30,7 +30,7 @@ public class GoogleClientBuilder extends Activity implements GoogleApiClient.Con
         this.context = context;
         this.googleApiClient = googleApiClient;
     }
-
+    
     public GoogleApiClient getGoogleApiClient(){
         return googleApiClient;
     }

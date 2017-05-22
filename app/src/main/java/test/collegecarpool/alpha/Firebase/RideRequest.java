@@ -41,20 +41,22 @@ public class RideRequest {
     }
 
     private void getMyInfo(){
-        DatabaseReference userRef = FirebaseDatabase.getInstance().getReference("UserProfile").child(user.getUid());
-        userRef.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                UserProfile userProfile = dataSnapshot.getValue(UserProfile.class);
-                userName = userProfile.getFirstName() + " " + userProfile.getSecondName();
-                lat = userProfile.getLatitude();
-                lng = userProfile.getLongitude();
-            }
+        if(user != null) {
+            DatabaseReference userRef = FirebaseDatabase.getInstance().getReference("UserProfile").child(user.getUid());
+            userRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    UserProfile userProfile = dataSnapshot.getValue(UserProfile.class);
+                    userName = userProfile.getFirstName() + " " + userProfile.getSecondName();
+                    lat = userProfile.getLatitude();
+                    lng = userProfile.getLongitude();
+                }
 
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
 
-            }
-        });
+                }
+            });
+        }
     }
 }

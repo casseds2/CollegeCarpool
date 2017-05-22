@@ -250,6 +250,9 @@ public class NavigationService extends Service {
         Log.d(TAG, "Index of Max is: " + indexMax);
         /*Attempt to Stop Straight Line Affect*/
         polyLatLngs = new ArrayList<>(polyLatLngs.subList(indexMax, polyLatLngs.size()));
+
+        /*TEST CODE*/
+        polyLineRecalculated = true;
     }
 
     /*Get The Bearing Of the UserLatLng to The first Element of PolyLatLngs - Formula Igis Map*/
