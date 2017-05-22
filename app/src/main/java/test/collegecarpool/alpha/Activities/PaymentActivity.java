@@ -199,7 +199,7 @@ public class PaymentActivity extends AppCompatActivity implements NfcAdapter.Cre
                 String message = new String(ndefMessage.getRecords()[0].getPayload());
                 Log.d(TAG, "NDEF MESSAGE!!! " + ndefMessage.toString());
                 Log.d(TAG, "NFC MESSAGE!!! " + message);
-                if (!message.equals("Not Enough Credit") && !message.equals("User Must Restart Activity")) {
+                if (!message.equals("Not Enough Credit") && !message.equals("User Must Restart Activity") && !message.equals("Restart Activity")) {
                     cost = Double.parseDouble(message);
                     Log.d(TAG, "RECEIVED COST IS" + cost);
                     addCostToWallet(cost);
