@@ -190,3 +190,6 @@ Added a friend system to the app. Users can now add friends from viewing availab
 cloud notification warning them. They can then go to the friends section of the app (nav menu) and go to friend requests which is a tab here. They can accept the
 request here and then the user will be added to their friends list. When in friends list, user can easily message people they know and also have the
 privilege of viewing the friend's journey list. They cannot edit the list.
+
+## My Final Blog
+I have submitted all to be submitted. I hope it is satisfactory. Thank you.
