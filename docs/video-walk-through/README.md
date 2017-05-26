@@ -1,7 +1,10 @@
+Youtube: https://www.youtube.com/watch?v=bMk7BowmaUU&feature=youtu.be
 
-<!--
-The video walk through is [here](FIX-ME).
--->
+Youtube SatNav Demo: https://www.youtube.com/watch?v=4w9WHq7I0J0&feature=youtu.be
+
+Google Drive: https://drive.google.com/file/d/0B0S1cx6Uz8E5RmhhYU5CVzBSN1E/view?usp=sharing
+
+Google Drive SatNav Demo: https://drive.google.com/file/d/0B0S1cx6Uz8E5NHlwQWctdkVqODA/view?usp=sharing
 
 Instructions:
 
